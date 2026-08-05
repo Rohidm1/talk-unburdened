@@ -3,13 +3,15 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { NotebookPen } from "lucide-react";
+import { NotebookPen, Phone, PhoneOff } from "lucide-react";
+import type { Call } from "@twilio/voice-sdk";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { getMyAccount } from "@/lib/account.functions";
 import { addNote, listMyNotes, setMyStatus } from "@/lib/staff.functions";
+import { useTwilioDevice } from "@/hooks/useTwilioDevice";
 
 export const Route = createFileRoute("/_authenticated/staff")({
   head: () => ({
@@ -67,6 +69,22 @@ function StaffPage() {
 
   const isStaff = account.data?.roles.includes("staff");
   const listener = account.data?.listener;
+  const voice = useTwilioDevice(!!isStaff);
+  const [active, setActive] = useState<Call | null>(null);
+
+  const acceptCall = () => {
+    const call = voice.incoming;
+    if (!call) return;
+    call.accept();
+    call.on("disconnect", () => setActive(null));
+    setActive(call);
+    voice.setIncoming(null);
+  };
+
+  const rejectCall = () => {
+    voice.incoming?.reject();
+    voice.setIncoming(null);
+  };
 
   return (
     <main className="mx-auto w-full max-w-4xl px-5 py-12 font-body">
@@ -88,6 +106,43 @@ function StaffPage() {
         </p>
       ) : (
         <>
+          <section className="mt-8 rounded-3xl border border-border bg-card p-6">
+            <div className="flex items-center gap-2">
+              <Phone className="size-5 text-primary" />
+              <h2 className="font-display text-lg font-semibold">Incoming calls</h2>
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {voice.ready
+                ? "You're reachable — keep this page open to receive calls."
+                : "Connecting your line…"}
+            </p>
+
+            {voice.incoming ? (
+              <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-primary/50 bg-secondary/40 p-4">
+                <span className="flex-1 text-sm font-semibold">Someone would like to talk.</span>
+                <Button onClick={acceptCall}>
+                  <Phone className="size-4" /> Accept
+                </Button>
+                <Button variant="outline" onClick={rejectCall}>
+                  Decline
+                </Button>
+              </div>
+            ) : active ? (
+              <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-secondary/40 p-4">
+                <span className="flex-1 text-sm font-semibold">In a call</span>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    active.disconnect();
+                    setActive(null);
+                  }}
+                >
+                  <PhoneOff className="size-4" /> Hang up
+                </Button>
+              </div>
+            ) : null}
+          </section>
+
           <section className="mt-8 rounded-3xl border border-border bg-card p-6">
             <h2 className="font-display text-lg font-semibold">Availability</h2>
             <p className="mt-1 text-sm text-muted-foreground">
