@@ -13,6 +13,9 @@ import { ContactSection, Faq, Footer, HowItWorks, Pricing } from "@/components/s
 import { listeners as fallbackListeners, type Listener } from "@/data/listeners";
 import { listPublicListeners } from "@/lib/listeners.functions";
 import { endCall, getMyAccount, startCall } from "@/lib/account.functions";
+import { prepareDial } from "@/lib/voice.functions";
+import { useTwilioDevice } from "@/hooks/useTwilioDevice";
+import type { Call } from "@twilio/voice-sdk";
 import { avatarFor } from "@/lib/avatars";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -42,11 +45,14 @@ function Index() {
   const fetchAccount = useServerFn(getMyAccount);
   const begin = useServerFn(startCall);
   const finish = useServerFn(endCall);
+  const prepare = useServerFn(prepareDial);
+  const voice = useTwilioDevice(!!session);
 
   const [activeCall, setActiveCall] = useState<Listener | null>(null);
   const [activeCallId, setActiveCallId] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState<Listener | null>(null);
   const [balance, setBalance] = useState(0);
+  const [voiceCall, setVoiceCall] = useState<Call | null>(null);
 
   const listenersQuery = useQuery({
     queryKey: ["listeners"],
@@ -94,10 +100,30 @@ function Index() {
     setActiveCallId(result.callId);
     setUnavailable(null);
     setActiveCall(l);
+
+    try {
+      const dial = await prepare({ data: { listenerId: l.id } });
+      if (dial.ready && dial.toIdentity && dial.dialAuth && voice.ready && voice.identity) {
+        const call = await voice.connect({
+          CallerIdentity: voice.identity,
+          TargetIdentity: dial.toIdentity,
+          DialAuth: dial.dialAuth,
+        });
+        if (call) {
+          call.on("disconnect", () => setVoiceCall(null));
+          setVoiceCall(call);
+        }
+      }
+    } catch (err) {
+      console.error("[voice] could not start audio", err);
+      toast.error("Could not start audio. Check your microphone permission.");
+    }
   };
 
   const handleEnd = async (elapsed: number) => {
     const callId = activeCallId;
+    voiceCall?.disconnect();
+    setVoiceCall(null);
     setActiveCall(null);
     setActiveCallId(null);
     if (!callId) return;
@@ -143,6 +169,8 @@ function Index() {
       <ActiveCallDialog
         listener={activeCall}
         balanceSeconds={balance || creditSeconds}
+        call={voiceCall}
+        audioLive={!!voiceCall}
         onEnd={(elapsed) => void handleEnd(elapsed)}
       />
       <UnavailableDialog

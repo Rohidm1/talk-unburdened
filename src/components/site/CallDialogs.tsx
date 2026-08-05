@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Mic, MicOff, PhoneOff } from "lucide-react";
+import type { Call } from "@twilio/voice-sdk";
 import {
   Dialog,
   DialogContent,
@@ -21,10 +22,14 @@ export function ActiveCallDialog({
   listener,
   balanceSeconds,
   onEnd,
+  call,
+  audioLive,
 }: {
   listener: Listener | null;
   balanceSeconds: number;
   onEnd: (elapsed: number) => void;
+  call?: Call | null;
+  audioLive?: boolean;
 }) {
   const { t } = useTranslation();
   const [elapsed, setElapsed] = useState(0);
@@ -46,8 +51,21 @@ export function ActiveCallDialog({
   const left = Math.max(balanceSeconds - elapsed, 0);
   const cost = (elapsed / 60) * RATE_PER_MINUTE;
 
+  const toggleMute = () => {
+    setMuted((m) => {
+      const next = !m;
+      call?.mute(next);
+      return next;
+    });
+  };
+
+  const hangUp = () => {
+    call?.disconnect();
+    onEnd(elapsed);
+  };
+
   return (
-    <Dialog open={!!listener} onOpenChange={(o) => !o && onEnd(elapsed)}>
+    <Dialog open={!!listener} onOpenChange={(o) => !o && hangUp()}>
       <DialogContent className="sm:max-w-md">
         {listener ? (
           <>
@@ -62,7 +80,9 @@ export function ActiveCallDialog({
               <DialogTitle className="mt-3 font-display text-xl">
                 {t("call.inCall")} {listener.displayName}
               </DialogTitle>
-              <DialogDescription>{t("call.demo")}</DialogDescription>
+              <DialogDescription>
+                {audioLive ? t("call.liveAudio") : t("call.demo")}
+              </DialogDescription>
             </DialogHeader>
 
             <div className="text-center font-display text-5xl tabular-nums">{format(elapsed)}</div>
@@ -79,11 +99,11 @@ export function ActiveCallDialog({
             </div>
 
             <div className="flex justify-center gap-3">
-              <Button variant="outline" size="lg" onClick={() => setMuted((m) => !m)}>
+              <Button variant="outline" size="lg" onClick={toggleMute}>
                 {muted ? <MicOff className="size-4" /> : <Mic className="size-4" />}
                 {muted ? t("call.unmute") : t("call.mute")}
               </Button>
-              <Button variant="destructive" size="lg" onClick={() => onEnd(elapsed)}>
+              <Button variant="destructive" size="lg" onClick={hangUp}>
                 <PhoneOff className="size-4" />
                 {t("call.hangUp")}
               </Button>
