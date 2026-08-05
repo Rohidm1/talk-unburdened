@@ -96,6 +96,7 @@ const en = {
     quickConnect: "Available right now",
     cancel: "Not now",
     demo: "Demo call — voice connection is set up in the next step.",
+    liveAudio: "Live audio — your voice is connected, no names, no recording.",
   },
   footer: {
     tagline: "A listening ear when you need it.",
@@ -200,6 +201,7 @@ const nl: typeof en = {
     quickConnect: "Nu beschikbaar",
     cancel: "Nu even niet",
     demo: "Demogesprek — de spraakverbinding wordt in de volgende stap aangesloten.",
+    liveAudio: "Live audio — je stem is verbonden, geen namen, geen opname.",
   },
   footer: {
     tagline: "Een luisterend oor wanneer je het nodig hebt.",
