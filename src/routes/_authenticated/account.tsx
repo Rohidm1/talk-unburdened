@@ -1,0 +1,182 @@
+import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
+import { Coins, LogOut, Phone } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { getMyAccount, getMyCalls, purchaseCredits, updateAlias } from "@/lib/account.functions";
+import { creditPackages } from "@/data/listeners";
+
+export const Route = createFileRoute("/_authenticated/account")({
+  head: () => ({
+    meta: [
+      { title: "Your Anontalk account — credits, alias and call history" },
+      {
+        name: "description",
+        content:
+          "Manage your Anontalk alias, top up call credits and review your anonymous conversation history.",
+      },
+      { property: "og:title", content: "Your Anontalk account" },
+      { property: "og:description", content: "Manage your alias, credits and call history." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+  component: AccountPage,
+});
+
+function AccountPage() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const fetchAccount = useServerFn(getMyAccount);
+  const fetchCalls = useServerFn(getMyCalls);
+  const buy = useServerFn(purchaseCredits);
+  const rename = useServerFn(updateAlias);
+  const [alias, setAlias] = useState("");
+
+  const account = useQuery({ queryKey: ["account"], queryFn: () => fetchAccount() });
+  const calls = useQuery({ queryKey: ["my-calls"], queryFn: () => fetchCalls() });
+
+  const buyMutation = useMutation({
+    mutationFn: (packageKey: "starter" | "deep" | "value") => buy({ data: { packageKey } }),
+    onSuccess: () => {
+      toast.success("Credits added to your balance.");
+      void queryClient.invalidateQueries({ queryKey: ["account"] });
+    },
+    onError: () => toast.error("Could not add credits."),
+  });
+
+  const renameMutation = useMutation({
+    mutationFn: (value: string) => rename({ data: { alias: value } }),
+    onSuccess: () => {
+      toast.success("Alias updated.");
+      setAlias("");
+      void queryClient.invalidateQueries({ queryKey: ["account"] });
+    },
+    onError: () => toast.error("Alias must be 2-24 characters."),
+  });
+
+  const signOut = async () => {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    void navigate({ to: "/auth", replace: true });
+  };
+
+  const profile = account.data?.profile;
+  const roles = account.data?.roles ?? [];
+  const minutes = Math.floor((profile?.credit_seconds ?? 0) / 60);
+  const seconds = (profile?.credit_seconds ?? 0) % 60;
+
+  return (
+    <main className="mx-auto w-full max-w-4xl px-5 py-12 font-body">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="font-display text-3xl font-semibold tracking-tight">
+            Hey {profile?.alias ?? "there"}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Signed in anonymously. Only your alias is visible to listeners.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <Link to="/">Find a listener</Link>
+          </Button>
+          {roles.includes("staff") ? (
+            <Button variant="outline" asChild>
+              <Link to="/staff">Listener desk</Link>
+            </Button>
+          ) : null}
+          {roles.includes("admin") ? (
+            <Button variant="outline" asChild>
+              <Link to="/admin">Admin</Link>
+            </Button>
+          ) : null}
+          <Button variant="ghost" onClick={() => void signOut()}>
+            <LogOut className="size-4" /> Sign out
+          </Button>
+        </div>
+      </div>
+
+      <section className="mt-8 grid gap-5 md:grid-cols-2">
+        <div className="rounded-3xl border border-border bg-card p-6">
+          <div className="flex items-center gap-2 text-primary">
+            <Coins className="size-5" />
+            <h2 className="font-display text-lg font-semibold">Talk balance</h2>
+          </div>
+          <p className="mt-4 font-display text-4xl tabular-nums">
+            {minutes}:{seconds.toString().padStart(2, "0")}
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">minutes of call time left</p>
+
+          <div className="mt-5 grid gap-2">
+            {creditPackages.map((p) => (
+              <Button
+                key={p.id}
+                variant={p.popular ? "default" : "outline"}
+                disabled={buyMutation.isPending}
+                onClick={() => buyMutation.mutate(p.key)}
+              >
+                +{p.minutes} min · € {p.priceEur}
+              </Button>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Demo checkout — no payment provider is connected yet.
+          </p>
+        </div>
+
+        <div className="rounded-3xl border border-border bg-card p-6">
+          <h2 className="font-display text-lg font-semibold">Your alias</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Change how listeners see you.</p>
+          <div className="mt-4 flex flex-col gap-2">
+            <Label htmlFor="alias">New alias</Label>
+            <Input
+              id="alias"
+              value={alias}
+              placeholder={profile?.alias ?? "Anon"}
+              maxLength={24}
+              onChange={(e) => setAlias(e.target.value)}
+            />
+            <Button
+              className="mt-2"
+              disabled={alias.trim().length < 2 || renameMutation.isPending}
+              onClick={() => renameMutation.mutate(alias.trim())}
+            >
+              Save alias
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-8 rounded-3xl border border-border bg-card p-6">
+        <div className="flex items-center gap-2">
+          <Phone className="size-5 text-primary" />
+          <h2 className="font-display text-lg font-semibold">Recent calls</h2>
+        </div>
+        {calls.data && calls.data.length > 0 ? (
+          <ul className="mt-4 divide-y divide-border">
+            {calls.data.map((c) => (
+              <li key={c.id} className="flex items-center justify-between py-3 text-sm">
+                <span className="text-muted-foreground">
+                  {new Date(c.started_at).toLocaleString()}
+                </span>
+                <span className="tabular-nums">
+                  {Math.floor(c.duration_seconds / 60)}m {c.duration_seconds % 60}s · €{" "}
+                  {(c.cost_cents / 100).toFixed(2)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-4 text-sm text-muted-foreground">No calls yet.</p>
+        )}
+      </section>
+    </main>
+  );
+}
