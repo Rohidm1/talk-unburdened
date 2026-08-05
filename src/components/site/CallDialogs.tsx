@@ -9,22 +9,22 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { listeners, RATE_PER_MINUTE, type Listener } from "@/data/listeners";
-
-const FREE_SECONDS = 180;
+import { RATE_PER_MINUTE, type Listener } from "@/data/listeners";
 
 function format(seconds: number) {
   const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
+  const s = Math.max(seconds % 60, 0);
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
 export function ActiveCallDialog({
   listener,
-  onClose,
+  balanceSeconds,
+  onEnd,
 }: {
   listener: Listener | null;
-  onClose: () => void;
+  balanceSeconds: number;
+  onEnd: (elapsed: number) => void;
 }) {
   const { t } = useTranslation();
   const [elapsed, setElapsed] = useState(0);
@@ -38,12 +38,16 @@ export function ActiveCallDialog({
     return () => clearInterval(id);
   }, [listener]);
 
-  const freeLeft = Math.max(FREE_SECONDS - elapsed, 0);
-  const billed = Math.max(elapsed - FREE_SECONDS, 0);
-  const cost = (billed / 60) * RATE_PER_MINUTE;
+  useEffect(() => {
+    if (listener && elapsed >= balanceSeconds && balanceSeconds > 0) onEnd(elapsed);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [elapsed]);
+
+  const left = Math.max(balanceSeconds - elapsed, 0);
+  const cost = (elapsed / 60) * RATE_PER_MINUTE;
 
   return (
-    <Dialog open={!!listener} onOpenChange={(o) => !o && onClose()}>
+    <Dialog open={!!listener} onOpenChange={(o) => !o && onEnd(elapsed)}>
       <DialogContent className="sm:max-w-md">
         {listener ? (
           <>
@@ -66,11 +70,11 @@ export function ActiveCallDialog({
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-2xl border border-border bg-secondary/40 p-3 text-center">
                 <p className="text-xs text-muted-foreground">{t("call.freeLeft")}</p>
-                <p className="font-display text-lg text-primary tabular-nums">{format(freeLeft)}</p>
+                <p className="font-display text-lg text-primary tabular-nums">{format(left)}</p>
               </div>
               <div className="rounded-2xl border border-border bg-secondary/40 p-3 text-center">
                 <p className="text-xs text-muted-foreground">{t("call.balance")}</p>
-                <p className="font-display text-lg tabular-nums">€ {(25 - cost).toFixed(2)}</p>
+                <p className="font-display text-lg tabular-nums">€ {cost.toFixed(2)}</p>
               </div>
             </div>
 
@@ -79,7 +83,7 @@ export function ActiveCallDialog({
                 {muted ? <MicOff className="size-4" /> : <Mic className="size-4" />}
                 {muted ? t("call.unmute") : t("call.mute")}
               </Button>
-              <Button variant="destructive" size="lg" onClick={onClose}>
+              <Button variant="destructive" size="lg" onClick={() => onEnd(elapsed)}>
                 <PhoneOff className="size-4" />
                 {t("call.hangUp")}
               </Button>
@@ -93,15 +97,16 @@ export function ActiveCallDialog({
 
 export function UnavailableDialog({
   listener,
+  available,
   onClose,
   onPick,
 }: {
   listener: Listener | null;
+  available: Listener[];
   onClose: () => void;
   onPick: (l: Listener) => void;
 }) {
   const { t } = useTranslation();
-  const available = listeners.filter((l) => l.status === "online");
 
   return (
     <Dialog open={!!listener} onOpenChange={(o) => !o && onClose()}>
