@@ -1,13 +1,20 @@
-import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import "@/lib/i18n";
 import { Header } from "@/components/site/Header";
 import { Hero } from "@/components/site/Hero";
 import { ListenerCard } from "@/components/site/ListenerCard";
 import { ActiveCallDialog, UnavailableDialog } from "@/components/site/CallDialogs";
 import { ContactSection, Faq, Footer, HowItWorks, Pricing } from "@/components/site/Sections";
-import { listeners, type Listener } from "@/data/listeners";
+import { listeners as fallbackListeners, type Listener } from "@/data/listeners";
+import { listPublicListeners } from "@/lib/listeners.functions";
+import { endCall, getMyAccount, startCall } from "@/lib/account.functions";
+import { avatarFor } from "@/lib/avatars";
+import { useAuth } from "@/hooks/useAuth";
 
 const title = "Anontalk — Anonymous voice calls with a listening ear";
 const description =
@@ -27,22 +34,86 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { t } = useTranslation();
-  const [activeCall, setActiveCall] = useState<Listener | null>(null);
-  const [unavailable, setUnavailable] = useState<Listener | null>(null);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { session } = useAuth();
 
-  const handleCall = (l: Listener) => {
-    if (l.status === "online") {
-      setUnavailable(null);
-      setActiveCall(l);
-    } else {
-      setUnavailable(l);
+  const fetchListeners = useServerFn(listPublicListeners);
+  const fetchAccount = useServerFn(getMyAccount);
+  const begin = useServerFn(startCall);
+  const finish = useServerFn(endCall);
+
+  const [activeCall, setActiveCall] = useState<Listener | null>(null);
+  const [activeCallId, setActiveCallId] = useState<string | null>(null);
+  const [unavailable, setUnavailable] = useState<Listener | null>(null);
+  const [balance, setBalance] = useState(0);
+
+  const listenersQuery = useQuery({
+    queryKey: ["listeners"],
+    queryFn: () => fetchListeners(),
+    refetchInterval: 30000,
+  });
+
+  const account = useQuery({
+    queryKey: ["account"],
+    queryFn: () => fetchAccount(),
+    enabled: !!session,
+  });
+
+  const list: Listener[] = useMemo(() => {
+    const rows = listenersQuery.data;
+    if (!rows || rows.length === 0) return fallbackListeners;
+    return rows.map((r) => ({
+      id: r.id,
+      displayName: r.display_name,
+      avatar: avatarFor(r.avatar_key),
+      bio: { en: r.bio_en, nl: r.bio_nl },
+      languages: r.languages,
+      topics: r.topics_en.map((en, i) => ({ en, nl: r.topics_nl[i] ?? en })),
+      status: r.status,
+      years: r.years,
+    }));
+  }, [listenersQuery.data]);
+
+  const handleCall = async (l: Listener) => {
+    if (!session) {
+      void navigate({ to: "/auth" });
+      return;
     }
+    if (l.status !== "online") {
+      setUnavailable(l);
+      return;
+    }
+    const result = await begin({ data: { listenerId: l.id } });
+    if (!result.ok) {
+      toast.error("You're out of talk credit. Top up on your account page.");
+      void navigate({ to: "/account" });
+      return;
+    }
+    setBalance(result.balance);
+    setActiveCallId(result.callId);
+    setUnavailable(null);
+    setActiveCall(l);
+  };
+
+  const handleEnd = async (elapsed: number) => {
+    const callId = activeCallId;
+    setActiveCall(null);
+    setActiveCallId(null);
+    if (!callId) return;
+    const result = await finish({ data: { callId, durationSeconds: elapsed } });
+    void queryClient.invalidateQueries({ queryKey: ["account"] });
+    toast.success(
+      `Call ended · ${Math.floor(result.billed / 60)}m ${result.billed % 60}s · € ${(result.cost / 100).toFixed(2)}`,
+    );
   };
 
   const startFirstAvailable = () => {
-    const first = listeners.find((l) => l.status === "online");
-    if (first) setActiveCall(first);
+    const first = list.find((l) => l.status === "online");
+    if (first) void handleCall(first);
   };
+
+  const creditSeconds = account.data?.profile?.credit_seconds ?? 0;
 
   return (
     <div className="min-h-screen font-body">
@@ -56,8 +127,8 @@ function Index() {
           </h2>
           <p className="mt-3 max-w-xl text-muted-foreground">{t("listeners.subtitle")}</p>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {listeners.map((l) => (
-              <ListenerCard key={l.id} listener={l} onCall={handleCall} />
+            {list.map((l) => (
+              <ListenerCard key={l.id} listener={l} onCall={(x) => void handleCall(x)} />
             ))}
           </div>
         </section>
@@ -69,11 +140,16 @@ function Index() {
       </main>
       <Footer />
 
-      <ActiveCallDialog listener={activeCall} onClose={() => setActiveCall(null)} />
+      <ActiveCallDialog
+        listener={activeCall}
+        balanceSeconds={balance || creditSeconds}
+        onEnd={(elapsed) => void handleEnd(elapsed)}
+      />
       <UnavailableDialog
         listener={unavailable}
+        available={list.filter((l) => l.status === "online")}
         onClose={() => setUnavailable(null)}
-        onPick={handleCall}
+        onPick={(l) => void handleCall(l)}
       />
     </div>
   );

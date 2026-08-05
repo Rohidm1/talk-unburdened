@@ -10,6 +10,7 @@ const en = {
     contact: "Contact",
     login: "Log in",
     signup: "Sign up",
+    account: "My account",
   },
   hero: {
     eyebrow: "Anonymous voice calls. No names, no judgment.",
@@ -113,6 +114,7 @@ const nl: typeof en = {
     contact: "Contact",
     login: "Inloggen",
     signup: "Aanmelden",
+    account: "Mijn account",
   },
   hero: {
     eyebrow: "Anonieme gesprekken. Geen namen, geen oordeel.",

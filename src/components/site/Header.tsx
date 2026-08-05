@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Menu, Phone, X } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 const links = [
   { href: "#listeners", key: "nav.profiles" },
@@ -15,6 +17,7 @@ export function Header() {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const lang = i18n.language;
+  const { session, loading } = useAuth();
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
@@ -54,12 +57,20 @@ export function Header() {
               </button>
             ))}
           </div>
-          <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
-            {t("nav.login")}
-          </Button>
-          <Button size="sm" className="hidden sm:inline-flex">
-            {t("nav.signup")}
-          </Button>
+          {loading ? null : session ? (
+            <Button size="sm" className="hidden sm:inline-flex" asChild>
+              <Link to="/account">{t("nav.account")}</Link>
+            </Button>
+          ) : (
+            <>
+              <Button variant="ghost" size="sm" className="hidden sm:inline-flex" asChild>
+                <Link to="/auth">{t("nav.login")}</Link>
+              </Button>
+              <Button size="sm" className="hidden sm:inline-flex" asChild>
+                <Link to="/auth">{t("nav.signup")}</Link>
+              </Button>
+            </>
+          )}
           <button
             className="md:hidden"
             onClick={() => setOpen((v) => !v)}
@@ -84,12 +95,20 @@ export function Header() {
               </a>
             ))}
             <div className="flex gap-2 pt-2">
-              <Button variant="outline" size="sm" className="flex-1">
-                {t("nav.login")}
-              </Button>
-              <Button size="sm" className="flex-1">
-                {t("nav.signup")}
-              </Button>
+              {session ? (
+                <Button size="sm" className="flex-1" asChild>
+                  <Link to="/account">{t("nav.account")}</Link>
+                </Button>
+              ) : (
+                <>
+                  <Button variant="outline" size="sm" className="flex-1" asChild>
+                    <Link to="/auth">{t("nav.login")}</Link>
+                  </Button>
+                  <Button size="sm" className="flex-1" asChild>
+                    <Link to="/auth">{t("nav.signup")}</Link>
+                  </Button>
+                </>
+              )}
             </div>
           </nav>
         </div>
