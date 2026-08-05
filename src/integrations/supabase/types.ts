@@ -14,16 +14,233 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      call_notes: {
+        Row: {
+          body: string
+          call_id: string | null
+          client_alias: string | null
+          created_at: string
+          id: string
+          listener_user_id: string
+        }
+        Insert: {
+          body: string
+          call_id?: string | null
+          client_alias?: string | null
+          created_at?: string
+          id?: string
+          listener_user_id: string
+        }
+        Update: {
+          body?: string
+          call_id?: string | null
+          client_alias?: string | null
+          created_at?: string
+          id?: string
+          listener_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_notes_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calls: {
+        Row: {
+          billed_seconds: number
+          client_id: string
+          cost_cents: number
+          duration_seconds: number
+          ended_at: string | null
+          free_seconds_used: number
+          id: string
+          listener_id: string
+          room_name: string | null
+          started_at: string
+        }
+        Insert: {
+          billed_seconds?: number
+          client_id: string
+          cost_cents?: number
+          duration_seconds?: number
+          ended_at?: string | null
+          free_seconds_used?: number
+          id?: string
+          listener_id: string
+          room_name?: string | null
+          started_at?: string
+        }
+        Update: {
+          billed_seconds?: number
+          client_id?: string
+          cost_cents?: number
+          duration_seconds?: number
+          ended_at?: string | null
+          free_seconds_used?: number
+          id?: string
+          listener_id?: string
+          room_name?: string | null
+          started_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calls_listener_id_fkey"
+            columns: ["listener_id"]
+            isOneToOne: false
+            referencedRelation: "listeners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_transactions: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          id: string
+          kind: string
+          seconds_delta: number
+          user_id: string
+        }
+        Insert: {
+          amount_cents?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          seconds_delta: number
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          seconds_delta?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      listeners: {
+        Row: {
+          avatar_key: string
+          bio_en: string
+          bio_nl: string
+          created_at: string
+          display_name: string
+          id: string
+          is_active: boolean
+          languages: string[]
+          sort_order: number
+          status: Database["public"]["Enums"]["listener_status"]
+          topics_en: string[]
+          topics_nl: string[]
+          updated_at: string
+          user_id: string | null
+          years: number
+        }
+        Insert: {
+          avatar_key: string
+          bio_en: string
+          bio_nl: string
+          created_at?: string
+          display_name: string
+          id?: string
+          is_active?: boolean
+          languages?: string[]
+          sort_order?: number
+          status?: Database["public"]["Enums"]["listener_status"]
+          topics_en?: string[]
+          topics_nl?: string[]
+          updated_at?: string
+          user_id?: string | null
+          years?: number
+        }
+        Update: {
+          avatar_key?: string
+          bio_en?: string
+          bio_nl?: string
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_active?: boolean
+          languages?: string[]
+          sort_order?: number
+          status?: Database["public"]["Enums"]["listener_status"]
+          topics_en?: string[]
+          topics_nl?: string[]
+          updated_at?: string
+          user_id?: string | null
+          years?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          alias: string
+          created_at: string
+          credit_seconds: number
+          id: string
+          locale: string
+          updated_at: string
+        }
+        Insert: {
+          alias?: string
+          created_at?: string
+          credit_seconds?: number
+          id: string
+          locale?: string
+          updated_at?: string
+        }
+        Update: {
+          alias?: string
+          created_at?: string
+          credit_seconds?: number
+          id?: string
+          locale?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "client" | "staff" | "admin"
+      listener_status: "online" | "busy" | "offline"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +367,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["client", "staff", "admin"],
+      listener_status: ["online", "busy", "offline"],
+    },
   },
 } as const
