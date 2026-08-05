@@ -88,11 +88,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "Anontalk — A listening ear when you need it" },
       {
         property: "og:description",
-        content: "Anonymous voice calls with warm listeners. No names, no judgment.",
+        content: "Anonymous voice calls with warm listeners. No names, no judgment. First 3 minutes free.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Anontalk — A listening ear when you need it" },
+      { name: "twitter:description", content: "Anonymous voice calls with warm listeners. No names, no judgment. First 3 minutes free." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a2394223-0946-404c-a57f-b2764dcc03b5/id-preview-e7f6bd87--4ade52c4-7d06-41dc-9617-883591d786a0.lovable.app-1785918908183.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a2394223-0946-404c-a57f-b2764dcc03b5/id-preview-e7f6bd87--4ade52c4-7d06-41dc-9617-883591d786a0.lovable.app-1785918908183.png" },
     ],
     links: [
       {
