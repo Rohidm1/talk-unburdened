@@ -16,7 +16,7 @@ const links = [
 export function Header() {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
-  const lang = i18n.language;
+  const lang = i18n.language ?? "en";
   const { session, loading } = useAuth();
 
   return (

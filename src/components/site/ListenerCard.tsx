@@ -23,7 +23,7 @@ export function ListenerCard({
   onCall: (l: Listener) => void;
 }) {
   const { t, i18n } = useTranslation();
-  const lang = i18n.language.startsWith("nl") ? "nl" : "en";
+  const lang = (i18n.language ?? "en").startsWith("nl") ? "nl" : "en";
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)] transition-colors hover:border-primary/40">
