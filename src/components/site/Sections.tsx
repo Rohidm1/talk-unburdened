@@ -129,6 +129,7 @@ export function Pricing() {
       </div>
 
       <CreditCheckoutDialog packageKey={checkoutKey} onClose={() => setCheckoutKey(null)} />
+      <BillingDescriptorNotice className="mx-auto mt-6 max-w-xl justify-center text-center" />
     </section>
   );
 }
