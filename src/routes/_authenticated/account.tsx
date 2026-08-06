@@ -8,8 +8,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getMyAccount, getMyCalls, purchaseCredits, updateAlias } from "@/lib/account.functions";
+import { getMyAccount, getMyCalls, updateAlias } from "@/lib/account.functions";
 import { creditPackages } from "@/data/listeners";
+import type { CreditPackageKey } from "@/lib/credit-packages";
+import { CreditCheckoutDialog } from "@/components/site/CreditCheckoutDialog";
+import { PaymentTestModeBanner } from "@/components/site/PaymentTestModeBanner";
 
 export const Route = createFileRoute("/_authenticated/account")({
   head: () => ({
@@ -34,21 +37,12 @@ function AccountPage() {
   const queryClient = useQueryClient();
   const fetchAccount = useServerFn(getMyAccount);
   const fetchCalls = useServerFn(getMyCalls);
-  const buy = useServerFn(purchaseCredits);
   const rename = useServerFn(updateAlias);
   const [alias, setAlias] = useState("");
+  const [checkoutKey, setCheckoutKey] = useState<CreditPackageKey | null>(null);
 
   const account = useQuery({ queryKey: ["account"], queryFn: () => fetchAccount() });
   const calls = useQuery({ queryKey: ["my-calls"], queryFn: () => fetchCalls() });
-
-  const buyMutation = useMutation({
-    mutationFn: (packageKey: "starter" | "deep" | "value") => buy({ data: { packageKey } }),
-    onSuccess: () => {
-      toast.success("Credits added to your balance.");
-      void queryClient.invalidateQueries({ queryKey: ["account"] });
-    },
-    onError: () => toast.error("Could not add credits."),
-  });
 
   const renameMutation = useMutation({
     mutationFn: (value: string) => rename({ data: { alias: value } }),
@@ -73,7 +67,9 @@ function AccountPage() {
   const seconds = (profile?.credit_seconds ?? 0) % 60;
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-5 py-12 font-body">
+    <main className="mx-auto w-full max-w-4xl px-5 pb-12 font-body">
+      <PaymentTestModeBanner />
+      <div className="pt-12" />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-semibold tracking-tight">
@@ -119,15 +115,14 @@ function AccountPage() {
               <Button
                 key={p.id}
                 variant={p.popular ? "default" : "outline"}
-                disabled={buyMutation.isPending}
-                onClick={() => buyMutation.mutate(p.key)}
+                onClick={() => setCheckoutKey(p.key)}
               >
                 +{p.minutes} min · € {p.priceEur}
               </Button>
             ))}
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            Demo checkout — no payment provider is connected yet.
+            Secure card payment. Credits are added automatically once the payment clears.
           </p>
         </div>
 
@@ -177,6 +172,7 @@ function AccountPage() {
           <p className="mt-4 text-sm text-muted-foreground">No calls yet.</p>
         )}
       </section>
+          <CreditCheckoutDialog packageKey={checkoutKey} onClose={() => setCheckoutKey(null)} />
     </main>
   );
 }

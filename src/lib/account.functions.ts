@@ -108,41 +108,6 @@ export const endCall = createServerFn({ method: "POST" })
     return { billed, cost, remaining };
   });
 
-const PACKAGES: Record<string, { minutes: number; cents: number }> = {
-  starter: { minutes: 15, cents: 1800 },
-  deep: { minutes: 45, cents: 4900 },
-  value: { minutes: 90, cents: 8900 },
-};
-
-export const purchaseCredits = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z.object({ packageKey: z.enum(["starter", "deep", "value"]) }).parse(input),
-  )
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const pkg = PACKAGES[data.packageKey]!;
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("credit_seconds")
-      .eq("id", userId)
-      .maybeSingle();
-
-    const next = (profile?.credit_seconds ?? 0) + pkg.minutes * 60;
-    await supabase.from("profiles").update({ credit_seconds: next }).eq("id", userId);
-
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("credit_transactions").insert({
-      user_id: userId,
-      seconds_delta: pkg.minutes * 60,
-      amount_cents: pkg.cents,
-      kind: "purchase",
-    });
-
-    return { balance: next };
-  });
-
 export const getMyCalls = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
