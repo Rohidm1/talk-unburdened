@@ -155,7 +155,7 @@ export function UnavailableDialog({
                 <span className="flex-1">
                   <span className="block text-sm font-semibold">{l.displayName}</span>
                   <span className="block text-xs text-muted-foreground">
-                    {l.languages.join(" · ")}
+                    {l.language === "NL" ? "Nederlands" : "English"}
                   </span>
                 </span>
                 <span className="text-xs font-medium text-success">{t("listeners.online")}</span>

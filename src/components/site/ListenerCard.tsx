@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { PhoneCall } from "lucide-react";
+import { PhoneCall, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Listener } from "@/data/listeners";
 
@@ -24,42 +24,42 @@ export function ListenerCard({
 }) {
   const { t, i18n } = useTranslation();
   const lang = (i18n.language ?? "en").startsWith("nl") ? "nl" : "en";
+  const languageLabel = listener.language === "NL" ? "Nederlands" : "English";
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)] transition-colors hover:border-primary/40">
-      <div className="relative">
+      <div className="relative p-3 pb-0">
         <img
           src={listener.avatar}
           alt={listener.displayName}
           loading="lazy"
-          width={512}
-          height={512}
-          className="aspect-square w-full object-cover"
+          width={816}
+          height={816}
+          className="aspect-square w-full rounded-2xl object-cover"
         />
         <span
-          className={`absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium backdrop-blur ${statusStyles[listener.status]}`}
+          className={`absolute top-5 left-5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium backdrop-blur ${statusStyles[listener.status]}`}
         >
           <span className={`size-1.5 rounded-full ${dotStyles[listener.status]}`} />
-          {t(`listeners.${listener.status}`)}
+          {listener.status === "online" && listener.language === "NL"
+            ? "Beschikbaar"
+            : t(`listeners.${listener.status}`)}
         </span>
       </div>
 
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div className="flex items-baseline justify-between gap-2">
-          <h3 className="font-display text-lg font-semibold">{listener.displayName}</h3>
-          <span className="text-xs text-muted-foreground">{listener.years} yrs</span>
+          <h3 className="font-display text-lg font-semibold">
+            {listener.displayName}
+            <span className="ml-2 text-sm font-normal text-muted-foreground">{listener.age}</span>
+          </h3>
+          <span className="rounded-md border border-primary/30 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-primary">
+            {languageLabel}
+          </span>
         </div>
         <p className="text-sm leading-relaxed text-muted-foreground">{listener.bio[lang]}</p>
 
         <div className="flex flex-wrap gap-1.5">
-          {listener.languages.map((l) => (
-            <span
-              key={l}
-              className="rounded-md border border-primary/30 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-primary"
-            >
-              {l}
-            </span>
-          ))}
           {listener.topics.map((topic) => (
             <span
               key={topic.en}
@@ -70,10 +70,16 @@ export function ListenerCard({
           ))}
         </div>
 
-        <Button className="mt-auto w-full" onClick={() => onCall(listener)}>
-          <PhoneCall className="size-4" />
-          {t("listeners.call")}
-        </Button>
+        <div className="mt-auto flex flex-col gap-2 pt-1">
+          <Button className="w-full" onClick={() => onCall(listener)}>
+            <PhoneCall className="size-4" />
+            {listener.language === "NL" ? "Bel nu" : "Call now"}
+          </Button>
+          <Button variant="outline" className="w-full" onClick={() => onCall(listener)}>
+            <Timer className="size-4" />
+            {listener.language === "NL" ? "5 minuten check-in" : "5-minute check-in"}
+          </Button>
+        </div>
       </div>
     </article>
   );
