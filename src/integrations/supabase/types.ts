@@ -103,6 +103,7 @@ export type Database = {
           id: string
           kind: string
           seconds_delta: number
+          stripe_session_id: string | null
           user_id: string
         }
         Insert: {
@@ -111,6 +112,7 @@ export type Database = {
           id?: string
           kind?: string
           seconds_delta: number
+          stripe_session_id?: string | null
           user_id: string
         }
         Update: {
@@ -119,6 +121,7 @@ export type Database = {
           id?: string
           kind?: string
           seconds_delta?: number
+          stripe_session_id?: string | null
           user_id?: string
         }
         Relationships: []
