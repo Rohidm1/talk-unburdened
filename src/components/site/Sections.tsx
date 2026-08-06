@@ -13,6 +13,10 @@ import {
 } from "@/components/ui/accordion";
 import { toast } from "sonner";
 import { creditPackages, RATE_PER_MINUTE } from "@/data/listeners";
+import { useNavigate } from "@tanstack/react-router";
+import { useAuth } from "@/hooks/useAuth";
+import type { CreditPackageKey } from "@/lib/credit-packages";
+import { CreditCheckoutDialog } from "@/components/site/CreditCheckoutDialog";
 
 export function HowItWorks() {
   const { t } = useTranslation();
@@ -48,6 +52,18 @@ export function HowItWorks() {
 
 export function Pricing() {
   const { t } = useTranslation();
+  const { session } = useAuth();
+  const navigate = useNavigate();
+  const [checkoutKey, setCheckoutKey] = useState<CreditPackageKey | null>(null);
+
+  const startCheckout = (key: CreditPackageKey) => {
+    if (!session) {
+      toast.info(t("pricing.loginFirst"));
+      void navigate({ to: "/auth" });
+      return;
+    }
+    setCheckoutKey(key);
+  };
 
   return (
     <section id="pricing" className="mx-auto w-full max-w-6xl px-5 py-20">
@@ -103,7 +119,7 @@ export function Pricing() {
               <Button
                 className="mt-6 w-full"
                 variant={p.popular ? "default" : "outline"}
-                onClick={() => toast.success(`${t("pricing.buy")} — ${p.minutes} min`)}
+                onClick={() => startCheckout(p.key)}
               >
                 {t("pricing.buy")}
               </Button>
@@ -111,6 +127,8 @@ export function Pricing() {
           );
         })}
       </div>
+
+      <CreditCheckoutDialog packageKey={checkoutKey} onClose={() => setCheckoutKey(null)} />
     </section>
   );
 }
