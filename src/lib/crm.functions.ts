@@ -1,33 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-
-export const CRM_EMAIL_DOMAIN = "anontalk.local";
-
-export function usernameToEmail(username: string) {
-  return `${username.trim().toLowerCase()}@${CRM_EMAIL_DOMAIN}`;
-}
-
-const usernameSchema = z
-  .string()
-  .trim()
-  .min(3)
-  .max(32)
-  .regex(/^[a-zA-Z0-9._-]+$/, "Letters, numbers, dot, dash and underscore only");
-
-async function assertAdmin(context: { supabase: any; userId: string }) {
-  const { data: isAdmin } = await context.supabase.rpc("has_role", {
-    _user_id: context.userId,
-    _role: "admin",
-  });
-  if (!isAdmin) throw new Error("Forbidden");
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  return supabaseAdmin;
-}
+import { usernameToEmail } from "@/lib/crm-username";
 
 export const listTeam = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    const { assertAdmin } = await import("@/lib/crm.server");
     const admin = await assertAdmin(context);
 
     const [{ data: listeners }, { data: roles }, usersRes] = await Promise.all([
@@ -53,7 +32,12 @@ export const createWorker = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z
       .object({
-        username: usernameSchema,
+        username: z
+          .string()
+          .trim()
+          .min(3)
+          .max(32)
+          .regex(/^[a-zA-Z0-9._-]+$/),
         password: z.string().min(8).max(72),
         displayName: z.string().trim().min(2).max(40),
         avatarKey: z.string().trim().min(1).max(40),
@@ -68,6 +52,7 @@ export const createWorker = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertAdmin } = await import("@/lib/crm.server");
     const admin = await assertAdmin(context);
     const email = usernameToEmail(data.username);
 
@@ -114,6 +99,7 @@ export const resetWorkerPassword = createServerFn({ method: "POST" })
     z.object({ userId: z.string().uuid(), password: z.string().min(8).max(72) }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertAdmin } = await import("@/lib/crm.server");
     const admin = await assertAdmin(context);
     const { error } = await admin.auth.admin.updateUserById(data.userId, {
       password: data.password,
@@ -128,6 +114,7 @@ export const setListenerActive = createServerFn({ method: "POST" })
     z.object({ listenerId: z.string().uuid(), isActive: z.boolean() }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { assertAdmin } = await import("@/lib/crm.server");
     const admin = await assertAdmin(context);
     const { error } = await admin
       .from("listeners")
