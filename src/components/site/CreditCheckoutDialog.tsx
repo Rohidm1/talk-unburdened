@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import "@/lib/i18n";
 import { useTranslation } from "react-i18next";
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
