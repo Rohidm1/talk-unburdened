@@ -138,19 +138,20 @@ export const listeners: Listener[] = [
   },
 ];
 
-export const RATE_PER_MINUTE = 1.3;
-
+// Pricing lives in src/lib/credit-packages.ts, which is also what Stripe is
+// billed against. These are thin view models derived from that single source.
 export type CreditPackage = {
   id: string;
-  key: "starter" | "deep" | "value";
+  key: CreditPackageKey;
   minutes: number;
   priceEur: number;
-  priceUsd: number;
-  popular?: boolean;
+  popular: boolean;
 };
 
-export const creditPackages: CreditPackage[] = [
-  { id: "p1", key: "starter", minutes: 15, priceEur: 18, priceUsd: 19 },
-  { id: "p2", key: "deep", minutes: 45, priceEur: 49, priceUsd: 52, popular: true },
-  { id: "p3", key: "value", minutes: 90, priceEur: 89, priceUsd: 95 },
-];
+export const creditPackages: CreditPackage[] = CREDIT_PACKAGE_LIST.map((p) => ({
+  id: p.key,
+  key: p.key,
+  minutes: p.minutes,
+  priceEur: p.cents / 100,
+  popular: p.popular === true,
+}));
