@@ -10,6 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getMyAccount, getMyCalls, purchaseCredits, updateAlias } from "@/lib/account.functions";
 import { creditPackages } from "@/data/listeners";
+import type { CreditPackageKey } from "@/lib/credit-packages";
+import { CreditCheckoutDialog } from "@/components/site/CreditCheckoutDialog";
+import { PaymentTestModeBanner } from "@/components/site/PaymentTestModeBanner";
 
 export const Route = createFileRoute("/_authenticated/account")({
   head: () => ({
@@ -37,18 +40,10 @@ function AccountPage() {
   const buy = useServerFn(purchaseCredits);
   const rename = useServerFn(updateAlias);
   const [alias, setAlias] = useState("");
+  const [checkoutKey, setCheckoutKey] = useState<CreditPackageKey | null>(null);
 
   const account = useQuery({ queryKey: ["account"], queryFn: () => fetchAccount() });
   const calls = useQuery({ queryKey: ["my-calls"], queryFn: () => fetchCalls() });
-
-  const buyMutation = useMutation({
-    mutationFn: (packageKey: "starter" | "deep" | "value") => buy({ data: { packageKey } }),
-    onSuccess: () => {
-      toast.success("Credits added to your balance.");
-      void queryClient.invalidateQueries({ queryKey: ["account"] });
-    },
-    onError: () => toast.error("Could not add credits."),
-  });
 
   const renameMutation = useMutation({
     mutationFn: (value: string) => rename({ data: { alias: value } }),
@@ -119,15 +114,14 @@ function AccountPage() {
               <Button
                 key={p.id}
                 variant={p.popular ? "default" : "outline"}
-                disabled={buyMutation.isPending}
-                onClick={() => buyMutation.mutate(p.key)}
+                onClick={() => setCheckoutKey(p.key)}
               >
                 +{p.minutes} min · € {p.priceEur}
               </Button>
             ))}
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            Demo checkout — no payment provider is connected yet.
+            Secure card payment. Credits are added automatically once the payment clears.
           </p>
         </div>
 
