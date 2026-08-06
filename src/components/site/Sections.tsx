@@ -12,7 +12,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { toast } from "sonner";
-import { creditPackages, RATE_PER_MINUTE } from "@/data/listeners";
+import { creditPackages } from "@/data/listeners";
+import { RATE_PER_MINUTE } from "@/lib/credit-packages";
 import { BillingDescriptorNotice } from "@/components/site/BillingDescriptorNotice";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
@@ -105,7 +106,7 @@ export function Pricing() {
               </h3>
               <p className="mt-4 font-display text-4xl font-semibold">€ {p.priceEur}</p>
               <p className="text-sm text-muted-foreground">
-                {p.minutes} {t("pricing.minutes")} · $ {p.priceUsd}
+                {p.minutes} {t("pricing.minutes")}
               </p>
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-center gap-2">
