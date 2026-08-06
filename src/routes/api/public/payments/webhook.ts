@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { CREDIT_PACKAGES, type CreditPackageKey } from "@/lib/credit-packages";
-import { type StripeEnv, verifyWebhook } from "@/lib/stripe.server";
+import { type StripeEnv, createStripeClient, verifyWebhook } from "@/lib/stripe.server";
 
 let _supabase: ReturnType<typeof createClient<Database>> | null = null;
 function getSupabase() {
@@ -30,40 +30,65 @@ async function grantCredits(session: any) {
     return;
   }
 
-  const supabase = getSupabase();
-  const seconds = pkg.minutes * 60;
-
-  // Idempotency: the unique index on stripe_session_id rejects replays.
-  const { error: txError } = await supabase.from("credit_transactions").insert({
-    user_id: userId,
-    seconds_delta: seconds,
-    amount_cents: pkg.cents,
-    kind: "purchase",
-    stripe_session_id: sessionId,
+  // grant_credits records the transaction and increments the balance atomically.
+  // Replayed webhooks hit the unique index on stripe_session_id and return false.
+  const { data: granted, error } = await getSupabase().rpc("grant_credits", {
+    _user_id: userId,
+    _seconds: pkg.minutes * 60,
+    _cents: pkg.cents,
+    _session: sessionId,
   });
 
-  if (txError) {
-    if (txError.code === "23505") {
-      console.log("[payments] session already fulfilled", sessionId);
-      return;
+  if (error) console.error("[payments] could not grant credits", error);
+  else if (!granted) console.log("[payments] session already fulfilled", sessionId);
+}
+
+/**
+ * Money went back to the customer (refund or lost dispute) — take the credits
+ * back, prorated to the amount returned, and put the account on hold.
+ */
+async function clawBack(
+  charge: any,
+  env: StripeEnv,
+  opts: { ref: string; kind: string; amountCents: number; block: boolean },
+) {
+  const paymentIntentId =
+    typeof charge?.payment_intent === "string" ? charge.payment_intent : charge?.payment_intent?.id;
+
+  let metadata = charge?.metadata ?? {};
+  if ((!metadata.userId || !metadata.packageKey) && paymentIntentId) {
+    try {
+      const intent = await createStripeClient(env).paymentIntents.retrieve(paymentIntentId);
+      metadata = { ...intent.metadata, ...metadata };
+    } catch (e) {
+      console.error("[payments] could not read payment intent metadata", e);
     }
-    console.error("[payments] could not record transaction", txError);
+  }
+
+  const userId = metadata.userId as string | undefined;
+  const packageKey = metadata.packageKey as CreditPackageKey | undefined;
+  const pkg = packageKey ? CREDIT_PACKAGES[packageKey] : undefined;
+
+  if (!userId || !pkg) {
+    console.error("[payments] cannot attribute refund/dispute", { ref: opts.ref, userId });
     return;
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("credit_seconds")
-    .eq("id", userId)
-    .maybeSingle();
+  // Partial refunds take back a proportional slice of the minutes.
+  const ratio = Math.min(Math.max(opts.amountCents / pkg.cents, 0), 1);
+  const seconds = Math.round(pkg.minutes * 60 * ratio);
 
-  const current = profile?.credit_seconds ?? 0;
-  const { error: updateError } = await supabase
-    .from("profiles")
-    .update({ credit_seconds: current + seconds })
-    .eq("id", userId);
+  const { error } = await getSupabase().rpc("revoke_credits", {
+    _user_id: userId,
+    _seconds: seconds,
+    _cents: opts.amountCents,
+    _ref: opts.ref,
+    _kind: opts.kind,
+    _block: opts.block,
+  });
 
-  if (updateError) console.error("[payments] could not update balance", updateError);
+  if (error) console.error("[payments] could not revoke credits", error);
+  else console.log("[payments] revoked credits", { userId, seconds, ref: opts.ref });
 }
 
 async function handleWebhook(req: Request, env: StripeEnv) {
@@ -80,6 +105,29 @@ async function handleWebhook(req: Request, env: StripeEnv) {
       break;
     case "checkout.session.async_payment_failed":
       console.log("[payments] delayed payment failed", event.data.object?.id);
+      break;
+    case "charge.refunded": {
+      const charge = event.data.object;
+      await clawBack(charge, env, {
+        ref: `refund:${charge.id}:${charge.amount_refunded}`,
+        kind: "refund",
+        amountCents: charge.amount_refunded ?? 0,
+        block: true,
+      });
+      break;
+    }
+    case "charge.dispute.created": {
+      const dispute = event.data.object;
+      await clawBack({ payment_intent: dispute.payment_intent, metadata: dispute.metadata }, env, {
+        ref: `dispute:${dispute.id}`,
+        kind: "dispute",
+        amountCents: dispute.amount ?? 0,
+        block: true,
+      });
+      break;
+    }
+    case "checkout.session.expired":
+      console.log("[payments] checkout session expired", event.data.object?.id);
       break;
     default:
       console.log("[payments] unhandled event", event.type);

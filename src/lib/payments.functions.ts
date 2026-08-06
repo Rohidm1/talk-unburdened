@@ -10,6 +10,7 @@ import {
 
 type CheckoutSessionResult = { clientSecret: string } | { error: string };
 type PortalSessionResult = { url: string } | { error: string };
+type FulfillmentResult = { fulfilled: boolean };
 
 async function resolveOrCreateCustomer(
   stripe: ReturnType<typeof createStripeClient>,
@@ -61,9 +62,35 @@ export const createCreditCheckout = createServerFn({ method: "POST" })
       const pkg = CREDIT_PACKAGES[data.packageKey];
       const stripe = createStripeClient(env);
 
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: profile } = await supabaseAdmin
+        .from("profiles")
+        .select("is_blocked")
+        .eq("id", context.userId)
+        .maybeSingle();
+
+      if (profile?.is_blocked) {
+        return {
+          error:
+            "This account is on hold following a refund or chargeback. Please contact support before buying more credits.",
+        };
+      }
+
       const prices = await stripe.prices.list({ lookup_keys: [pkg.priceId] });
       if (!prices.data.length) throw new Error("Price not found");
       const stripePrice = prices.data[0]!;
+
+      // Guard against the Stripe dashboard price drifting from the app's own
+      // catalogue — we must never charge an amount we did not display.
+      if (stripePrice.unit_amount !== pkg.cents || stripePrice.currency !== "eur") {
+        console.error("[payments] price mismatch", {
+          priceId: pkg.priceId,
+          expected: pkg.cents,
+          actual: stripePrice.unit_amount,
+          currency: stripePrice.currency,
+        });
+        return { error: "This package is temporarily unavailable. Please try again later." };
+      }
 
       const productId =
         typeof stripePrice.product === "string" ? stripePrice.product : stripePrice.product.id;
@@ -89,6 +116,8 @@ export const createCreditCheckout = createServerFn({ method: "POST" })
         payment_intent_data: {
           description: product.name,
           statement_descriptor: "HELP & SUPPORT DESK",
+          // Needed to attribute later refunds and disputes back to this user.
+          metadata: { userId: context.userId, packageKey: pkg.key },
         },
         metadata: {
           userId: context.userId,
@@ -101,6 +130,24 @@ export const createCreditCheckout = createServerFn({ method: "POST" })
     } catch (error) {
       return { error: getStripeErrorMessage(error) };
     }
+  });
+
+/**
+ * Polled by the checkout return page so we only claim success once the
+ * webhook has actually credited the account.
+ */
+export const getCheckoutFulfillment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ sessionId: z.string().min(1).max(255) }).parse(input))
+  .handler(async ({ data, context }): Promise<FulfillmentResult> => {
+    const { data: tx } = await context.supabase
+      .from("credit_transactions")
+      .select("id")
+      .eq("user_id", context.userId)
+      .eq("stripe_session_id", data.sessionId)
+      .maybeSingle();
+
+    return { fulfilled: !!tx };
   });
 
 export const createPortalSession = createServerFn({ method: "POST" })

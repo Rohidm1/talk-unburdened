@@ -1,8 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-
-export const RATE_CENTS_PER_MINUTE = 130;
+import { FREE_CALL_MAX_SECONDS, RATE_CENTS_PER_MINUTE } from "@/lib/credit-packages";
 
 export const getMyAccount = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -36,76 +35,143 @@ export const updateAlias = createServerFn({ method: "POST" })
 
 export const startCall = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ listenerId: z.string().uuid() }).parse(input))
+  .inputValidator((input) =>
+    z
+      .object({
+        listenerId: z.string().uuid(),
+        mode: z.enum(["paid", "free"]).default("paid"),
+      })
+      .parse(input),
+  )
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { data: profile } = await supabase
+    // Close out anything left open by a browser that vanished mid-call.
+    await supabaseAdmin.rpc("settle_stale_calls", {
+      _user_id: userId,
+      _rate_cents: RATE_CENTS_PER_MINUTE,
+    });
+
+    const { data: profile } = await supabaseAdmin
       .from("profiles")
-      .select("credit_seconds")
+      .select("credit_seconds, free_seconds_remaining, is_blocked")
       .eq("id", userId)
       .maybeSingle();
 
-    if (!profile || profile.credit_seconds <= 0) {
-      return { ok: false as const, reason: "no_credit" as const, callId: null, balance: 0 };
-    }
+    const deny = (reason: "blocked" | "no_credit" | "no_free_time") =>
+      ({ ok: false as const, reason, callId: null, allowanceSeconds: 0, mode: data.mode }) as const;
 
-    const { data: call, error } = await supabase
+    if (!profile) return deny("no_credit");
+    if (profile.is_blocked) return deny("blocked");
+
+    const free = profile.free_seconds_remaining;
+    const allowance =
+      data.mode === "free"
+        ? Math.min(free, FREE_CALL_MAX_SECONDS)
+        : free + profile.credit_seconds;
+
+    if (allowance <= 0) return deny(data.mode === "free" ? "no_free_time" : "no_credit");
+
+    const { data: call, error } = await supabaseAdmin
       .from("calls")
-      .insert({ client_id: userId, listener_id: data.listenerId })
+      .insert({ client_id: userId, listener_id: data.listenerId, mode: data.mode })
       .select("id")
       .single();
 
     if (error) throw new Error(error.message);
+
     return {
       ok: true as const,
       reason: null,
       callId: call.id,
-      balance: profile.credit_seconds,
+      allowanceSeconds: allowance,
+      mode: data.mode,
+    };
+  });
+
+/**
+ * Called every few seconds while a call is live. The server clock — not the
+ * browser — decides how long the call has run and when it must stop.
+ */
+export const heartbeatCall = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ callId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: call } = await supabaseAdmin
+      .from("calls")
+      .select("id, started_at, ended_at, mode")
+      .eq("id", data.callId)
+      .eq("client_id", userId)
+      .maybeSingle();
+
+    if (!call) return { elapsed: 0, allowanceSeconds: 0, remaining: 0, shouldEnd: true };
+    if (call.ended_at) return { elapsed: 0, allowanceSeconds: 0, remaining: 0, shouldEnd: true };
+
+    await supabaseAdmin
+      .from("calls")
+      .update({ last_heartbeat_at: new Date().toISOString() })
+      .eq("id", call.id);
+
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("credit_seconds, free_seconds_remaining")
+      .eq("id", userId)
+      .maybeSingle();
+
+    const free = profile?.free_seconds_remaining ?? 0;
+    const allowance =
+      call.mode === "free"
+        ? Math.min(free, FREE_CALL_MAX_SECONDS)
+        : free + (profile?.credit_seconds ?? 0);
+
+    const elapsed = Math.max(
+      0,
+      Math.floor((Date.now() - new Date(call.started_at).getTime()) / 1000),
+    );
+
+    return {
+      elapsed,
+      allowanceSeconds: allowance,
+      remaining: Math.max(allowance - elapsed, 0),
+      shouldEnd: elapsed >= allowance,
     };
   });
 
 export const endCall = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z.object({ callId: z.string().uuid(), durationSeconds: z.number().int().min(0).max(36000) }).parse(input),
-  )
+  .inputValidator((input) => z.object({ callId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("credit_seconds")
-      .eq("id", userId)
+    // Ownership check — settle_call itself is keyed only on the call id.
+    const { data: call } = await supabaseAdmin
+      .from("calls")
+      .select("id")
+      .eq("id", data.callId)
+      .eq("client_id", userId)
       .maybeSingle();
 
-    const balance = profile?.credit_seconds ?? 0;
-    const billed = Math.min(data.durationSeconds, balance);
-    const cost = Math.round((billed / 60) * RATE_CENTS_PER_MINUTE);
+    if (!call) return { billed: 0, cost: 0, freeLeft: 0, paidLeft: 0 };
 
-    await supabase
-      .from("calls")
-      .update({
-        ended_at: new Date().toISOString(),
-        duration_seconds: data.durationSeconds,
-        billed_seconds: billed,
-        cost_cents: cost,
-      })
-      .eq("id", data.callId)
-      .eq("client_id", userId);
-
-    const remaining = Math.max(balance - billed, 0);
-    await supabase.from("profiles").update({ credit_seconds: remaining }).eq("id", userId);
-
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("credit_transactions").insert({
-      user_id: userId,
-      seconds_delta: -billed,
-      amount_cents: cost,
-      kind: "usage",
+    const { data: rows, error } = await supabaseAdmin.rpc("settle_call", {
+      _call_id: data.callId,
+      _rate_cents: RATE_CENTS_PER_MINUTE,
     });
 
-    return { billed, cost, remaining };
+    if (error) throw new Error(error.message);
+
+    const row = Array.isArray(rows) ? rows[0] : rows;
+    return {
+      billed: row?.billed ?? 0,
+      cost: row?.cost ?? 0,
+      freeLeft: row?.free_left ?? 0,
+      paidLeft: row?.paid_left ?? 0,
+    };
   });
 
 export const getMyCalls = createServerFn({ method: "GET" })

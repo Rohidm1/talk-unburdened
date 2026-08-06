@@ -86,6 +86,8 @@ function AccountPage() {
   const roles = account.data?.roles ?? [];
   const minutes = Math.floor((profile?.credit_seconds ?? 0) / 60);
   const seconds = (profile?.credit_seconds ?? 0) % 60;
+  const freeSeconds = profile?.free_seconds_remaining ?? 0;
+  const isBlocked = profile?.is_blocked ?? false;
 
   return (
     <main className="mx-auto w-full max-w-4xl px-5 pb-12 font-body">
@@ -131,11 +133,26 @@ function AccountPage() {
           </p>
           <p className="mt-1 text-sm text-muted-foreground">minutes of call time left</p>
 
+          {freeSeconds > 0 ? (
+            <p className="mt-2 text-sm text-primary">
+              + {Math.floor(freeSeconds / 60)}:{(freeSeconds % 60).toString().padStart(2, "0")} free
+              check-in time
+            </p>
+          ) : null}
+
+          {isBlocked ? (
+            <p className="mt-4 rounded-2xl border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+              This account is on hold after a refund or chargeback. Please contact support to
+              restore calling and top-ups.
+            </p>
+          ) : null}
+
           <div className="mt-5 grid gap-2">
             {creditPackages.map((p) => (
               <Button
                 key={p.id}
                 variant={p.popular ? "default" : "outline"}
+                disabled={isBlocked}
                 onClick={() => setCheckoutKey(p.key)}
               >
                 +{p.minutes} min · € {p.priceEur}

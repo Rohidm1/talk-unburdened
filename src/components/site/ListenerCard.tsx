@@ -18,13 +18,18 @@ const dotStyles: Record<Listener["status"], string> = {
 export function ListenerCard({
   listener,
   onCall,
+  freeSecondsLeft,
 }: {
   listener: Listener;
-  onCall: (l: Listener) => void;
+  onCall: (l: Listener, mode: "paid" | "free") => void;
+  /** Free trial time left on the signed-in account, if known. */
+  freeSecondsLeft?: number | undefined;
 }) {
   const { t, i18n } = useTranslation();
   const lang = (i18n.language ?? "en").startsWith("nl") ? "nl" : "en";
   const languageLabel = listener.language === "NL" ? "Nederlands" : "English";
+  const nl = listener.language === "NL";
+  const freeExhausted = freeSecondsLeft !== undefined && freeSecondsLeft <= 0;
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)] transition-colors hover:border-primary/40">
@@ -71,13 +76,24 @@ export function ListenerCard({
         </div>
 
         <div className="mt-auto flex flex-col gap-2 pt-1">
-          <Button className="w-full" onClick={() => onCall(listener)}>
+          <Button className="w-full" onClick={() => onCall(listener, "paid")}>
             <PhoneCall className="size-4" />
-            {listener.language === "NL" ? "Bel nu" : "Call now"}
+            {nl ? "Bel nu" : "Call now"}
           </Button>
-          <Button variant="outline" className="w-full" onClick={() => onCall(listener)}>
+          <Button
+            variant="outline"
+            className="w-full"
+            disabled={freeExhausted}
+            onClick={() => onCall(listener, "free")}
+          >
             <Timer className="size-4" />
-            {listener.language === "NL" ? "5 minuten check-in" : "5-minute check-in"}
+            {freeExhausted
+              ? nl
+                ? "Gratis tijd gebruikt"
+                : "Free time used"
+              : nl
+                ? "Gratis check-in"
+                : "Free check-in"}
           </Button>
         </div>
       </div>
