@@ -86,7 +86,10 @@ export const createCreditCheckout = createServerFn({ method: "POST" })
         customer: customerId,
         automatic_tax: { enabled: true },
         customer_update: { address: "auto" },
-        payment_intent_data: { description: product.name },
+        payment_intent_data: {
+          description: product.name,
+          statement_descriptor: "HELP & SUPPORT DESK",
+        },
         metadata: {
           userId: context.userId,
           packageKey: pkg.key,

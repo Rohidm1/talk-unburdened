@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getStripe, getStripeEnvironment } from "@/lib/stripe";
+import { BillingDescriptorNotice } from "@/components/site/BillingDescriptorNotice";
 import type { CreditPackageKey } from "@/lib/credit-packages";
 import { createCreditCheckout } from "@/lib/payments.functions";
 
@@ -44,6 +45,7 @@ export function CreditCheckoutDialog({ packageKey, onClose }: Props) {
           <DialogTitle className="font-display">{t("pricing.buy")}</DialogTitle>
         </DialogHeader>
         {packageKey ? <CheckoutFrame key={packageKey} packageKey={packageKey} /> : null}
+        <BillingDescriptorNotice className="border-t border-border pt-3" />
       </DialogContent>
     </Dialog>
   );
