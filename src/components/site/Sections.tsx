@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/accordion";
 import { toast } from "sonner";
 import { creditPackages, RATE_PER_MINUTE } from "@/data/listeners";
+import { BillingDescriptorNotice } from "@/components/site/BillingDescriptorNotice";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import type { CreditPackageKey } from "@/lib/credit-packages";
