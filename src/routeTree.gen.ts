@@ -12,10 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CrmRouteRouteImport } from './routes/crm/route'
+import { Route as CrmLoginRouteImport } from './routes/crm-login'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout/return'
+import { Route as CrmIndexRouteImport } from './routes/crm/index'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicTwilioVoiceRouteImport } from './routes/api/public/twilio/voice'
 
@@ -31,6 +34,16 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrmRouteRoute = CrmRouteRouteImport.update({
+  id: '/crm',
+  path: '/crm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrmLoginRoute = CrmLoginRouteImport.update({
+  id: '/crm-login',
+  path: '/crm-login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
@@ -53,6 +66,11 @@ const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   path: '/checkout/return',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CrmIndexRoute = CrmIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CrmRouteRoute,
+} as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -67,21 +85,26 @@ const ApiPublicTwilioVoiceRoute = ApiPublicTwilioVoiceRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/crm': typeof CrmRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/crm-login': typeof CrmLoginRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/staff': typeof AuthenticatedStaffRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/crm/': typeof CrmIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/twilio/voice': typeof ApiPublicTwilioVoiceRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/crm-login': typeof CrmLoginRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/staff': typeof AuthenticatedStaffRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/crm': typeof CrmIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/twilio/voice': typeof ApiPublicTwilioVoiceRoute
 }
@@ -89,11 +112,14 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/crm': typeof CrmRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/crm-login': typeof CrmLoginRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/crm/': typeof CrmIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/twilio/voice': typeof ApiPublicTwilioVoiceRoute
 }
@@ -101,32 +127,40 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/crm'
     | '/auth'
+    | '/crm-login'
     | '/account'
     | '/admin'
     | '/staff'
     | '/checkout/return'
+    | '/crm/'
     | '/api/public/payments/webhook'
     | '/api/public/twilio/voice'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/crm-login'
     | '/account'
     | '/admin'
     | '/staff'
     | '/checkout/return'
+    | '/crm'
     | '/api/public/payments/webhook'
     | '/api/public/twilio/voice'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/crm'
     | '/auth'
+    | '/crm-login'
     | '/_authenticated/account'
     | '/_authenticated/admin'
     | '/_authenticated/staff'
     | '/checkout/return'
+    | '/crm/'
     | '/api/public/payments/webhook'
     | '/api/public/twilio/voice'
   fileRoutesById: FileRoutesById
@@ -134,7 +168,9 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  CrmRouteRoute: typeof CrmRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  CrmLoginRoute: typeof CrmLoginRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicTwilioVoiceRoute: typeof ApiPublicTwilioVoiceRoute
@@ -161,6 +197,20 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crm': {
+      id: '/crm'
+      path: '/crm'
+      fullPath: '/crm'
+      preLoaderRoute: typeof CrmRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crm-login': {
+      id: '/crm-login'
+      path: '/crm-login'
+      fullPath: '/crm-login'
+      preLoaderRoute: typeof CrmLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/account': {
@@ -190,6 +240,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/checkout/return'
       preLoaderRoute: typeof CheckoutReturnRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/crm/': {
+      id: '/crm/'
+      path: '/'
+      fullPath: '/crm/'
+      preLoaderRoute: typeof CrmIndexRouteImport
+      parentRoute: typeof CrmRouteRoute
     }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
@@ -223,10 +280,24 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface CrmRouteRouteChildren {
+  CrmIndexRoute: typeof CrmIndexRoute
+}
+
+const CrmRouteRouteChildren: CrmRouteRouteChildren = {
+  CrmIndexRoute: CrmIndexRoute,
+}
+
+const CrmRouteRouteWithChildren = CrmRouteRoute._addFileChildren(
+  CrmRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  CrmRouteRoute: CrmRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  CrmLoginRoute: CrmLoginRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicTwilioVoiceRoute: ApiPublicTwilioVoiceRoute,
