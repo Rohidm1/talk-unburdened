@@ -6,8 +6,12 @@ import { usernameToEmail } from "@/lib/crm-username";
 export const listTeam = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { assertAdmin } = await import("@/lib/crm.server");
-    const admin = await assertAdmin(context);
+    const { data: isAdmin } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    const { requireAdminClient } = await import("@/lib/crm.server");
+    const admin = requireAdminClient(Boolean(isAdmin));
 
     const [{ data: listeners }, { data: roles }, usersRes] = await Promise.all([
       admin.from("listeners").select("*").order("sort_order", { ascending: true }),
@@ -52,8 +56,12 @@ export const createWorker = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { assertAdmin } = await import("@/lib/crm.server");
-    const admin = await assertAdmin(context);
+    const { data: isAdmin } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    const { requireAdminClient } = await import("@/lib/crm.server");
+    const admin = requireAdminClient(Boolean(isAdmin));
     const email = usernameToEmail(data.username);
 
     const { data: created, error: createError } = await admin.auth.admin.createUser({
@@ -99,8 +107,12 @@ export const resetWorkerPassword = createServerFn({ method: "POST" })
     z.object({ userId: z.string().uuid(), password: z.string().min(8).max(72) }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { assertAdmin } = await import("@/lib/crm.server");
-    const admin = await assertAdmin(context);
+    const { data: isAdmin } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    const { requireAdminClient } = await import("@/lib/crm.server");
+    const admin = requireAdminClient(Boolean(isAdmin));
     const { error } = await admin.auth.admin.updateUserById(data.userId, {
       password: data.password,
     });
@@ -114,8 +126,12 @@ export const setListenerActive = createServerFn({ method: "POST" })
     z.object({ listenerId: z.string().uuid(), isActive: z.boolean() }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { assertAdmin } = await import("@/lib/crm.server");
-    const admin = await assertAdmin(context);
+    const { data: isAdmin } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    const { requireAdminClient } = await import("@/lib/crm.server");
+    const admin = requireAdminClient(Boolean(isAdmin));
     const { error } = await admin
       .from("listeners")
       .update({ is_active: data.isActive })
