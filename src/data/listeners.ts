@@ -1,16 +1,16 @@
-import listener1 from "@/assets/listener-1.jpg";
-import listener2 from "@/assets/listener-2.jpg";
-import listener3 from "@/assets/listener-3.jpg";
-import listener4 from "@/assets/listener-4.jpg";
-
 export type ListenerStatus = "online" | "busy" | "offline";
+
+/** A listener speaks exactly one language on the platform: NL or EN. */
+export type ListenerLanguage = "NL" | "EN";
 
 export type Listener = {
   id: string;
   displayName: string;
   avatar: string;
+  age: number;
   bio: { en: string; nl: string };
-  languages: string[];
+  /** Single language — cards never show two badges. */
+  language: ListenerLanguage;
   topics: { en: string; nl: string }[];
   status: ListenerStatus;
   years: number;
@@ -19,71 +19,122 @@ export type Listener = {
 export const listeners: Listener[] = [
   {
     id: "l1",
-    displayName: "Noor",
-    avatar: listener1,
+    displayName: "Amara",
+    avatar: "/avatars/profile-1.jpg",
+    age: 24,
     bio: {
-      en: "Calm, direct and hard to shock. Good with work pressure and the stuff you never say out loud.",
-      nl: "Rustig, direct en niet snel verbaasd. Goed met werkdruk en de dingen die je nooit hardop zegt.",
+      nl: "Bij mij kun je gerust je hart luchten zonder dat iemand oordeelt. Ik ben er om in alle rust naar je te luisteren.",
+      en: "Bij mij kun je gerust je hart luchten zonder dat iemand oordeelt. Ik ben er om in alle rust naar je te luisteren.",
     },
-    languages: ["NL", "EN"],
+    language: "NL",
     topics: [
-      { en: "Work stress", nl: "Werkstress" },
-      { en: "Burnout signals", nl: "Oververmoeid" },
-      { en: "Unwinding", nl: "Ontspannen" },
+      { en: "Hart luchten", nl: "Hart luchten" },
+      { en: "Zonder oordeel", nl: "Zonder oordeel" },
     ],
     status: "online",
-    years: 6,
+    years: 3,
   },
   {
     id: "l2",
-    displayName: "Elise",
-    avatar: listener2,
+    displayName: "Grace",
+    avatar: "/avatars/profile-2.jpg",
+    age: 48,
     bio: {
-      en: "Warm and easy-going. Likes long talks about relationships, family and the messy middle.",
-      nl: "Warm en laagdrempelig. Houdt van lange gesprekken over relaties, familie en alles daartussenin.",
+      en: "Here to offer a calm and listening ear whenever life feels overwhelming. You don't have to carry it all alone.",
+      nl: "Here to offer a calm and listening ear whenever life feels overwhelming. You don't have to carry it all alone.",
     },
-    languages: ["NL", "EN"],
+    language: "EN",
     topics: [
-      { en: "Relationships", nl: "Relaties" },
-      { en: "Fatherhood", nl: "Vaderschap" },
-      { en: "Loneliness", nl: "Eenzaamheid" },
+      { en: "Feeling overwhelmed", nl: "Feeling overwhelmed" },
+      { en: "Quiet support", nl: "Quiet support" },
     ],
-    status: "busy",
-    years: 4,
+    status: "online",
+    years: 12,
   },
   {
     id: "l3",
-    displayName: "Maja",
-    avatar: listener3,
+    displayName: "Sanne",
+    avatar: "/avatars/profile-3.jpg",
+    age: 42,
     bio: {
-      en: "Straight talker with a dry sense of humour. Great for venting after a rough week.",
-      nl: "Recht voor z'n raap met droge humor. Ideaal om even flink te ventileren.",
+      nl: "Soms helpt het gewoon om alles even hardop uit te spreken. Ik luister met volledige aandacht en rust naar jouw verhaal.",
+      en: "Soms helpt het gewoon om alles even hardop uit te spreken. Ik luister met volledige aandacht en rust naar jouw verhaal.",
     },
-    languages: ["EN"],
+    language: "NL",
     topics: [
-      { en: "Venting", nl: "Even ventileren" },
-      { en: "Money worries", nl: "Geldzorgen" },
-      { en: "Career moves", nl: "Carrièrekeuzes" },
+      { en: "Hardop uitspreken", nl: "Hardop uitspreken" },
+      { en: "Volle aandacht", nl: "Volle aandacht" },
     ],
     status: "online",
     years: 8,
   },
   {
     id: "l4",
-    displayName: "Fenna",
-    avatar: listener4,
+    displayName: "Elena",
+    avatar: "/avatars/profile-4.jpg",
+    age: 26,
     bio: {
-      en: "Thoughtful listener who lets silences breathe. Nights and early mornings are her thing.",
-      nl: "Bedachtzame luisteraar die stiltes laat bestaan. Nachten en vroege ochtenden zijn haar ding.",
+      en: "A safe and peaceful space for a quick vent or sharing whatever is on your mind today.",
+      nl: "A safe and peaceful space for a quick vent or sharing whatever is on your mind today.",
     },
-    languages: ["NL", "EN"],
+    language: "EN",
     topics: [
-      { en: "Late night talks", nl: "Nachtgesprekken" },
-      { en: "Divorce", nl: "Scheiding" },
-      { en: "Self doubt", nl: "Twijfel" },
+      { en: "Quick vent", nl: "Quick vent" },
+      { en: "Safe space", nl: "Safe space" },
+    ],
+    status: "busy",
+    years: 4,
+  },
+  {
+    id: "l5",
+    displayName: "Priya",
+    avatar: "/avatars/profile-5.jpg",
+    age: 52,
+    bio: {
+      nl: "Rust en oprechte aandacht voor jouw verhaal, op jouw eigen tempo. Samen nemen we even een moment van stilte en steun.",
+      en: "Rust en oprechte aandacht voor jouw verhaal, op jouw eigen tempo. Samen nemen we even een moment van stilte en steun.",
+    },
+    language: "NL",
+    topics: [
+      { en: "Jouw tempo", nl: "Jouw tempo" },
+      { en: "Rust en steun", nl: "Rust en steun" },
+    ],
+    status: "online",
+    years: 15,
+  },
+  {
+    id: "l6",
+    displayName: "Maya",
+    avatar: "/avatars/profile-6.jpg",
+    age: 34,
+    bio: {
+      en: "Whenever you need a comforting conversation or just someone to listen quietly, I am here for you.",
+      nl: "Whenever you need a comforting conversation or just someone to listen quietly, I am here for you.",
+    },
+    language: "EN",
+    topics: [
+      { en: "Comforting talk", nl: "Comforting talk" },
+      { en: "Quiet listening", nl: "Quiet listening" },
+    ],
+    status: "online",
+    years: 6,
+  },
+  {
+    id: "l7",
+    displayName: "Yuki",
+    avatar: "/avatars/profile-7.jpg",
+    age: 28,
+    bio: {
+      nl: "Voor als je even stil wilt staan bij wat je voelt en behoefte hebt aan een rustige stem aan de andere kant van de lijn.",
+      en: "Voor als je even stil wilt staan bij wat je voelt en behoefte hebt aan een rustige stem aan de andere kant van de lijn.",
+    },
+    language: "NL",
+    topics: [
+      { en: "Rustige stem", nl: "Rustige stem" },
+      { en: "Even stilstaan", nl: "Even stilstaan" },
     ],
     status: "offline",
-    years: 3,
+    years: 5,
   },
 ];
 

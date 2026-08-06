@@ -1,15 +1,13 @@
-import listener1 from "@/assets/listener-1.jpg";
-import listener2 from "@/assets/listener-2.jpg";
-import listener3 from "@/assets/listener-3.jpg";
-import listener4 from "@/assets/listener-4.jpg";
-
 export const avatarByKey: Record<string, string> = {
-  "listener-1": listener1,
-  "listener-2": listener2,
-  "listener-3": listener3,
-  "listener-4": listener4,
+  "profile-1": "/avatars/profile-1.jpg",
+  "profile-2": "/avatars/profile-2.jpg",
+  "profile-3": "/avatars/profile-3.jpg",
+  "profile-4": "/avatars/profile-4.jpg",
+  "profile-5": "/avatars/profile-5.jpg",
+  "profile-6": "/avatars/profile-6.jpg",
+  "profile-7": "/avatars/profile-7.jpg",
 };
 
 export function avatarFor(key: string): string {
-  return avatarByKey[key] ?? listener1;
+  return avatarByKey[key] ?? "/avatars/profile-1.jpg";
 }
