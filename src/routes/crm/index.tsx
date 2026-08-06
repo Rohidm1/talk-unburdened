@@ -54,6 +54,7 @@ function CrmTeam() {
   const toggleActive = useServerFn(setListenerActive);
 
   const [form, setForm] = useState(emptyForm);
+  const [linkTo, setLinkTo] = useState("");
   const [resetFor, setResetFor] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState("");
 
@@ -67,18 +68,19 @@ function CrmTeam() {
           password: form.password,
           displayName: form.displayName,
           avatarKey: form.avatarKey,
-          bioEn: form.bioEn,
-          bioNl: form.bioNl || form.bioEn,
+          bioEn: form.bioEn || "—",
+          bioNl: form.bioNl || form.bioEn || "—",
           languages: form.languages.split(",").map((s) => s.trim()).filter(Boolean),
           topicsEn: form.topicsEn.split(",").map((s) => s.trim()).filter(Boolean),
           topicsNl: (form.topicsNl || form.topicsEn).split(",").map((s) => s.trim()).filter(Boolean),
           years: Number(form.years) || 0,
-          existingListenerId: null,
+          existingListenerId: linkTo || null,
         },
       }),
     onSuccess: (res) => {
       toast.success(`Login created for ${res.username}`);
       setForm(emptyForm);
+      setLinkTo("");
       void queryClient.invalidateQueries({ queryKey: ["crm-team"] });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Could not create login"),
@@ -206,6 +208,24 @@ function CrmTeam() {
                 createMutation.mutate();
               }}
             >
+              <div className="flex flex-col gap-2 sm:col-span-2">
+                <Label htmlFor="linkTo">Profile</Label>
+                <select
+                  id="linkTo"
+                  value={linkTo}
+                  onChange={(e) => setLinkTo(e.target.value)}
+                  className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="">Create a new listener profile</option>
+                  {team.data.listeners
+                    .filter((l) => !l.user_id)
+                    .map((l) => (
+                      <option key={l.id} value={l.id}>
+                        Link to existing: {l.display_name}
+                      </option>
+                    ))}
+                </select>
+              </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="username">Username</Label>
                 <Input
@@ -290,7 +310,7 @@ function CrmTeam() {
                 <Label htmlFor="bioEn">Short intro (EN)</Label>
                 <Textarea
                   id="bioEn"
-                  required
+                  required={!linkTo}
                   maxLength={500}
                   value={form.bioEn}
                   onChange={(e) => setForm({ ...form, bioEn: e.target.value })}
