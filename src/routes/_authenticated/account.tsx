@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Coins, LogOut, Phone } from "lucide-react";
+import { Coins, CreditCard, LogOut, Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,8 @@ import { creditPackages } from "@/data/listeners";
 import type { CreditPackageKey } from "@/lib/credit-packages";
 import { CreditCheckoutDialog } from "@/components/site/CreditCheckoutDialog";
 import { PaymentTestModeBanner } from "@/components/site/PaymentTestModeBanner";
+import { createPortalSession } from "@/lib/payments.functions";
+import { getStripeEnvironment } from "@/lib/stripe";
 
 export const Route = createFileRoute("/_authenticated/account")({
   head: () => ({
@@ -38,8 +40,26 @@ function AccountPage() {
   const fetchAccount = useServerFn(getMyAccount);
   const fetchCalls = useServerFn(getMyCalls);
   const rename = useServerFn(updateAlias);
+  const openPortal = useServerFn(createPortalSession);
   const [alias, setAlias] = useState("");
   const [checkoutKey, setCheckoutKey] = useState<CreditPackageKey | null>(null);
+
+  const portalMutation = useMutation({
+    mutationFn: async () => {
+      const result = await openPortal({
+        data: {
+          returnUrl: `${window.location.origin}/account`,
+          environment: getStripeEnvironment(),
+        },
+      });
+      if ("error" in result) throw new Error(result.error);
+      return result.url;
+    },
+    onSuccess: (url) => {
+      window.open(url, "_blank", "noopener,noreferrer");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
 
   const account = useQuery({ queryKey: ["account"], queryFn: () => fetchAccount() });
   const calls = useQuery({ queryKey: ["my-calls"], queryFn: () => fetchCalls() });
@@ -123,6 +143,19 @@ function AccountPage() {
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
             Secure card payment. Credits are added automatically once the payment clears.
+          </p>
+
+          <Button
+            variant="ghost"
+            className="mt-4 w-full"
+            disabled={portalMutation.isPending}
+            onClick={() => portalMutation.mutate()}
+          >
+            <CreditCard className="size-4" />
+            {portalMutation.isPending ? "Opening…" : "Payment methods & invoices"}
+          </Button>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Opens your secure billing portal in a new tab.
           </p>
         </div>
 

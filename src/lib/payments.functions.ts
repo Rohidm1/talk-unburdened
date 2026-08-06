@@ -9,6 +9,7 @@ import {
 } from "@/lib/stripe.server";
 
 type CheckoutSessionResult = { clientSecret: string } | { error: string };
+type PortalSessionResult = { url: string } | { error: string };
 
 async function resolveOrCreateCustomer(
   stripe: ReturnType<typeof createStripeClient>,
@@ -94,6 +95,40 @@ export const createCreditCheckout = createServerFn({ method: "POST" })
       });
 
       return { clientSecret: session.client_secret ?? "" };
+    } catch (error) {
+      return { error: getStripeErrorMessage(error) };
+    }
+  });
+
+export const createPortalSession = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        returnUrl: z.string().url(),
+        environment: z.enum(["sandbox", "live"]),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<PortalSessionResult> => {
+    try {
+      const stripe = createStripeClient(data.environment as StripeEnv);
+
+      const {
+        data: { user },
+      } = await context.supabase.auth.getUser();
+
+      const customerId = await resolveOrCreateCustomer(stripe, {
+        email: user?.email ?? undefined,
+        userId: context.userId,
+      });
+
+      const portal = await stripe.billingPortal.sessions.create({
+        customer: customerId,
+        return_url: data.returnUrl,
+      });
+
+      return { url: portal.url };
     } catch (error) {
       return { error: getStripeErrorMessage(error) };
     }
