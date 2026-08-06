@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Mic, MicOff, PhoneOff } from "lucide-react";
+import { AlertTriangle, Mic, MicOff, PhoneOff } from "lucide-react";
 import type { Call } from "@twilio/voice-sdk";
 import {
   Dialog,
@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import type { Listener } from "@/data/listeners";
-import { RATE_PER_MINUTE } from "@/lib/credit-packages";
+import { LOW_BALANCE_WARNING_SECONDS, RATE_PER_MINUTE } from "@/lib/credit-packages";
 
 function format(seconds: number) {
   const m = Math.floor(seconds / 60);
@@ -21,36 +21,67 @@ function format(seconds: number) {
 
 export function ActiveCallDialog({
   listener,
-  balanceSeconds,
+  allowanceSeconds,
+  mode,
+  onTick,
   onEnd,
   call,
   audioLive,
 }: {
   listener: Listener | null;
-  balanceSeconds: number;
-  onEnd: (elapsed: number) => void;
+  allowanceSeconds: number;
+  mode: "paid" | "free";
+  /** Server heartbeat. Returns the authoritative remaining seconds. */
+  onTick: () => Promise<{ remaining: number; shouldEnd: boolean } | null>;
+  onEnd: () => void;
   call?: Call | null;
   audioLive?: boolean;
 }) {
   const { t } = useTranslation();
   const [elapsed, setElapsed] = useState(0);
   const [muted, setMuted] = useState(false);
+  const [remaining, setRemaining] = useState(allowanceSeconds);
+  const endedRef = useRef(false);
 
   useEffect(() => {
     if (!listener) return;
     setElapsed(0);
     setMuted(false);
+    setRemaining(allowanceSeconds);
+    endedRef.current = false;
     const id = setInterval(() => setElapsed((e) => e + 1), 1000);
     return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listener]);
 
+  // The server decides when time is up; the local ticker is display only.
   useEffect(() => {
-    if (listener && elapsed >= balanceSeconds && balanceSeconds > 0) onEnd(elapsed);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [elapsed]);
+    if (!listener) return;
+    let cancelled = false;
 
-  const left = Math.max(balanceSeconds - elapsed, 0);
-  const cost = (elapsed / 60) * RATE_PER_MINUTE;
+    const beat = async () => {
+      const status = await onTick();
+      if (cancelled || !status) return;
+      setRemaining(status.remaining);
+      if (status.shouldEnd && !endedRef.current) {
+        endedRef.current = true;
+        onEnd();
+      }
+    };
+
+    void beat();
+    const id = setInterval(() => void beat(), 10000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listener]);
+
+  // Interpolate between heartbeats so the countdown stays smooth.
+  const left = Math.max(Math.min(remaining, allowanceSeconds - elapsed), 0);
+  const cost = mode === "free" ? 0 : (elapsed / 60) * RATE_PER_MINUTE;
+  const lowOnTime = left <= LOW_BALANCE_WARNING_SECONDS;
 
   const toggleMute = () => {
     setMuted((m) => {
@@ -61,8 +92,10 @@ export function ActiveCallDialog({
   };
 
   const hangUp = () => {
+    if (endedRef.current) return;
+    endedRef.current = true;
     call?.disconnect();
-    onEnd(elapsed);
+    onEnd();
   };
 
   return (
@@ -87,6 +120,17 @@ export function ActiveCallDialog({
             </DialogHeader>
 
             <div className="text-center font-display text-5xl tabular-nums">{format(elapsed)}</div>
+
+            {lowOnTime ? (
+              <div className="flex items-center justify-center gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-center text-sm text-destructive">
+                <AlertTriangle className="size-4 shrink-0" />
+                <span>
+                  {mode === "free"
+                    ? "Your free check-in ends in under a minute."
+                    : "Less than a minute of credit left — the call will end automatically."}
+                </span>
+              </div>
+            ) : null}
 
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-2xl border border-border bg-secondary/40 p-3 text-center">
