@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getMyAccount, getMyCalls, purchaseCredits, updateAlias } from "@/lib/account.functions";
+import { getMyAccount, getMyCalls, updateAlias } from "@/lib/account.functions";
 import { creditPackages } from "@/data/listeners";
 import type { CreditPackageKey } from "@/lib/credit-packages";
 import { CreditCheckoutDialog } from "@/components/site/CreditCheckoutDialog";
@@ -37,7 +37,6 @@ function AccountPage() {
   const queryClient = useQueryClient();
   const fetchAccount = useServerFn(getMyAccount);
   const fetchCalls = useServerFn(getMyCalls);
-  const buy = useServerFn(purchaseCredits);
   const rename = useServerFn(updateAlias);
   const [alias, setAlias] = useState("");
   const [checkoutKey, setCheckoutKey] = useState<CreditPackageKey | null>(null);
@@ -68,7 +67,9 @@ function AccountPage() {
   const seconds = (profile?.credit_seconds ?? 0) % 60;
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-5 py-12 font-body">
+    <main className="mx-auto w-full max-w-4xl px-5 pb-12 font-body">
+      <PaymentTestModeBanner />
+      <div className="pt-12" />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-semibold tracking-tight">
@@ -171,6 +172,7 @@ function AccountPage() {
           <p className="mt-4 text-sm text-muted-foreground">No calls yet.</p>
         )}
       </section>
+          <CreditCheckoutDialog packageKey={checkoutKey} onClose={() => setCheckoutKey(null)} />
     </main>
   );
 }
