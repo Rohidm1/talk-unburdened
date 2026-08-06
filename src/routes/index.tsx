@@ -12,7 +12,7 @@ import { ActiveCallDialog, UnavailableDialog } from "@/components/site/CallDialo
 import { ContactSection, Faq, Footer, HowItWorks, Pricing } from "@/components/site/Sections";
 import { listeners as fallbackListeners, type Listener } from "@/data/listeners";
 import { listPublicListeners } from "@/lib/listeners.functions";
-import { endCall, getMyAccount, startCall } from "@/lib/account.functions";
+import { endCall, getMyAccount, heartbeatCall, startCall } from "@/lib/account.functions";
 import { prepareDial } from "@/lib/voice.functions";
 import { useTwilioDevice } from "@/hooks/useTwilioDevice";
 import type { Call } from "@twilio/voice-sdk";
@@ -45,13 +45,15 @@ function Index() {
   const fetchAccount = useServerFn(getMyAccount);
   const begin = useServerFn(startCall);
   const finish = useServerFn(endCall);
+  const beat = useServerFn(heartbeatCall);
   const prepare = useServerFn(prepareDial);
   const voice = useTwilioDevice(!!session);
 
   const [activeCall, setActiveCall] = useState<Listener | null>(null);
   const [activeCallId, setActiveCallId] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState<Listener | null>(null);
-  const [balance, setBalance] = useState(0);
+  const [allowance, setAllowance] = useState(0);
+  const [callMode, setCallMode] = useState<"paid" | "free">("paid");
   const [voiceCall, setVoiceCall] = useState<Call | null>(null);
 
   const listenersQuery = useQuery({
@@ -82,7 +84,7 @@ function Index() {
     }));
   }, [listenersQuery.data]);
 
-  const handleCall = async (l: Listener) => {
+  const handleCall = async (l: Listener, mode: "paid" | "free" = "paid") => {
     if (!session) {
       void navigate({ to: "/auth" });
       return;
@@ -91,13 +93,22 @@ function Index() {
       setUnavailable(l);
       return;
     }
-    const result = await begin({ data: { listenerId: l.id } });
+    const result = await begin({ data: { listenerId: l.id, mode } });
     if (!result.ok) {
-      toast.error("You're out of talk credit. Top up on your account page.");
+      if (result.reason === "blocked") {
+        toast.error("Your account is on hold because of a refund or chargeback. Contact support.");
+        return;
+      }
+      if (result.reason === "no_free_time") {
+        toast.error("Your free check-in time is used up. Top up to keep talking.");
+      } else {
+        toast.error("You're out of talk credit. Top up on your account page.");
+      }
       void navigate({ to: "/account" });
       return;
     }
-    setBalance(result.balance);
+    setAllowance(result.allowanceSeconds);
+    setCallMode(mode);
     setActiveCallId(result.callId);
     setUnavailable(null);
     setActiveCall(l);
@@ -121,14 +132,26 @@ function Index() {
     }
   };
 
-  const handleEnd = async (elapsed: number) => {
+  const handleTick = async () => {
+    const callId = activeCallId;
+    if (!callId) return null;
+    try {
+      const status = await beat({ data: { callId } });
+      return { remaining: status.remaining, shouldEnd: status.shouldEnd };
+    } catch (err) {
+      console.error("[call] heartbeat failed", err);
+      return null;
+    }
+  };
+
+  const handleEnd = async () => {
     const callId = activeCallId;
     voiceCall?.disconnect();
     setVoiceCall(null);
     setActiveCall(null);
     setActiveCallId(null);
     if (!callId) return;
-    const result = await finish({ data: { callId, durationSeconds: elapsed } });
+    const result = await finish({ data: { callId } });
     void queryClient.invalidateQueries({ queryKey: ["account"] });
     toast.success(
       `Call ended · ${Math.floor(result.billed / 60)}m ${result.billed % 60}s · € ${(result.cost / 100).toFixed(2)}`,
@@ -137,10 +160,10 @@ function Index() {
 
   const startFirstAvailable = () => {
     const first = list.find((l) => l.status === "online");
-    if (first) void handleCall(first);
+    if (first) void handleCall(first, "paid");
   };
 
-  const creditSeconds = account.data?.profile?.credit_seconds ?? 0;
+  const freeSecondsLeft = account.data?.profile?.free_seconds_remaining;
 
   return (
     <div className="min-h-screen font-body">
@@ -155,7 +178,12 @@ function Index() {
           <p className="mt-3 max-w-xl text-muted-foreground">{t("listeners.subtitle")}</p>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {list.map((l) => (
-              <ListenerCard key={l.id} listener={l} onCall={(x) => void handleCall(x)} />
+              <ListenerCard
+                key={l.id}
+                listener={l}
+                freeSecondsLeft={session ? freeSecondsLeft : undefined}
+                onCall={(x, mode) => void handleCall(x, mode)}
+              />
             ))}
           </div>
         </section>
@@ -169,16 +197,18 @@ function Index() {
 
       <ActiveCallDialog
         listener={activeCall}
-        balanceSeconds={balance || creditSeconds}
+        allowanceSeconds={allowance}
+        mode={callMode}
         call={voiceCall}
         audioLive={!!voiceCall}
-        onEnd={(elapsed) => void handleEnd(elapsed)}
+        onTick={handleTick}
+        onEnd={() => void handleEnd()}
       />
       <UnavailableDialog
         listener={unavailable}
         available={list.filter((l) => l.status === "online")}
         onClose={() => setUnavailable(null)}
-        onPick={(l) => void handleCall(l)}
+        onPick={(l) => void handleCall(l, "paid")}
       />
     </div>
   );
