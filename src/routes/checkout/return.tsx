@@ -3,6 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BillingDescriptorNotice } from "@/components/site/BillingDescriptorNotice";
 
 export const Route = createFileRoute("/checkout/return")({
   head: () => ({
@@ -50,6 +51,7 @@ function CheckoutReturn() {
           <Button className="mt-7" onClick={() => void navigate({ to: "/account" })}>
             Go to my account
           </Button>
+          <BillingDescriptorNotice className="mt-6 max-w-sm text-left" />
         </>
       ) : (
         <>

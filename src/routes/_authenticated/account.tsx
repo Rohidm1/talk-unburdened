@@ -15,6 +15,7 @@ import { CreditCheckoutDialog } from "@/components/site/CreditCheckoutDialog";
 import { PaymentTestModeBanner } from "@/components/site/PaymentTestModeBanner";
 import { createPortalSession } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
+import { BillingDescriptorNotice } from "@/components/site/BillingDescriptorNotice";
 
 export const Route = createFileRoute("/_authenticated/account")({
   head: () => ({
@@ -144,6 +145,7 @@ function AccountPage() {
           <p className="mt-3 text-xs text-muted-foreground">
             Secure card payment. Credits are added automatically once the payment clears.
           </p>
+          <BillingDescriptorNotice className="mt-2" />
 
           <Button
             variant="ghost"
