@@ -58,7 +58,9 @@ export type Database = {
           ended_at: string | null
           free_seconds_used: number
           id: string
+          last_heartbeat_at: string
           listener_id: string
+          mode: string
           room_name: string | null
           started_at: string
         }
@@ -70,7 +72,9 @@ export type Database = {
           ended_at?: string | null
           free_seconds_used?: number
           id?: string
+          last_heartbeat_at?: string
           listener_id: string
+          mode?: string
           room_name?: string | null
           started_at?: string
         }
@@ -82,7 +86,9 @@ export type Database = {
           ended_at?: string | null
           free_seconds_used?: number
           id?: string
+          last_heartbeat_at?: string
           listener_id?: string
+          mode?: string
           room_name?: string | null
           started_at?: string
         }
@@ -185,7 +191,9 @@ export type Database = {
           alias: string
           created_at: string
           credit_seconds: number
+          free_seconds_remaining: number
           id: string
+          is_blocked: boolean
           locale: string
           updated_at: string
         }
@@ -193,7 +201,9 @@ export type Database = {
           alias?: string
           created_at?: string
           credit_seconds?: number
+          free_seconds_remaining?: number
           id: string
+          is_blocked?: boolean
           locale?: string
           updated_at?: string
         }
@@ -201,7 +211,9 @@ export type Database = {
           alias?: string
           created_at?: string
           credit_seconds?: number
+          free_seconds_remaining?: number
           id?: string
+          is_blocked?: boolean
           locale?: string
           updated_at?: string
         }
@@ -233,12 +245,45 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      grant_credits: {
+        Args: {
+          _cents: number
+          _seconds: number
+          _session: string
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      revoke_credits: {
+        Args: {
+          _block: boolean
+          _cents: number
+          _kind: string
+          _ref: string
+          _seconds: number
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      settle_call: {
+        Args: { _call_id: string; _end_at?: string; _rate_cents: number }
+        Returns: {
+          billed: number
+          cost: number
+          free_left: number
+          paid_left: number
+        }[]
+      }
+      settle_stale_calls: {
+        Args: { _rate_cents: number; _user_id: string }
+        Returns: undefined
       }
     }
     Enums: {
