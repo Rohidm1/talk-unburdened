@@ -1,3 +1,5 @@
+import { CREDIT_PACKAGE_LIST, type CreditPackageKey } from "@/lib/credit-packages";
+
 export type ListenerStatus = "online" | "busy" | "offline";
 
 /** A listener speaks exactly one language on the platform: NL or EN. */

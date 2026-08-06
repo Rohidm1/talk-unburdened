@@ -10,7 +10,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { RATE_PER_MINUTE, type Listener } from "@/data/listeners";
+import type { Listener } from "@/data/listeners";
+import { RATE_PER_MINUTE } from "@/lib/credit-packages";
 
 function format(seconds: number) {
   const m = Math.floor(seconds / 60);
