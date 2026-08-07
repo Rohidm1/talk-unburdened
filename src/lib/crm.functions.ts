@@ -15,12 +15,12 @@ export const listTeam = createServerFn({ method: "GET" })
 
     const [{ data: listeners }, { data: roles }, usersRes, { data: links }, { data: presence }] =
       await Promise.all([
-      admin.from("listeners").select("*").order("sort_order", { ascending: true }),
-      admin.from("user_roles").select("user_id, role"),
-      admin.auth.admin.listUsers({ page: 1, perPage: 200 }),
-      admin.from("listener_agents").select("listener_id, agent_user_id"),
-      admin.from("agent_presence").select("user_id, status"),
-    ]);
+        admin.from("listeners").select("*").order("sort_order", { ascending: true }),
+        admin.from("user_roles").select("user_id, role"),
+        admin.auth.admin.listUsers({ page: 1, perPage: 200 }),
+        admin.from("listener_agents").select("listener_id, agent_user_id"),
+        admin.from("agent_presence").select("user_id, status"),
+      ]);
 
     const emailByUser = new Map<string, string>();
     for (const u of usersRes.data?.users ?? []) emailByUser.set(u.id, u.email ?? "");
@@ -32,9 +32,7 @@ export const listTeam = createServerFn({ method: "GET" })
       listeners: (listeners ?? []).map((l) => ({
         ...l,
         login: l.user_id ? (emailByUser.get(l.user_id)?.split("@")[0] ?? null) : null,
-        agentIds: (links ?? [])
-          .filter((x) => x.listener_id === l.id)
-          .map((x) => x.agent_user_id),
+        agentIds: (links ?? []).filter((x) => x.listener_id === l.id).map((x) => x.agent_user_id),
       })),
       agents: staffIds.map((id) => ({
         userId: id,
@@ -124,7 +122,8 @@ export const createWorker = createServerFn({ method: "POST" })
       email_confirm: true,
       user_metadata: { alias: data.displayName },
     });
-    if (createError || !created.user) throw new Error(createError?.message ?? "Could not create login");
+    if (createError || !created.user)
+      throw new Error(createError?.message ?? "Could not create login");
 
     const userId = created.user.id;
     await admin.from("user_roles").insert({ user_id: userId, role: "staff" });
@@ -142,17 +141,17 @@ export const createWorker = createServerFn({ method: "POST" })
       const { data: inserted, error } = await admin
         .from("listeners")
         .insert({
-        user_id: userId,
-        display_name: data.displayName,
-        avatar_key: data.avatarKey,
-        bio_en: data.bioEn,
-        bio_nl: data.bioNl,
-        languages: data.languages,
-        topics_en: data.topicsEn,
-        topics_nl: data.topicsNl,
-        years: data.years,
-        status: "offline",
-        is_active: true,
+          user_id: userId,
+          display_name: data.displayName,
+          avatar_key: data.avatarKey,
+          bio_en: data.bioEn,
+          bio_nl: data.bioNl,
+          languages: data.languages,
+          topics_en: data.topicsEn,
+          topics_nl: data.topicsNl,
+          years: data.years,
+          status: "offline",
+          is_active: true,
         })
         .select("id")
         .single();

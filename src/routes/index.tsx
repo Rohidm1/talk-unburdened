@@ -41,12 +41,30 @@ export const Route = createFileRoute("/")({
           "@context": "https://schema.org",
           "@type": "FAQPage",
           mainEntity: [
-            ["Is it really anonymous?", "Yes. You choose an alias, and that's the only thing your listener ever sees. We never ask for your real name, address or phone number."],
-            ["Are your listeners professionals?", "No — and we're upfront about that. Our listeners are trained, warm people who give you their full attention. They offer a listening ear and everyday perspective, not professional advice."],
-            ["How do the 3 free minutes work?", "Every new account gets 3 free minutes on the very first call. No credit card needed. When the timer runs out you can top up or simply hang up."],
-            ["How am I billed?", "Calls cost EUR 1.30 per minute, billed per second from your credit balance. Bundles bring the price down."],
-            ["Who can see that I called?", "Nobody. Your payment description is neutral, calls run in the browser, and we never share anything with third parties."],
-            ["What can I talk about?", "Work pressure, your relationship, money worries, a rough week, or nothing in particular. There is no wrong subject here."],
+            [
+              "Is it really anonymous?",
+              "Yes. You choose an alias, and that's the only thing your listener ever sees. We never ask for your real name, address or phone number.",
+            ],
+            [
+              "Are your listeners professionals?",
+              "No — and we're upfront about that. Our listeners are trained, warm people who give you their full attention. They offer a listening ear and everyday perspective, not professional advice.",
+            ],
+            [
+              "How do the 3 free minutes work?",
+              "Every new account gets 3 free minutes on the very first call. No credit card needed. When the timer runs out you can top up or simply hang up.",
+            ],
+            [
+              "How am I billed?",
+              "Calls cost EUR 1.30 per minute, billed per second from your credit balance. Bundles bring the price down.",
+            ],
+            [
+              "Who can see that I called?",
+              "Nobody. Your payment description is neutral, calls run in the browser, and we never share anything with third parties.",
+            ],
+            [
+              "What can I talk about?",
+              "Work pressure, your relationship, money worries, a rough week, or nothing in particular. There is no wrong subject here.",
+            ],
           ].map(([q, a]) => ({
             "@type": "Question",
             name: q,
@@ -232,11 +250,7 @@ function Index() {
           <p className="mt-3 max-w-xl text-muted-foreground">{t("listeners.subtitle")}</p>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {list.map((l) => (
-              <ListenerCard
-                key={l.id}
-                listener={l}
-                onCall={(x) => void handleCall(x)}
-              />
+              <ListenerCard key={l.id} listener={l} onCall={(x) => void handleCall(x)} />
             ))}
           </div>
         </section>

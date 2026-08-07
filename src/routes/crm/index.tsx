@@ -78,9 +78,18 @@ function CrmTeam() {
           avatarKey: form.avatarKey,
           bioEn: form.bioEn || "—",
           bioNl: form.bioNl || form.bioEn || "—",
-          languages: form.languages.split(",").map((s) => s.trim()).filter(Boolean),
-          topicsEn: form.topicsEn.split(",").map((s) => s.trim()).filter(Boolean),
-          topicsNl: (form.topicsNl || form.topicsEn).split(",").map((s) => s.trim()).filter(Boolean),
+          languages: form.languages
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean),
+          topicsEn: form.topicsEn
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean),
+          topicsNl: (form.topicsNl || form.topicsEn)
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean),
           years: Number(form.years) || 0,
           existingListenerId: linkTo || null,
         },
@@ -204,7 +213,9 @@ function CrmTeam() {
                   </Button>
                   {agentsFor === l.id ? (
                     <div className="w-full rounded-2xl border border-border bg-secondary/30 p-4">
-                      <p className="text-sm font-medium">Who can take calls for {l.display_name}?</p>
+                      <p className="text-sm font-medium">
+                        Who can take calls for {l.display_name}?
+                      </p>
                       <p className="mt-1 text-xs text-muted-foreground">
                         One agent can be assigned to as many profiles as you like. Callers keep
                         their preferred agent whenever that person is available.
@@ -384,11 +395,7 @@ function CrmTeam() {
                   onChange={(e) => setForm({ ...form, bioNl: e.target.value })}
                 />
               </div>
-              <Button
-                type="submit"
-                className="sm:col-span-2"
-                disabled={createMutation.isPending}
-              >
+              <Button type="submit" className="sm:col-span-2" disabled={createMutation.isPending}>
                 Create login
               </Button>
             </form>

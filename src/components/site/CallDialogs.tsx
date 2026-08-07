@@ -201,27 +201,29 @@ export function UnavailableDialog({
             </p>
             <ul className="flex flex-col gap-2">
               {available.map((l) => (
-            <li key={l.id}>
-              <button
-                onClick={() => onPick(l)}
-                className="flex w-full items-center gap-3 rounded-2xl border border-border bg-secondary/30 p-3 text-left transition-colors hover:border-primary/50"
-              >
-                <img
-                  src={l.avatar}
-                  alt={l.displayName}
-                  width={512}
-                  height={512}
-                  className="size-11 rounded-full object-cover"
-                />
-                <span className="flex-1">
-                  <span className="block text-sm font-semibold">{l.displayName}</span>
-                  <span className="block text-xs text-muted-foreground">
-                    {l.language === "NL" ? "Nederlands" : "English"}
-                  </span>
-                </span>
-                <span className="text-xs font-medium text-success">{t("listeners.online")}</span>
-              </button>
-            </li>
+                <li key={l.id}>
+                  <button
+                    onClick={() => onPick(l)}
+                    className="flex w-full items-center gap-3 rounded-2xl border border-border bg-secondary/30 p-3 text-left transition-colors hover:border-primary/50"
+                  >
+                    <img
+                      src={l.avatar}
+                      alt={l.displayName}
+                      width={512}
+                      height={512}
+                      className="size-11 rounded-full object-cover"
+                    />
+                    <span className="flex-1">
+                      <span className="block text-sm font-semibold">{l.displayName}</span>
+                      <span className="block text-xs text-muted-foreground">
+                        {l.language === "NL" ? "Nederlands" : "English"}
+                      </span>
+                    </span>
+                    <span className="text-xs font-medium text-success">
+                      {t("listeners.online")}
+                    </span>
+                  </button>
+                </li>
               ))}
             </ul>
           </>
@@ -231,11 +233,7 @@ export function UnavailableDialog({
               Everyone is in a conversation right now. Join the waiting line and we'll alert you
               here the moment a listener is free.
             </p>
-            <Button
-              className="mt-3 w-full"
-              disabled={waiting}
-              onClick={() => onJoinWaitlist?.()}
-            >
+            <Button className="mt-3 w-full" disabled={waiting} onClick={() => onJoinWaitlist?.()}>
               <BellRing className="size-4" />
               {waiting ? "You're in the waiting line" : "Notify me when someone is free"}
             </Button>

@@ -29,7 +29,10 @@ export const prepareDial = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const [{ data: links }, { data: listener }, { data: sticky }] = await Promise.all([
-      supabaseAdmin.from("listener_agents").select("agent_user_id").eq("listener_id", data.listenerId),
+      supabaseAdmin
+        .from("listener_agents")
+        .select("agent_user_id")
+        .eq("listener_id", data.listenerId),
       supabaseAdmin.from("listeners").select("user_id").eq("id", data.listenerId).maybeSingle(),
       supabaseAdmin
         .from("client_agent_routes")
