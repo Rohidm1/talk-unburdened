@@ -12,4 +12,17 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    resolve: {
+      alias: {
+        // @twilio/voice-sdk does `import { EventEmitter } from 'events'`; without an
+        // explicit browser shim this resolves to undefined and the SDK throws
+        // "Class extends value undefined is not a constructor or null".
+        events: "events/events.js",
+      },
+    },
+    optimizeDeps: {
+      include: ["@twilio/voice-sdk", "events"],
+    },
+  },
 });
