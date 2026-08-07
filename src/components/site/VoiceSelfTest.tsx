@@ -1,11 +1,17 @@
 import { useCallback, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import type { Call } from "@twilio/voice-sdk";
-import { CheckCircle2, Loader2, PhoneCall, XCircle } from "lucide-react";
+import { CheckCircle2, Copy, Loader2, PhoneCall, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { prepareSelfTest } from "@/lib/voice.functions";
 
-type Result = { ok: boolean; title: string; detail: string } | null;
+type Result = {
+  ok: boolean;
+  title: string;
+  detail: string;
+  /** Correlation id + timeline + stack, for reporting to the admin. */
+  diagnostics: string;
+} | null;
 
 /** Turns a raw failure into something an agent can act on. */
 function explain(reason: string, credentialsOk: boolean | null): { title: string; detail: string } {
@@ -83,40 +89,72 @@ export function VoiceSelfTest({
   const [state, setState] = useState<"idle" | "running">("idle");
   const [step, setStep] = useState("");
   const [result, setResult] = useState<Result>(null);
+  const [showDetails, setShowDetails] = useState(false);
   const callRef = useRef<Call | null>(null);
 
   const run = useCallback(async () => {
     setState("running");
     setResult(null);
+    setShowDetails(false);
     let credentialsOk: boolean | null = null;
+    const testId = `vst-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    const startedAt = Date.now();
+    const timeline: string[] = [];
+    const ids: Record<string, string> = { testId };
+    const mark = (label: string) => {
+      timeline.push(`+${String(Date.now() - startedAt).padStart(5, " ")}ms  ${label}`);
+      setStep(label);
+    };
+    const report = (stack?: string) =>
+      [
+        `testId: ${testId}`,
+        `time: ${new Date(startedAt).toISOString()}`,
+        `url: ${typeof window !== "undefined" ? window.location.origin : "?"}`,
+        `ua: ${typeof navigator !== "undefined" ? navigator.userAgent : "?"}`,
+        ...Object.entries(ids)
+          .filter(([k]) => k !== "testId")
+          .map(([k, v]) => `${k}: ${v}`),
+        "",
+        "timeline:",
+        ...timeline,
+        ...(stack ? ["", "stack:", stack] : []),
+      ].join("\n");
 
     try {
-      setStep("Belservice controleren…");
+      mark("Belservice controleren…");
       try {
         const res = await fetch("/api/public/twilio/health", { cache: "no-store" });
-        const body = (await res.json()) as { configured?: boolean };
+        const body = (await res.json()) as { configured?: boolean; requestId?: string };
         credentialsOk = !!body.configured;
+        ids["healthStatus"] = String(res.status);
+        ids["healthConfigured"] = String(credentialsOk);
+        const requestId = res.headers.get("cf-ray") ?? body.requestId;
+        if (requestId) ids["healthRequestId"] = requestId;
       } catch {
         credentialsOk = null; // health endpoint unreachable; keep going
+        ids["healthStatus"] = "unreachable";
       }
 
-      setStep("Testoproep aanvragen…");
+      mark("Testoproep aanvragen…");
       const prep = await prepare();
       if (!prep.ready || !prep.testAuth) throw new Error(prep.reason ?? "voice-unconfigured");
 
-      setStep("Verbinden met Twilio…");
+      mark("Verbinden met Twilio…");
       const call = await connect({
         Mode: "selftest",
         Identity: "",
         DialAuth: prep.testAuth,
       });
       callRef.current = call;
+      const sid = call.parameters?.["CallSid"];
+      if (sid) ids["callSid"] = sid;
 
-      setStep("Wachten op audio…");
+      mark("Wachten op audio…");
       const outcome = await new Promise<string>((resolve) => {
         const timer = window.setTimeout(() => resolve("no-answer"), 15000);
         const done = (value: string) => {
           window.clearTimeout(timer);
+          timeline.push(`+${String(Date.now() - startedAt).padStart(5, " ")}ms  event: ${value}`);
           resolve(value);
         };
         call.on("accept", () => done("ok"));
@@ -128,6 +166,8 @@ export function VoiceSelfTest({
         call.on("disconnect", () => done("ok"));
       });
 
+      const liveSid = call.parameters?.["CallSid"];
+      if (liveSid) ids["callSid"] = liveSid;
       if (outcome !== "ok") throw new Error(outcome);
 
       setResult({
@@ -135,11 +175,20 @@ export function VoiceSelfTest({
         title: "Audio werkt",
         detail:
           "De testverbinding kwam tot stand en je hoort het testbericht. Je kunt gesprekken aannemen.",
+        diagnostics: report(),
       });
     } catch (err) {
       const reason = err instanceof Error ? err.message : "unknown";
+      const stack = err instanceof Error ? (err.stack ?? `${err.name}: ${err.message}`) : String(err);
+      const cause = (err as { cause?: unknown })?.cause;
+      const causeText =
+        cause instanceof Error ? `\ncaused by: ${cause.stack ?? cause.message}` : "";
       console.error("[voice] self-test failed", reason, err);
-      setResult({ ok: false, ...explain(reason, credentialsOk) });
+      setResult({
+        ok: false,
+        ...explain(reason, credentialsOk),
+        diagnostics: report(`${stack}${causeText}`),
+      });
     } finally {
       try {
         callRef.current?.disconnect();
@@ -187,6 +236,27 @@ export function VoiceSelfTest({
           <span>
             <span className="block font-semibold">{result.title}</span>
             <span className="block text-foreground/80">{result.detail}</span>
+            <span className="mt-2 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                className="underline underline-offset-2 text-foreground/70"
+                onClick={() => setShowDetails((v) => !v)}
+              >
+                {showDetails ? "Verberg technische details" : "Toon technische details"}
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 underline underline-offset-2 text-foreground/70"
+                onClick={() => void navigator.clipboard?.writeText(result.diagnostics)}
+              >
+                <Copy className="size-3" /> Kopieer rapport
+              </button>
+            </span>
+            {showDetails ? (
+              <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg bg-background/60 p-2 text-[11px] leading-relaxed text-foreground/80">
+                {result.diagnostics}
+              </pre>
+            ) : null}
           </span>
         </div>
       ) : null}
