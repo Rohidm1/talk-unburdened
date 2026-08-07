@@ -116,7 +116,6 @@ function HomePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const fetchAccount = useServerFn(getMyAccount);
-  const fetchListeners = useServerFn(listPublicListeners);
   const start = useServerFn(startChat);
   const stop = useServerFn(endChat);
 
@@ -128,19 +127,11 @@ function HomePage() {
   const [checkoutKey, setCheckoutKey] = useState<CreditPackageKey | null>(null);
 
   const account = useQuery({ queryKey: ["account"], queryFn: () => fetchAccount(), enabled: !!user });
-  const listeners = useQuery({
-    queryKey: ["public-listeners"],
-    queryFn: () => fetchListeners(),
-    initialData: fallbackListeners,
-  });
 
   const profile = account.data?.profile;
   const totalCredits = (profile?.chat_credits ?? 0) + (profile?.free_credits ?? 0);
 
-  const listenersOnline = useMemo(
-    () => (listeners.data ?? fallbackListeners).map((l) => ({ ...l, status: "online" as const })),
-    [listeners.data],
-  );
+  const listenersOnline = fallbackListeners.map((l) => ({ ...l, status: "online" as const }));
 
   useEffect(() => {
     // low-balance nudge only when not already in a chat
