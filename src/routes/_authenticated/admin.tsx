@@ -107,7 +107,7 @@ function AdminPage() {
               { label: "Agents online", value: agents.data?.onlineCount ?? 0 },
               { label: "Live chats", value: live.data?.chats.length ?? 0 },
               { label: "Messages sent", value: stats.data?.messagesSent ?? 0 },
-              { label: "Omzet", value: `€ ${((stats.data?.revenueCents ?? 0) / 100).toFixed(2)}` },
+              { label: "Omzet", value: `$${((stats.data?.revenueCents ?? 0) / 100).toFixed(2)}` },
             ].map((k) => (
               <div key={k.label} className="rounded-3xl border border-border bg-card p-6">
                 <p className="text-xs tracking-widest text-muted-foreground uppercase">{k.label}</p>
@@ -240,7 +240,7 @@ function AdminPage() {
                           <td className="py-2 tabular-nums">{clock(c.chatSeconds)}</td>
                           <td className="py-2 tabular-nums">{c.messages}</td>
                           <td className="py-2 tabular-nums">
-                            € {(c.purchasedCents / 100).toFixed(2)}
+                            ${(c.purchasedCents / 100).toFixed(2)}
                           </td>
                           <td className="py-2 tabular-nums">{c.credits}</td>
                           <td className="py-2 tabular-nums">{c.freeCredits}</td>

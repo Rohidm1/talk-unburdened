@@ -82,7 +82,7 @@ export const createCreditCheckout = createServerFn({ method: "POST" })
 
       // Guard against the Stripe dashboard price drifting from the app's own
       // catalogue — we must never charge an amount we did not display.
-      if (stripePrice.unit_amount !== pkg.cents || stripePrice.currency !== "eur") {
+      if (stripePrice.unit_amount !== pkg.cents || stripePrice.currency !== "usd") {
         console.error("[payments] price mismatch", {
           priceId: pkg.priceId,
           expected: pkg.cents,
