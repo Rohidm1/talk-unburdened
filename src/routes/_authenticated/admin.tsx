@@ -308,23 +308,8 @@ function AdminPage() {
 
               <NewAgentForm
                 listeners={agents.data?.listeners ?? []}
-                onCreate={async (values, profileIds) => {
-                  await addWorker({ data: values });
-                  const fresh = await fetchAgents();
-                  const created = fresh.agents.find((a) => a.username === values.username);
-                  if (created) {
-                    for (const listenerId of profileIds) {
-                      const current = fresh.agents
-                        .filter((a) => a.profiles.some((p) => p.id === listenerId))
-                        .map((a) => a.userId);
-                      await linkProfiles({
-                        data: {
-                          listenerId,
-                          agentUserIds: Array.from(new Set([...current, created.userId])),
-                        },
-                      });
-                    }
-                  }
+                onCreate={async (values) => {
+                  await addAgent({ data: values });
                   void queryClient.invalidateQueries({ queryKey: ["admin-agents"] });
                 }}
               />
