@@ -115,7 +115,7 @@ export function ActiveCallDialog({
                 {t("call.inCall")} {listener.displayName}
               </DialogTitle>
               <DialogDescription>
-                {audioLive ? t("call.liveAudio") : t("call.demo")}
+                {audioLive ? t("call.liveAudio") : "Connecting your line…"}
               </DialogDescription>
             </DialogHeader>
 
@@ -132,17 +132,21 @@ export function ActiveCallDialog({
               </div>
             ) : null}
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className={`grid gap-3 ${mode === "free" ? "grid-cols-2" : "grid-cols-3"}`}>
               <div className="rounded-2xl border border-border bg-secondary/40 p-3 text-center">
-                <p className="text-xs text-muted-foreground">
-                  {mode === "free" ? "Free minutes left" : "Talk time left"}
-                </p>
+                <p className="text-xs text-muted-foreground">Talk time left</p>
                 <p className="font-display text-lg text-primary tabular-nums">{format(left)}</p>
               </div>
               <div className="rounded-2xl border border-border bg-secondary/40 p-3 text-center">
-                <p className="text-xs text-muted-foreground">{t("call.balance")}</p>
-                <p className="font-display text-lg tabular-nums">€ {cost.toFixed(2)}</p>
+                <p className="text-xs text-muted-foreground">Talk time used</p>
+                <p className="font-display text-lg tabular-nums">{format(elapsed)}</p>
               </div>
+              {mode === "free" ? null : (
+                <div className="rounded-2xl border border-border bg-secondary/40 p-3 text-center">
+                  <p className="text-xs text-muted-foreground">{t("call.balance")}</p>
+                  <p className="font-display text-lg tabular-nums">€ {cost.toFixed(2)}</p>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-center gap-3">
@@ -179,12 +183,15 @@ export function UnavailableDialog({
   onJoinWaitlist?: () => void;
 }) {
   const { t } = useTranslation();
+  const busyTitle = listener
+    ? `${listener.displayName} is momenteel in gesprek`
+    : t("call.unavailableTitle");
 
   return (
     <Dialog open={!!listener} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-display">{t("call.unavailableTitle")}</DialogTitle>
+          <DialogTitle className="font-display">{busyTitle}</DialogTitle>
           <DialogDescription>{t("call.unavailableBody")}</DialogDescription>
         </DialogHeader>
         {available.length > 0 ? (
@@ -194,27 +201,29 @@ export function UnavailableDialog({
             </p>
             <ul className="flex flex-col gap-2">
               {available.map((l) => (
-            <li key={l.id}>
-              <button
-                onClick={() => onPick(l)}
-                className="flex w-full items-center gap-3 rounded-2xl border border-border bg-secondary/30 p-3 text-left transition-colors hover:border-primary/50"
-              >
-                <img
-                  src={l.avatar}
-                  alt={l.displayName}
-                  width={512}
-                  height={512}
-                  className="size-11 rounded-full object-cover"
-                />
-                <span className="flex-1">
-                  <span className="block text-sm font-semibold">{l.displayName}</span>
-                  <span className="block text-xs text-muted-foreground">
-                    {l.language === "NL" ? "Nederlands" : "English"}
-                  </span>
-                </span>
-                <span className="text-xs font-medium text-success">{t("listeners.online")}</span>
-              </button>
-            </li>
+                <li key={l.id}>
+                  <button
+                    onClick={() => onPick(l)}
+                    className="flex w-full items-center gap-3 rounded-2xl border border-border bg-secondary/30 p-3 text-left transition-colors hover:border-primary/50"
+                  >
+                    <img
+                      src={l.avatar}
+                      alt={l.displayName}
+                      width={512}
+                      height={512}
+                      className="size-11 rounded-full object-cover"
+                    />
+                    <span className="flex-1">
+                      <span className="block text-sm font-semibold">{l.displayName}</span>
+                      <span className="block text-xs text-muted-foreground">
+                        {l.language === "NL" ? "Nederlands" : "English"}
+                      </span>
+                    </span>
+                    <span className="text-xs font-medium text-success">
+                      {t("listeners.online")}
+                    </span>
+                  </button>
+                </li>
               ))}
             </ul>
           </>
@@ -224,11 +233,7 @@ export function UnavailableDialog({
               Everyone is in a conversation right now. Join the waiting line and we'll alert you
               here the moment a listener is free.
             </p>
-            <Button
-              className="mt-3 w-full"
-              disabled={waiting}
-              onClick={() => onJoinWaitlist?.()}
-            >
+            <Button className="mt-3 w-full" disabled={waiting} onClick={() => onJoinWaitlist?.()}>
               <BellRing className="size-4" />
               {waiting ? "You're in the waiting line" : "Notify me when someone is free"}
             </Button>

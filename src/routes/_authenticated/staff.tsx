@@ -166,7 +166,7 @@ function StaffPage() {
               {statuses.map((s) => (
                 <Button
                   key={s}
-                  variant={listener?.status === s ? "default" : "outline"}
+                  variant={account.data?.agentStatus === s ? "default" : "outline"}
                   disabled={statusMutation.isPending}
                   onClick={() => statusMutation.mutate(s)}
                 >

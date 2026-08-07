@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_presence: {
+        Row: {
+          created_at: string
+          last_seen_at: string
+          status: Database["public"]["Enums"]["listener_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          last_seen_at?: string
+          status?: Database["public"]["Enums"]["listener_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          last_seen_at?: string
+          status?: Database["public"]["Enums"]["listener_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       call_notes: {
         Row: {
           body: string
@@ -102,6 +126,41 @@ export type Database = {
           },
         ]
       }
+      client_agent_routes: {
+        Row: {
+          agent_user_id: string
+          client_id: string
+          created_at: string
+          id: string
+          listener_id: string
+          updated_at: string
+        }
+        Insert: {
+          agent_user_id: string
+          client_id: string
+          created_at?: string
+          id?: string
+          listener_id: string
+          updated_at?: string
+        }
+        Update: {
+          agent_user_id?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+          listener_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_agent_routes_listener_id_fkey"
+            columns: ["listener_id"]
+            isOneToOne: false
+            referencedRelation: "listeners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       credit_transactions: {
         Row: {
           amount_cents: number
@@ -131,6 +190,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      listener_agents: {
+        Row: {
+          agent_user_id: string
+          created_at: string
+          id: string
+          listener_id: string
+        }
+        Insert: {
+          agent_user_id: string
+          created_at?: string
+          id?: string
+          listener_id: string
+        }
+        Update: {
+          agent_user_id?: string
+          created_at?: string
+          id?: string
+          listener_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listener_agents_listener_id_fkey"
+            columns: ["listener_id"]
+            isOneToOne: false
+            referencedRelation: "listeners"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       listeners: {
         Row: {
@@ -272,6 +360,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      set_agent_status: {
+        Args: {
+          _agent_user_id: string
+          _status: Database["public"]["Enums"]["listener_status"]
+        }
+        Returns: undefined
+      }
       settle_call: {
         Args: { _call_id: string; _end_at?: string; _rate_cents: number }
         Returns: {
@@ -283,6 +378,10 @@ export type Database = {
       }
       settle_stale_calls: {
         Args: { _rate_cents: number; _user_id: string }
+        Returns: undefined
+      }
+      sync_listener_status: {
+        Args: { _listener_id: string }
         Returns: undefined
       }
     }

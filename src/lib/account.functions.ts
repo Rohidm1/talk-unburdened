@@ -8,16 +8,18 @@ export const getMyAccount = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
 
-    const [profileRes, rolesRes, listenerRes] = await Promise.all([
+    const [profileRes, rolesRes, listenerRes, presenceRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", userId),
       supabase.from("listeners").select("*").eq("user_id", userId).maybeSingle(),
+      supabase.from("agent_presence").select("status").eq("user_id", userId).maybeSingle(),
     ]);
 
     return {
       profile: profileRes.data,
       roles: (rolesRes.data ?? []).map((r) => r.role),
       listener: listenerRes.data,
+      agentStatus: presenceRes.data?.status ?? "offline",
     };
   });
 
@@ -35,14 +37,7 @@ export const updateAlias = createServerFn({ method: "POST" })
 
 export const startCall = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z
-      .object({
-        listenerId: z.string().uuid(),
-        mode: z.enum(["paid", "free"]).default("paid"),
-      })
-      .parse(input),
-  )
+  .inputValidator((input) => z.object({ listenerId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { userId } = context;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -59,23 +54,24 @@ export const startCall = createServerFn({ method: "POST" })
       .eq("id", userId)
       .maybeSingle();
 
-    const deny = (reason: "blocked" | "no_credit" | "no_free_time") =>
-      ({ ok: false as const, reason, callId: null, allowanceSeconds: 0, mode: data.mode }) as const;
+    const deny = (reason: "blocked" | "no_credit" | "free_used") =>
+      ({ ok: false as const, reason, callId: null, allowanceSeconds: 0, mode: "paid" }) as const;
 
     if (!profile) return deny("no_credit");
     if (profile.is_blocked) return deny("blocked");
 
+    // A caller with no paid credit is on their one-time free minutes; anyone
+    // with credit is billed normally (free seconds are spent first).
     const free = profile.free_seconds_remaining;
+    const mode: "paid" | "free" = profile.credit_seconds <= 0 ? "free" : "paid";
     const allowance =
-      data.mode === "free"
-        ? Math.min(free, FREE_CALL_MAX_SECONDS)
-        : free + profile.credit_seconds;
+      mode === "free" ? Math.min(free, FREE_CALL_MAX_SECONDS) : free + profile.credit_seconds;
 
-    if (allowance <= 0) return deny(data.mode === "free" ? "no_free_time" : "no_credit");
+    if (allowance <= 0) return deny(mode === "free" ? "free_used" : "no_credit");
 
     const { data: call, error } = await supabaseAdmin
       .from("calls")
-      .insert({ client_id: userId, listener_id: data.listenerId, mode: data.mode })
+      .insert({ client_id: userId, listener_id: data.listenerId, mode })
       .select("id")
       .single();
 
@@ -86,7 +82,7 @@ export const startCall = createServerFn({ method: "POST" })
       reason: null,
       callId: call.id,
       allowanceSeconds: allowance,
-      mode: data.mode,
+      mode,
     };
   });
 
