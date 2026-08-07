@@ -183,12 +183,15 @@ export function UnavailableDialog({
   onJoinWaitlist?: () => void;
 }) {
   const { t } = useTranslation();
+  const busyTitle = listener
+    ? `${listener.displayName} is momenteel in gesprek`
+    : t("call.unavailableTitle");
 
   return (
     <Dialog open={!!listener} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-display">{t("call.unavailableTitle")}</DialogTitle>
+          <DialogTitle className="font-display">{busyTitle}</DialogTitle>
           <DialogDescription>{t("call.unavailableBody")}</DialogDescription>
         </DialogHeader>
         {available.length > 0 ? (

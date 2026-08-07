@@ -126,47 +126,54 @@ function Index() {
     setUnavailable(null);
     toast.success(`${next.displayName} is free now`, {
       duration: 15000,
-      action: { label: "Call now", onClick: () => void handleCall(next, "paid") },
+      action: { label: "Call now", onClick: () => void handleCall(next) },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [waitingForListener, onlineList]);
 
-  const handleCall = async (l: Listener, mode: "paid" | "free" = "paid") => {
+  const handleCall = async (l: Listener) => {
     if (!session) {
       void navigate({ to: "/auth" });
       return;
     }
-    if (l.status !== "online") {
+
+    // Find a live agent first — no call is created (or billed) without one.
+    const dial = await prepare({ data: { listenerId: l.id } });
+    if (!dial.ready || !dial.toIdentity || !dial.dialAuth) {
+      if (dial.reason === "unconfigured") {
+        toast.error("Calling is temporarily unavailable. Please try again shortly.");
+        return;
+      }
+      toast.error(`${l.displayName} is momenteel in gesprek`);
       setUnavailable(l);
       return;
     }
-    const result = await begin({ data: { listenerId: l.id, mode } });
+
+    const result = await begin({ data: { listenerId: l.id } });
     if (!result.ok) {
       if (result.reason === "blocked") {
         toast.error("Your account is on hold because of a refund or chargeback. Contact support.");
         return;
       }
-      setTopUp(result.reason === "no_free_time" ? "free_used" : "no_credit");
+      setTopUp("no_credit");
       return;
     }
+
     setAllowance(result.allowanceSeconds);
-    setCallMode(mode);
+    setCallMode(result.mode === "free" ? "free" : "paid");
     setActiveCallId(result.callId);
     setUnavailable(null);
     setActiveCall(l);
 
     try {
-      const dial = await prepare({ data: { listenerId: l.id } });
-      if (dial.ready && dial.toIdentity && dial.dialAuth && voice.ready && voice.identity) {
-        const call = await voice.connect({
-          CallerIdentity: voice.identity,
-          TargetIdentity: dial.toIdentity,
-          DialAuth: dial.dialAuth,
-        });
-        if (call) {
-          call.on("disconnect", () => setVoiceCall(null));
-          setVoiceCall(call);
-        }
+      const call = await voice.connect({
+        CallerIdentity: voice.identity ?? "",
+        TargetIdentity: dial.toIdentity,
+        DialAuth: dial.dialAuth,
+      });
+      if (call) {
+        call.on("disconnect", () => setVoiceCall(null));
+        setVoiceCall(call);
       }
     } catch (err) {
       console.error("[voice] could not start audio", err);
@@ -206,13 +213,11 @@ function Index() {
   const startFirstAvailable = () => {
     const first = onlineList[0];
     if (first) {
-      void handleCall(first, "paid");
+      void handleCall(first);
       return;
     }
     setUnavailable(list[0] ?? null);
   };
-
-  const freeSecondsLeft = account.data?.profile?.free_seconds_remaining;
 
   return (
     <div className="min-h-screen font-body">
@@ -230,8 +235,7 @@ function Index() {
               <ListenerCard
                 key={l.id}
                 listener={l}
-                freeSecondsLeft={session ? freeSecondsLeft : undefined}
-                onCall={(x, mode) => void handleCall(x, mode)}
+                onCall={(x) => void handleCall(x)}
               />
             ))}
           </div>
@@ -263,7 +267,7 @@ function Index() {
           toast.success("You're in the waiting line — keep this tab open.");
         }}
         onClose={() => setUnavailable(null)}
-        onPick={(l) => void handleCall(l, "paid")}
+        onPick={(l) => void handleCall(l)}
       />
       <TopUpDialog open={!!topUp} reason={topUp ?? "no_credit"} onClose={() => setTopUp(null)} />
     </div>
