@@ -43,6 +43,14 @@ const en = {
     s3t: "Just talk",
     s3d: "Your first 3 minutes are free. After that you only pay for the minutes you use.",
   },
+  chatIntro: {
+    title: "New: chat as well as call",
+    body:
+      "Not in the mood to talk out loud? You can now message the same listeners in a live chat. Same people, same anonymity — just typed instead of spoken. Chat runs from the very same credit balance as calling, at EUR 0.65 per minute instead of EUR 1.30, so you can switch between calling and chatting whenever it suits you.",
+    point1: "Same listeners, same alias — nothing extra to set up",
+    point2: "EUR 0.65 per minute, billed per second from your credits",
+    point3: "Your 3 free minutes work for chat too",
+  },
   pricing: {
     title: "Simple, honest pricing",
     subtitle: "Pay as you go, or save with a credit bundle. Credits never expire.",
@@ -74,6 +82,14 @@ const en = {
     a5: "Nobody. Your payment description is neutral, calls run in the browser, and we never share anything with third parties.",
     q6: "What can I talk about?",
     a6: "Work pressure, your relationship, money worries, a rough week, or nothing in particular. There is no wrong subject here.",
+    q7: "How does chatting work?",
+    a7: "Open a listener's profile and press Chat instead of Call. The listener gets your request and accepts it; from that moment you type back and forth in real time. You can end the chat whenever you like.",
+    q8: "Do I need separate credits for chat?",
+    a8: "No. Calling and chatting share one credit balance. Every bundle you buy works for both — credits are stored as time, not as call-only or chat-only minutes.",
+    q9: "How are chat minutes deducted?",
+    a9: "Chat costs EUR 0.65 per minute, billed per second while the session is active — counting from the moment your listener accepts, not while you wait. Free minutes are used first, then paid credits. Close the tab and the session ends and settles automatically.",
+    q10: "Can I switch between calling and chatting?",
+    a10: "Yes. Chat first and call later the same day, or the other way round. Your balance simply keeps counting down at the rate of whatever you are using at that moment.",
   },
   contact: {
     title: "Questions? Just ask.",
@@ -149,6 +165,14 @@ const nl: typeof en = {
     s3t: "Gewoon praten",
     s3d: "Je eerste 3 minuten zijn gratis. Daarna betaal je alleen de minuten die je gebruikt.",
   },
+  chatIntro: {
+    title: "Nieuw: chatten naast bellen",
+    body:
+      "Even geen zin om hardop te praten? Je kunt nu ook live chatten met dezelfde luisteraars. Dezelfde mensen, dezelfde anonimiteit — alleen getypt in plaats van gesproken. Chatten gaat van precies hetzelfde creditsaldo als bellen, voor € 0,65 per minuut in plaats van € 1,30. Wissel dus wanneer je wilt tussen bellen en chatten.",
+    point1: "Dezelfde luisteraars, dezelfde alias — niets extra's instellen",
+    point2: "€ 0,65 per minuut, per seconde van je credits",
+    point3: "Je 3 gratis minuten gelden ook voor chat",
+  },
   pricing: {
     title: "Simpel en eerlijk",
     subtitle: "Betaal per minuut of bespaar met een bundel. Credits verlopen nooit.",
@@ -180,6 +204,14 @@ const nl: typeof en = {
     a5: "Niemand. De betaalomschrijving is neutraal, gesprekken lopen via je browser en we delen nooit iets met derden.",
     q6: "Waar kan ik het over hebben?",
     a6: "Werkdruk, je relatie, geldzorgen, een rotweek of nergens over in het bijzonder. Er bestaat hier geen verkeerd onderwerp.",
+    q7: "Hoe werkt chatten?",
+    a7: "Open het profiel van een luisteraar en klik op Chatten in plaats van Bellen. De luisteraar krijgt je aanvraag binnen en neemt hem aan; vanaf dat moment typen jullie live heen en weer. Je kunt de chat op elk moment afsluiten.",
+    q8: "Heb ik aparte credits nodig voor chatten?",
+    a8: "Nee. Bellen en chatten delen één saldo. Elke bundel die je koopt werkt voor allebei — credits worden opgeslagen als tijd, niet als bel- of chatminuten.",
+    q9: "Hoe wordt chat afgeschreven?",
+    a9: "Chatten kost € 0,65 per minuut, per seconde afgerekend zolang de sessie actief is — vanaf het moment dat je luisteraar aanneemt, niet tijdens het wachten. Eerst gaan je gratis minuten op, daarna je betaalde credits. Sluit je het tabblad, dan stopt en verrekent de sessie automatisch.",
+    q10: "Kan ik wisselen tussen bellen en chatten?",
+    a10: "Ja. Chat eerst en bel later op de dag, of andersom. Je saldo telt gewoon door tegen het tarief van wat je op dat moment gebruikt.",
   },
   contact: {
     title: "Vragen? Stel ze gerust.",

@@ -138,7 +138,7 @@ export function Pricing() {
 
 export function Faq() {
   const { t } = useTranslation();
-  const items = [1, 2, 3, 4, 5, 6];
+  const items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
   return (
     <section id="faq" className="mx-auto w-full max-w-3xl px-5 py-20">
