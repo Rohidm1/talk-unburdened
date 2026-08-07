@@ -5,14 +5,13 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const setMyStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({ status: z.enum(["online", "busy", "offline"]) }).parse(input),
+    z.object({ availability: z.enum(["available", "break", "offline"]) }).parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    // Availability lives on the agent and fans out to every profile they staff.
-    const { error } = await supabaseAdmin.rpc("set_agent_status", {
+    const { error } = await supabaseAdmin.rpc("set_agent_availability", {
       _agent_user_id: context.userId,
-      _status: data.status,
+      _availability: data.availability,
     });
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -56,24 +55,26 @@ export const getAdminStats = createServerFn({ method: "GET" })
     if (!isAdmin) throw new Error("Forbidden");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const [users, calls, listeners, revenue] = await Promise.all([
+    const [users, chats, listeners, transactions] = await Promise.all([
       supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }),
-      supabaseAdmin.from("calls").select("id, duration_seconds, cost_cents, started_at"),
+      supabaseAdmin.from("chat_sessions").select("id, started_at, ended_at"),
       supabaseAdmin.from("listeners").select("id, display_name, status"),
-      supabaseAdmin.from("credit_transactions").select("amount_cents, kind"),
+      supabaseAdmin.from("credit_transactions").select("amount_cents, credits_delta, kind"),
     ]);
 
-    const callRows = calls.data ?? [];
-    const revenueCents = (revenue.data ?? [])
+    const rows = transactions.data ?? [];
+    const revenueCents = rows
       .filter((r) => r.kind === "purchase")
       .reduce((sum, r) => sum + r.amount_cents, 0);
+    const messagesSent = rows
+      .filter((r) => (r.credits_delta ?? 0) < 0)
+      .reduce((sum, r) => sum + Math.abs(r.credits_delta ?? 0), 0);
 
     return {
       totalUsers: users.count ?? 0,
-      totalCalls: callRows.length,
-      totalMinutes: Math.round(callRows.reduce((s, c) => s + c.duration_seconds, 0) / 60),
+      totalChats: (chats.data ?? []).length,
+      messagesSent,
       revenueCents,
       listeners: listeners.data ?? [],
-      recentCalls: callRows.slice(-10).reverse(),
     };
   });

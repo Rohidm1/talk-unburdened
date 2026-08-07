@@ -84,7 +84,7 @@ export const listeners: Listener[] = [
       { en: "Quick vent", nl: "Quick vent" },
       { en: "Safe space", nl: "Safe space" },
     ],
-    status: "busy",
+    status: "online",
     years: 4,
   },
   {
@@ -135,7 +135,7 @@ export const listeners: Listener[] = [
       { en: "Rustige stem", nl: "Rustige stem" },
       { en: "Even stilstaan", nl: "Even stilstaan" },
     ],
-    status: "offline",
+    status: "online",
     years: 5,
   },
 ];
@@ -145,7 +145,7 @@ export const listeners: Listener[] = [
 export type CreditPackage = {
   id: string;
   key: CreditPackageKey;
-  minutes: number;
+  credits: number;
   priceEur: number;
   popular: boolean;
 };
@@ -153,7 +153,7 @@ export type CreditPackage = {
 export const creditPackages: CreditPackage[] = CREDIT_PACKAGE_LIST.map((p) => ({
   id: p.key,
   key: p.key,
-  minutes: p.minutes,
+  credits: p.credits,
   priceEur: p.cents / 100,
   popular: p.popular === true,
 }));
