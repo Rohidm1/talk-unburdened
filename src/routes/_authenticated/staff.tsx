@@ -508,6 +508,10 @@ function StaffPage() {
               </span>
             </div>
 
+            <div className="mt-4">
+              <VoiceSelfTest connect={voice.connect} />
+            </div>
+
             {alerts.permission !== "granted" ? (
               <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-secondary/30 p-4">
                 <span className="flex-1 text-sm text-muted-foreground">
