@@ -52,6 +52,35 @@ export function HowItWorks() {
   );
 }
 
+export function ChatIntro() {
+  const { t } = useTranslation();
+  const points = [t("chatIntro.point1"), t("chatIntro.point2"), t("chatIntro.point3")];
+
+  return (
+    <section className="mx-auto w-full max-w-6xl px-5 pb-4">
+      <div className="rounded-3xl border border-primary/25 bg-card p-7 md:p-9">
+        <div className="flex size-11 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+          <MessageCircle className="size-5" />
+        </div>
+        <h2 className="mt-5 font-display text-2xl font-semibold tracking-tight md:text-3xl">
+          {t("chatIntro.title")}
+        </h2>
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
+          {t("chatIntro.body")}
+        </p>
+        <ul className="mt-5 grid gap-2 md:grid-cols-3">
+          {points.map((p) => (
+            <li key={p} className="flex items-start gap-2 text-sm text-muted-foreground">
+              <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+              <span>{p}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
 export function Pricing() {
   const { t } = useTranslation();
   const { session } = useAuth();
