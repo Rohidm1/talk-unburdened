@@ -18,6 +18,7 @@ export function useTwilioDevice(enabled: boolean) {
   const deviceRef = useRef<Device | null>(null);
   const settingUpRef = useRef<Promise<Device | null> | null>(null);
   const mountedRef = useRef(true);
+  const identityRef = useRef<string | null>(null);
 
   const [ready, setReady] = useState(false);
   const [identity, setIdentity] = useState<string | null>(null);
@@ -31,6 +32,7 @@ export function useTwilioDevice(enabled: boolean) {
       /* already gone */
     }
     deviceRef.current = null;
+    identityRef.current = null;
     settingUpRef.current = null;
     if (mountedRef.current) setReady(false);
   }, []);
@@ -66,6 +68,7 @@ export function useTwilioDevice(enabled: boolean) {
       if (mountedRef.current) setReady(false);
     });
     deviceRef.current = device;
+    identityRef.current = res.identity;
     if (mountedRef.current) {
       setIdentity(res.identity);
       setReady(true);
@@ -78,7 +81,7 @@ export function useTwilioDevice(enabled: boolean) {
     return device;
   }, [teardown]);
 
-  /** Returns a registered device, building one (with one retry) if needed. */
+  /** Returns a usable device, building one (with one retry) if needed. */
   const ensureDevice = useCallback(async (): Promise<Device> => {
     if (deviceRef.current) return deviceRef.current;
     if (!settingUpRef.current) {
@@ -127,14 +130,33 @@ export function useTwilioDevice(enabled: boolean) {
       }
 
       const device = await ensureDevice();
+      const resolvedIdentity = identityRef.current;
+      const connectionParams = { ...params };
+      if (resolvedIdentity) {
+        if ("CallerIdentity" in connectionParams && !connectionParams.CallerIdentity) {
+          connectionParams.CallerIdentity = resolvedIdentity;
+        }
+        if ("Identity" in connectionParams && !connectionParams.Identity) {
+          connectionParams.Identity = resolvedIdentity;
+        }
+      }
       try {
-        return await device.connect({ params });
+        return await device.connect({ params: connectionParams });
       } catch (err) {
         // Stale device (token expired while idle, socket dropped): rebuild once.
         console.error("[voice] connect failed, rebuilding device", err);
         teardown();
         const fresh = await ensureDevice();
-        return await fresh.connect({ params });
+        const freshIdentity = identityRef.current;
+        if (freshIdentity) {
+          if ("CallerIdentity" in connectionParams && !connectionParams.CallerIdentity) {
+            connectionParams.CallerIdentity = freshIdentity;
+          }
+          if ("Identity" in connectionParams && !connectionParams.Identity) {
+            connectionParams.Identity = freshIdentity;
+          }
+        }
+        return await fresh.connect({ params: connectionParams });
       }
     },
     [ensureDevice, teardown],
