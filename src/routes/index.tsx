@@ -223,25 +223,36 @@ function Index() {
         DialAuth: dial.dialAuth,
         CallRecordId: result.callId,
       });
-      if (call) {
-        call.on("disconnect", () => setVoiceCall(null));
-        call.on("error", (err: unknown) => console.error("[voice] call error", err));
-        setVoiceCall(call);
-      } else {
-        throw new Error("no-call");
-      }
+      if (!call) throw new Error("no-call-object");
+
+      // Only show a live-looking screen once the provider really has the leg.
+      await new Promise<void>((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error("voice-no-answer-from-provider")), 10_000);
+        const done = () => {
+          clearTimeout(timer);
+          resolve();
+        };
+        call.on("ringing", done);
+        call.on("accept", done);
+        call.on("error", (err: { code?: number; message?: string }) => {
+          clearTimeout(timer);
+          console.error(`[voice] call error ${err?.code ?? "?"}: ${err?.message ?? ""}`, err);
+          reject(new Error(err?.code ? `voice-call-error:${err.code}` : "voice-call-error"));
+        });
+      });
+
+      call.on("disconnect", () => setVoiceCall(null));
+      call.on("error", (err: unknown) => console.error("[voice] call error", err));
+      setVoiceCall(call);
     } catch (err) {
-      console.error("[voice] could not start audio", err);
-      toast.error(
-        (err as Error)?.message === "microphone-denied"
-          ? "Geef toegang tot je microfoon om te kunnen bellen."
-          : "De audioverbinding kon niet worden gestart. Probeer het opnieuw.",
-      );
+      const reason = (err as Error)?.message ?? "unknown";
+      console.error(`[voice] could not start audio (${reason})`, err);
+      toast.error(voiceErrorMessage(reason));
       // Never leave the caller staring at a live-looking screen with no audio.
       setActiveCall(null);
       setActiveCallId(null);
       try {
-        await finish({ data: { callId: result.callId } });
+        await finish({ data: { callId: result.callId, failureReason: reason.slice(0, 300) } });
       } catch {
         /* nothing was billed while ringing */
       }
