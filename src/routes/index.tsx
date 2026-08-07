@@ -30,6 +30,24 @@ import { avatarFor } from "@/lib/avatars";
 import { useAuth } from "@/hooks/useAuth";
 
 const title = "Anontalk — Anonymous voice calls with a listening ear";
+
+/** Turns an internal failure code into something the caller can act on. */
+function voiceErrorMessage(reason: string) {
+  if (reason === "microphone-denied")
+    return "Geef toegang tot je microfoon om te kunnen bellen.";
+  if (reason === "microphone-missing")
+    return "We vinden geen microfoon. Sluit er een aan en probeer opnieuw.";
+  if (reason === "voice-unconfigured")
+    return "Bellen is tijdelijk niet beschikbaar. Probeer het straks opnieuw.";
+  if (reason === "token-request-failed")
+    return "We konden geen verbinding maken met de belservice. Probeer het opnieuw.";
+  if (reason === "voice-no-answer-from-provider")
+    return "De belverbinding kwam niet tot stand. Controleer je internetverbinding en probeer opnieuw.";
+  if (reason.startsWith("voice-call-error") || reason.startsWith("voice-connect-failed"))
+    return `De audioverbinding kon niet worden gestart (${reason.split(":")[1] ?? "onbekend"}). Probeer het opnieuw.`;
+  return "De audioverbinding kon niet worden gestart. Probeer het opnieuw.";
+}
+
 const description =
   "Talk it out anonymously. Anontalk connects men in Belgium, the Netherlands and the US with warm listeners over a safe browser call. First 3 minutes free.";
 
@@ -223,25 +241,36 @@ function Index() {
         DialAuth: dial.dialAuth,
         CallRecordId: result.callId,
       });
-      if (call) {
-        call.on("disconnect", () => setVoiceCall(null));
-        call.on("error", (err: unknown) => console.error("[voice] call error", err));
-        setVoiceCall(call);
-      } else {
-        throw new Error("no-call");
-      }
+      if (!call) throw new Error("no-call-object");
+
+      // Only show a live-looking screen once the provider really has the leg.
+      await new Promise<void>((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error("voice-no-answer-from-provider")), 10_000);
+        const done = () => {
+          clearTimeout(timer);
+          resolve();
+        };
+        call.on("ringing", done);
+        call.on("accept", done);
+        call.on("error", (err: { code?: number; message?: string }) => {
+          clearTimeout(timer);
+          console.error(`[voice] call error ${err?.code ?? "?"}: ${err?.message ?? ""}`, err);
+          reject(new Error(err?.code ? `voice-call-error:${err.code}` : "voice-call-error"));
+        });
+      });
+
+      call.on("disconnect", () => setVoiceCall(null));
+      call.on("error", (err: unknown) => console.error("[voice] call error", err));
+      setVoiceCall(call);
     } catch (err) {
-      console.error("[voice] could not start audio", err);
-      toast.error(
-        (err as Error)?.message === "microphone-denied"
-          ? "Geef toegang tot je microfoon om te kunnen bellen."
-          : "De audioverbinding kon niet worden gestart. Probeer het opnieuw.",
-      );
+      const reason = (err as Error)?.message ?? "unknown";
+      console.error(`[voice] could not start audio (${reason})`, err);
+      toast.error(voiceErrorMessage(reason));
       // Never leave the caller staring at a live-looking screen with no audio.
       setActiveCall(null);
       setActiveCallId(null);
       try {
-        await finish({ data: { callId: result.callId } });
+        await finish({ data: { callId: result.callId, failureReason: reason.slice(0, 300) } });
       } catch {
         /* nothing was billed while ringing */
       }

@@ -208,7 +208,11 @@ export const heartbeatCall = createServerFn({ method: "POST" })
 
 export const endCall = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ callId: z.string().uuid() }).parse(input))
+  .inputValidator((input) =>
+    z
+      .object({ callId: z.string().uuid(), failureReason: z.string().max(300).optional() })
+      .parse(input),
+  )
   .handler(async ({ data, context }) => {
     const { userId } = context;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -222,6 +226,14 @@ export const endCall = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (!call) return { billed: 0, cost: 0, freeLeft: 0, paidLeft: 0 };
+
+    // Keep why an attempt failed, so a "missed" call is diagnosable later.
+    if (data.failureReason) {
+      await supabaseAdmin
+        .from("calls")
+        .update({ failure_reason: data.failureReason })
+        .eq("id", data.callId);
+    }
 
     const { data: rows, error } = await supabaseAdmin.rpc("settle_call", {
       _call_id: data.callId,

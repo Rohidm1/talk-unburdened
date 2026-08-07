@@ -135,6 +135,7 @@ export type Database = {
           cost_cents: number
           duration_seconds: number
           ended_at: string | null
+          failure_reason: string | null
           free_seconds_used: number
           id: string
           last_heartbeat_at: string
@@ -154,6 +155,7 @@ export type Database = {
           cost_cents?: number
           duration_seconds?: number
           ended_at?: string | null
+          failure_reason?: string | null
           free_seconds_used?: number
           id?: string
           last_heartbeat_at?: string
@@ -173,6 +175,7 @@ export type Database = {
           cost_cents?: number
           duration_seconds?: number
           ended_at?: string | null
+          failure_reason?: string | null
           free_seconds_used?: number
           id?: string
           last_heartbeat_at?: string
