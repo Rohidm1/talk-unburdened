@@ -117,6 +117,15 @@ function StaffPage() {
     noteRef.current = noteDraft;
   }, [noteDraft]);
 
+  // Keeps presence fresh while the desk is open, so profiles stay reachable.
+  useEffect(() => {
+    if (!isStaff || !online) return;
+    const id = setInterval(() => {
+      void saveStatus({ data: { status: "online" } });
+    }, 30_000);
+    return () => clearInterval(id);
+  }, [isStaff, online, saveStatus]);
+
   // Calls are bridged through a conference, so the database — not a Twilio
   // "incoming" event — tells the agent that a caller is waiting.
   const ringing = useQuery({

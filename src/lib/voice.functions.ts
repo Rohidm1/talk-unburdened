@@ -52,10 +52,21 @@ export const prepareDial = createServerFn({ method: "POST" })
 
     // Everyone who is signed in and available right now, plus everyone who is
     // already occupied by a live call or chat (through ANY profile).
+    // Only conversations with a live heartbeat count as "occupied"; abandoned
+    // rows that were never settled must not keep a profile busy forever.
+    const liveSince = new Date(Date.now() - 45_000).toISOString();
     const [{ data: presence }, { data: liveCalls }, { data: liveChats }] = await Promise.all([
       supabaseAdmin.from("agent_presence").select("user_id, status, active_chat_count"),
-      supabaseAdmin.from("calls").select("agent_user_id").is("ended_at", null),
-      supabaseAdmin.from("chat_sessions").select("agent_user_id").is("ended_at", null),
+      supabaseAdmin
+        .from("calls")
+        .select("agent_user_id")
+        .is("ended_at", null)
+        .gt("last_heartbeat_at", liveSince),
+      supabaseAdmin
+        .from("chat_sessions")
+        .select("agent_user_id")
+        .is("ended_at", null)
+        .gt("last_heartbeat_at", liveSince),
     ]);
 
     const busy = new Set<string>();
