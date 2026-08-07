@@ -9,12 +9,14 @@ import { Header } from "@/components/site/Header";
 import { Hero } from "@/components/site/Hero";
 import { ListenerCard } from "@/components/site/ListenerCard";
 import { ActiveCallDialog, UnavailableDialog } from "@/components/site/CallDialogs";
+import { ChatDialog } from "@/components/site/ChatDialog";
 import { TopUpDialog } from "@/components/site/TopUpDialog";
 import { ContactSection, Faq, Footer, HowItWorks, Pricing } from "@/components/site/Sections";
 import { listeners as fallbackListeners, type Listener } from "@/data/listeners";
 import { listPublicListeners } from "@/lib/listeners.functions";
 import { endCall, getMyAccount, heartbeatCall, startCall } from "@/lib/account.functions";
 import { prepareDial } from "@/lib/voice.functions";
+import { endChat, startChat } from "@/lib/chat.functions";
 import { useTwilioDevice } from "@/hooks/useTwilioDevice";
 import type { Call } from "@twilio/voice-sdk";
 import { avatarFor } from "@/lib/avatars";
@@ -89,6 +91,8 @@ function Index() {
   const finish = useServerFn(endCall);
   const beat = useServerFn(heartbeatCall);
   const prepare = useServerFn(prepareDial);
+  const beginChat = useServerFn(startChat);
+  const finishChat = useServerFn(endChat);
   const voice = useTwilioDevice(!!session);
 
   const [activeCall, setActiveCall] = useState<Listener | null>(null);
@@ -99,6 +103,10 @@ function Index() {
   const [voiceCall, setVoiceCall] = useState<Call | null>(null);
   const [waitingForListener, setWaitingForListener] = useState(false);
   const [topUp, setTopUp] = useState<"free_used" | "no_credit" | null>(null);
+  const [chatListener, setChatListener] = useState<Listener | null>(null);
+  const [chatSession, setChatSession] = useState<string | null>(null);
+  const [chatAllowance, setChatAllowance] = useState(0);
+  const [chatMode, setChatMode] = useState<"paid" | "free">("paid");
   const notifiedRef = useRef(false);
 
   const listenersQuery = useQuery({
@@ -201,6 +209,7 @@ function Index() {
   };
 
   const handleTick = async () => {
+    const _unused = null;
     const callId = activeCallId;
     if (!callId) return null;
     try {
