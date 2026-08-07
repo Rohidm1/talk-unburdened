@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { PhoneCall, Timer } from "lucide-react";
+import { PhoneCall } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Listener } from "@/data/listeners";
 
@@ -18,20 +18,14 @@ const dotStyles: Record<Listener["status"], string> = {
 export function ListenerCard({
   listener,
   onCall,
-  freeSecondsLeft,
 }: {
   listener: Listener;
-  onCall: (l: Listener, mode: "paid" | "free") => void;
-  /** Free trial time left on the signed-in account, if known. */
-  freeSecondsLeft?: number | undefined;
+  onCall: (l: Listener) => void;
 }) {
   const { t, i18n } = useTranslation();
   const lang = (i18n.language ?? "en").startsWith("nl") ? "nl" : "en";
   const languageLabel = listener.language === "NL" ? "Nederlands" : "English";
   const nl = listener.language === "NL";
-  const freeExhausted = freeSecondsLeft !== undefined && freeSecondsLeft <= 0;
-  const freeMinutes =
-    freeSecondsLeft !== undefined && freeSecondsLeft > 0 ? Math.ceil(freeSecondsLeft / 60) : null;
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)] transition-colors hover:border-primary/40">
@@ -78,28 +72,9 @@ export function ListenerCard({
         </div>
 
         <div className="mt-auto flex flex-col gap-2 pt-1">
-          <Button className="w-full" onClick={() => onCall(listener, "paid")}>
+          <Button className="w-full" onClick={() => onCall(listener)}>
             <PhoneCall className="size-4" />
             {nl ? "Bel nu" : "Call now"}
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full"
-            disabled={freeExhausted}
-            onClick={() => onCall(listener, "free")}
-          >
-            <Timer className="size-4" />
-            {freeExhausted
-              ? nl
-                ? "Gratis tijd gebruikt"
-                : "Free time used"
-              : freeMinutes
-                ? nl
-                  ? `Gratis check-in · ${freeMinutes} min over`
-                  : `Free check-in · ${freeMinutes} min left`
-              : nl
-                ? "Gratis check-in"
-                : "Free check-in"}
           </Button>
         </div>
       </div>

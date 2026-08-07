@@ -8,16 +8,18 @@ export const getMyAccount = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
 
-    const [profileRes, rolesRes, listenerRes] = await Promise.all([
+    const [profileRes, rolesRes, listenerRes, presenceRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", userId),
       supabase.from("listeners").select("*").eq("user_id", userId).maybeSingle(),
+      supabase.from("agent_presence").select("status").eq("user_id", userId).maybeSingle(),
     ]);
 
     return {
       profile: profileRes.data,
       roles: (rolesRes.data ?? []).map((r) => r.role),
       listener: listenerRes.data,
+      agentStatus: presenceRes.data?.status ?? "offline",
     };
   });
 
