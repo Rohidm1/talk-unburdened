@@ -167,7 +167,8 @@ export const sendChatMessage = createServerFn({ method: "POST" })
       .eq("id", data.sessionId)
       .maybeSingle();
 
-    if (!session || session.ended_at || session.status !== "active") {
+    const openStatuses = ["ringing", "queued", "active"];
+    if (!session || session.ended_at || !openStatuses.includes(session.status ?? "")) {
       return { ok: false as const, reason: "closed" };
     }
 
