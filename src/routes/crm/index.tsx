@@ -3,14 +3,20 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { KeyRound, LogOut, ShieldCheck, UserPlus } from "lucide-react";
+import { KeyRound, LogOut, ShieldCheck, UserPlus, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { avatarFor } from "@/lib/avatars";
-import { createWorker, listTeam, resetWorkerPassword, setListenerActive } from "@/lib/crm.functions";
+import {
+  createWorker,
+  listTeam,
+  resetWorkerPassword,
+  setListenerActive,
+  setListenerAgents,
+} from "@/lib/crm.functions";
 
 export const Route = createFileRoute("/crm/")({
   head: () => ({
@@ -52,11 +58,13 @@ function CrmTeam() {
   const addWorker = useServerFn(createWorker);
   const resetPassword = useServerFn(resetWorkerPassword);
   const toggleActive = useServerFn(setListenerActive);
+  const saveAgents = useServerFn(setListenerAgents);
 
   const [form, setForm] = useState(emptyForm);
   const [linkTo, setLinkTo] = useState("");
   const [resetFor, setResetFor] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState("");
+  const [agentsFor, setAgentsFor] = useState<string | null>(null);
 
   const team = useQuery({ queryKey: ["crm-team"], queryFn: () => fetchTeam(), retry: false });
 
@@ -100,6 +108,22 @@ function CrmTeam() {
     mutationFn: (v: { listenerId: string; isActive: boolean }) => toggleActive({ data: v }),
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["crm-team"] }),
   });
+
+  const agentsMutation = useMutation({
+    mutationFn: (v: { listenerId: string; agentUserIds: string[] }) => saveAgents({ data: v }),
+    onSuccess: () => {
+      toast.success("Agents updated");
+      void queryClient.invalidateQueries({ queryKey: ["crm-team"] });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not update agents"),
+  });
+
+  const toggleAgent = (listenerId: string, current: string[], agentId: string) => {
+    const next = current.includes(agentId)
+      ? current.filter((id) => id !== agentId)
+      : [...current, agentId];
+    agentsMutation.mutate({ listenerId, agentUserIds: next });
+  };
 
   const signOut = async () => {
     await queryClient.cancelQueries();
@@ -163,6 +187,13 @@ function CrmTeam() {
                     </Button>
                   ) : null}
                   <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setAgentsFor(agentsFor === l.id ? null : l.id)}
+                  >
+                    <Users className="size-4" /> Agents ({l.agentIds.length})
+                  </Button>
+                  <Button
                     variant="ghost"
                     size="sm"
                     onClick={() =>
@@ -171,6 +202,34 @@ function CrmTeam() {
                   >
                     {l.is_active ? "Hide" : "Show"}
                   </Button>
+                  {agentsFor === l.id ? (
+                    <div className="w-full rounded-2xl border border-border bg-secondary/30 p-4">
+                      <p className="text-sm font-medium">Who can take calls for {l.display_name}?</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        One agent can be assigned to as many profiles as you like. Callers keep
+                        their preferred agent whenever that person is available.
+                      </p>
+                      <div className="mt-3 flex flex-col gap-2">
+                        {team.data.agents.length === 0 ? (
+                          <p className="text-xs text-muted-foreground">No agent logins yet.</p>
+                        ) : (
+                          team.data.agents.map((a) => (
+                            <label key={a.userId} className="flex items-center gap-2 text-sm">
+                              <input
+                                type="checkbox"
+                                className="size-4 accent-primary"
+                                checked={l.agentIds.includes(a.userId)}
+                                disabled={agentsMutation.isPending}
+                                onChange={() => toggleAgent(l.id, l.agentIds, a.userId)}
+                              />
+                              <span>{a.username}</span>
+                              <span className="text-xs text-muted-foreground">· {a.status}</span>
+                            </label>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  ) : null}
                   {resetFor && resetFor === l.user_id ? (
                     <div className="flex w-full gap-2">
                       <Input
