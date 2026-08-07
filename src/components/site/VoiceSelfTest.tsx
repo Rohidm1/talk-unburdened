@@ -236,6 +236,27 @@ export function VoiceSelfTest({
           <span>
             <span className="block font-semibold">{result.title}</span>
             <span className="block text-foreground/80">{result.detail}</span>
+            <span className="mt-2 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                className="underline underline-offset-2 text-foreground/70"
+                onClick={() => setShowDetails((v) => !v)}
+              >
+                {showDetails ? "Verberg technische details" : "Toon technische details"}
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 underline underline-offset-2 text-foreground/70"
+                onClick={() => void navigator.clipboard?.writeText(result.diagnostics)}
+              >
+                <Copy className="size-3" /> Kopieer rapport
+              </button>
+            </span>
+            {showDetails ? (
+              <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg bg-background/60 p-2 text-[11px] leading-relaxed text-foreground/80">
+                {result.diagnostics}
+              </pre>
+            ) : null}
           </span>
         </div>
       ) : null}
