@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, Mic, MicOff, PhoneOff } from "lucide-react";
+import { AlertTriangle, BellRing, Mic, MicOff, PhoneOff } from "lucide-react";
 import type { Call } from "@twilio/voice-sdk";
 import {
   Dialog,
@@ -134,7 +134,9 @@ export function ActiveCallDialog({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-2xl border border-border bg-secondary/40 p-3 text-center">
-                <p className="text-xs text-muted-foreground">{t("call.freeLeft")}</p>
+                <p className="text-xs text-muted-foreground">
+                  {mode === "free" ? "Free minutes left" : "Talk time left"}
+                </p>
                 <p className="font-display text-lg text-primary tabular-nums">{format(left)}</p>
               </div>
               <div className="rounded-2xl border border-border bg-secondary/40 p-3 text-center">
