@@ -580,6 +580,10 @@ export type Database = {
           paid_left: number
         }[]
       }
+      settle_stale_agent_chats: {
+        Args: { _agent_user_id: string; _rate_cents: number }
+        Returns: undefined
+      }
       settle_stale_calls: {
         Args: { _rate_cents: number; _user_id: string }
         Returns: undefined
