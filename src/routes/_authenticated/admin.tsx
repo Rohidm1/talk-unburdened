@@ -377,14 +377,7 @@ type NewAgentValues = {
   username: string;
   password: string;
   displayName: string;
-  avatarKey: string;
-  bioEn: string;
-  bioNl: string;
-  languages: string[];
-  topicsEn: string[];
-  topicsNl: string[];
-  years: number;
-  existingListenerId: string | null;
+  listenerIds: string[];
 };
 
 function NewAgentForm({
@@ -392,7 +385,7 @@ function NewAgentForm({
   onCreate,
 }: {
   listeners: { id: string; display_name: string }[];
-  onCreate: (values: NewAgentValues, profileIds: string[]) => Promise<void>;
+  onCreate: (values: NewAgentValues) => Promise<void>;
 }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -401,24 +394,12 @@ function NewAgentForm({
 
   const mutation = useMutation({
     mutationFn: () =>
-      onCreate(
-        {
-          username: username.trim(),
-          password,
-          displayName: displayName.trim(),
-          // The agent works behind existing fictional profiles, so no new card
-          // is created — these are only defaults if none is linked.
-          avatarKey: "amara",
-          bioEn: "A warm listener.",
-          bioNl: "Een warme luisteraar.",
-          languages: ["NL"],
-          topicsEn: [],
-          topicsNl: [],
-          years: 1,
-          existingListenerId: picked[0] ?? null,
-        },
-        picked,
-      ),
+      onCreate({
+        username: username.trim(),
+        password,
+        displayName: displayName.trim(),
+        listenerIds: picked,
+      }),
     onSuccess: () => {
       toast.success("Agent aangemaakt.");
       setUsername("");
