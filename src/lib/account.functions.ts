@@ -108,13 +108,22 @@ export const heartbeatCall = createServerFn({ method: "POST" })
 
     const { data: call } = await supabaseAdmin
       .from("calls")
-      .select("id, started_at, ended_at, mode")
+      .select("id, started_at, answered_at, ended_at, mode, status")
       .eq("id", data.callId)
       .eq("client_id", userId)
       .maybeSingle();
 
-    if (!call) return { elapsed: 0, allowanceSeconds: 0, remaining: 0, shouldEnd: true };
-    if (call.ended_at) return { elapsed: 0, allowanceSeconds: 0, remaining: 0, shouldEnd: true };
+    const dead = (status: string) => ({
+      elapsed: 0,
+      allowanceSeconds: 0,
+      remaining: 0,
+      shouldEnd: true,
+      answered: false,
+      status,
+    });
+
+    if (!call) return dead("missing");
+    if (call.ended_at) return dead(call.status ?? "ended");
 
     await supabaseAdmin
       .from("calls")
@@ -133,9 +142,21 @@ export const heartbeatCall = createServerFn({ method: "POST" })
         ? Math.min(free, FREE_CALL_MAX_SECONDS)
         : free + (profile?.credit_seconds ?? 0);
 
+    // Nothing is metered while the line is still ringing.
+    if (!call.answered_at) {
+      return {
+        elapsed: 0,
+        allowanceSeconds: allowance,
+        remaining: allowance,
+        shouldEnd: false,
+        answered: false,
+        status: call.status ?? "ringing",
+      };
+    }
+
     const elapsed = Math.max(
       0,
-      Math.floor((Date.now() - new Date(call.started_at).getTime()) / 1000),
+      Math.floor((Date.now() - new Date(call.answered_at).getTime()) / 1000),
     );
 
     return {
@@ -143,6 +164,8 @@ export const heartbeatCall = createServerFn({ method: "POST" })
       allowanceSeconds: allowance,
       remaining: Math.max(allowance - elapsed, 0),
       shouldEnd: elapsed >= allowance,
+      answered: true,
+      status: call.status ?? "active",
     };
   });
 
