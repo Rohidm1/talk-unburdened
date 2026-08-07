@@ -19,7 +19,6 @@ import {
   Pricing,
 } from "@/components/site/Sections";
 import { listeners as fallbackListeners, type Listener } from "@/data/listeners";
-import { listPublicListeners } from "@/lib/listeners.functions";
 import { getMyAccount } from "@/lib/account.functions";
 import { endChat, startChat } from "@/lib/chat.functions";
 import { avatarFor } from "@/lib/avatars";
