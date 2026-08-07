@@ -42,8 +42,8 @@ export const listeners: Listener[] = [
     avatar: "/avatars/profile-2.jpg",
     age: 48,
     bio: {
-      en: "Here to offer a calm and listening ear whenever life feels overwhelming. You don't have to carry it all alone.",
-      nl: "Here to offer a calm and listening ear whenever life feels overwhelming. You don't have to carry it all alone.",
+      en: "Here to chat calmly whenever life feels overwhelming. You don't have to carry it all alone.",
+      nl: "Here to chat calmly whenever life feels overwhelming. You don't have to carry it all alone.",
     },
     language: "EN",
     topics: [

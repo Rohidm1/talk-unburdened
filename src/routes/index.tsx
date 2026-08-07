@@ -50,15 +50,15 @@ export const Route = createFileRoute("/")({
               name: "Is it really anonymous?",
               acceptedAnswer: {
                 "@type": "Answer",
-                text: "Yes. You choose an alias, and that's the only thing your listener ever sees. We never ask for your real name, address or phone number.",
+                text: "Yes. You choose an alias, and that's the only thing your chat partner ever sees. We never ask for your real name, address or phone number.",
               },
             },
             {
               "@type": "Question",
-              name: "Are your listeners professionals?",
+              name: "Are your chat partners professionals?",
               acceptedAnswer: {
                 "@type": "Answer",
-                text: "No — and we're upfront about that. Our listeners are trained, warm people who give you their full attention. They offer a listening ear and everyday perspective, not professional advice.",
+                text: "No — and we're upfront about that. Our chat partners are warm, attentive people who take the time to read and reply. They offer everyday perspective, not professional advice.",
               },
             },
             {
@@ -90,7 +90,7 @@ export const Route = createFileRoute("/")({
               name: "How does chatting work?",
               acceptedAnswer: {
                 "@type": "Answer",
-                text: "Open a listener's profile and press Chat. The listener accepts your request and from that moment you type back and forth in real time. You can end the chat whenever you like.",
+                text: "Open a profile and press Chat. Your chat partner accepts the request and from that moment you type back and forth in real time. You can end the chat whenever you like.",
               },
             },
             {
@@ -157,7 +157,7 @@ function HomePage() {
       } else if (result.reason === "free_used" || result.reason === "no_credit") {
         setTopUpReason(result.reason);
       } else {
-        toast.error("No listener is available right now. Please try again in a moment.");
+        toast.error("No chat partner is available right now. Please try again in a moment.");
       }
       return;
     }
