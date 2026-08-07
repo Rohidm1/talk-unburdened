@@ -153,6 +153,22 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
     await messages.refetch();
   };
 
+  const submitNote = async () => {
+    const body = noteDraft.trim();
+    if (!body || !openId || savingNote) return;
+    setSavingNote(true);
+    try {
+      await addNote({ data: { sessionId: openId, body } });
+      setNoteDraft("");
+      await notes.refetch();
+      toast.success("Notitie opgeslagen in het logboek.");
+    } catch {
+      toast.error("Notitie kon niet worden opgeslagen.");
+    } finally {
+      setSavingNote(false);
+    }
+  };
+
   if (!enabled) return null;
 
   return (
