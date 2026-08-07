@@ -241,7 +241,7 @@ const nl: typeof en = {
 
 if (!i18n.isInitialized) {
   void i18n.use(initReactI18next).init({
-    resources: { en: { translation: en }, nl: { translation: nl } },
+    resources: { en: { translation: en } },
     lng: "en",
     fallbackLng: "en",
     interpolation: { escapeValue: false },
