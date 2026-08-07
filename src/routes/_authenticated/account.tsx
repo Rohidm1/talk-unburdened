@@ -213,10 +213,7 @@ function AccountPage() {
                 <span className="text-muted-foreground">
                   {new Date(s.started_at).toLocaleString()}
                 </span>
-                <span className="tabular-nums">
-                  {s.messages_count ?? 0} message{(s.messages_count ?? 0) === 1 ? "" : "s"} ·{" "}
-                  {s.status}
-                </span>
+                <span className="tabular-nums">{s.status}</span>
               </li>
             ))}
           </ul>
