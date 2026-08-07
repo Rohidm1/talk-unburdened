@@ -235,9 +235,24 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                 >
                   <span className="font-semibold">{c.clientAlias}</span>
                   <span className="block text-xs text-muted-foreground">
-                    als {c.profileName} · actief
+                    als {c.profileName} · {c.clientAway ? "klant offline" : "actief"}
                   </span>
                 </button>
+                {c.clientAway ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="mt-2 w-full"
+                    onClick={async () => {
+                      await close({ data: { sessionId: c.id } });
+                      if (openId === c.id) setOpenId(null);
+                      refresh();
+                      toast.success("Chat afgesloten, je bent weer beschikbaar.");
+                    }}
+                  >
+                    Chat afsluiten
+                  </Button>
+                ) : null}
               </li>
             ))
           )}
@@ -252,6 +267,11 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                   <span className="ml-2 font-normal text-muted-foreground">
                     als {current.profileName}
                   </span>
+                  {current.clientAway ? (
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      · klant heeft de chat verlaten
+                    </span>
+                  ) : null}
                 </span>
                 <Button
                   size="sm"
@@ -260,7 +280,7 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                     await close({ data: { sessionId: current.id } });
                     setOpenId(null);
                     refresh();
-                    toast.success("Chat afgerond.");
+                    toast.success("Chat afgerond, je bent weer beschikbaar.");
                   }}
                 >
                   Afronden
