@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { MessageCircle, SendHorizonal } from "lucide-react";
+import { Inbox, MessageCircle, SendHorizonal, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,11 +42,13 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
   });
 
   const rows = chats.data ?? [];
-  const current = rows.find((c) => c.id === openId) ?? null;
+  const pending = rows.filter((c) => c.status !== "active");
+  const activeChats = rows.filter((c) => c.status === "active");
+  const current = activeChats.find((c) => c.id === openId) ?? null;
 
   useEffect(() => {
-    if (openId && !rows.some((c) => c.id === openId)) setOpenId(null);
-  }, [rows, openId]);
+    if (openId && !activeChats.some((c) => c.id === openId)) setOpenId(null);
+  }, [activeChats, openId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -65,21 +67,84 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
   if (!enabled) return null;
 
   return (
-    <section className="rounded-3xl border border-border bg-card p-6">
+    <div className="flex flex-col gap-6">
+      {/* Message requests: a quiet inbox, never a ringing call. */}
+      <section className="rounded-3xl border border-border bg-card p-6">
+        <div className="flex items-center gap-2">
+          <Inbox className="size-5 text-primary" />
+          <h2 className="font-display text-lg font-semibold">Berichtverzoeken</h2>
+          <span className="ml-auto rounded-full bg-secondary/60 px-3 py-1 text-xs font-semibold">
+            {pending.length} open
+          </span>
+        </div>
+        {pending.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">
+            Geen openstaande berichtverzoeken. Nieuwe verzoeken verschijnen hier vanzelf.
+          </p>
+        ) : (
+          <ul className="mt-4 grid gap-3 md:grid-cols-2">
+            {pending.map((c) => (
+              <li
+                key={c.id}
+                className="rounded-2xl border border-primary/30 bg-secondary/30 p-4"
+              >
+                <div className="flex items-center gap-2">
+                  <UserRound className="size-4 text-primary" />
+                  <span className="font-semibold">{c.clientAlias}</span>
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    {new Date(c.startedAt).toLocaleTimeString("nl-NL", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Wil chatten met <span className="font-medium text-foreground">{c.profileName}</span>
+                </p>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      await take({ data: { sessionId: c.id } });
+                      setOpenId(c.id);
+                      refresh();
+                      toast.success("Berichtverzoek geaccepteerd.");
+                    }}
+                  >
+                    Verzoek accepteren
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={async () => {
+                      await refuse({ data: { sessionId: c.id } });
+                      refresh();
+                    }}
+                  >
+                    Weigeren
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="rounded-3xl border border-border bg-card p-6">
       <div className="flex items-center gap-2">
         <MessageCircle className="size-5 text-primary" />
         <h2 className="font-display text-lg font-semibold">Live chats</h2>
         <span className="ml-auto text-xs text-muted-foreground">
-          {rows.filter((c) => c.status === "active").length} actief
+          {activeChats.length} actief
         </span>
       </div>
 
       <div className="mt-4 grid gap-4 md:grid-cols-[minmax(0,240px)_1fr]">
         <ul className="flex max-h-80 flex-col gap-2 overflow-y-auto">
-          {rows.length === 0 ? (
-            <li className="text-sm text-muted-foreground">Geen chats op dit moment.</li>
+          {activeChats.length === 0 ? (
+            <li className="text-sm text-muted-foreground">Geen lopende chats.</li>
           ) : (
-            rows.map((c) => (
+            activeChats.map((c) => (
               <li
                 key={c.id}
                 className={`rounded-2xl border p-3 text-sm ${
@@ -90,37 +155,12 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                   type="button"
                   className="w-full text-left"
                   onClick={() => setOpenId(c.id)}
-                  disabled={c.status !== "active"}
                 >
                   <span className="font-semibold">{c.clientAlias}</span>
                   <span className="block text-xs text-muted-foreground">
-                    als {c.profileName} · {c.status === "active" ? "actief" : "nieuwe aanvraag"}
+                    als {c.profileName} · actief
                   </span>
                 </button>
-                {c.status !== "active" ? (
-                  <div className="mt-2 grid grid-cols-2 gap-2">
-                    <Button
-                      size="sm"
-                      onClick={async () => {
-                        await take({ data: { sessionId: c.id } });
-                        setOpenId(c.id);
-                        refresh();
-                      }}
-                    >
-                      Aannemen
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={async () => {
-                        await refuse({ data: { sessionId: c.id } });
-                        refresh();
-                      }}
-                    >
-                      Weigeren
-                    </Button>
-                  </div>
-                ) : null}
               </li>
             ))
           )}
@@ -184,11 +224,12 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
             </>
           ) : (
             <p className="m-auto p-6 text-sm text-muted-foreground">
-              Kies een chat om te antwoorden.
+              Accepteer een berichtverzoek of kies een lopende chat om te antwoorden.
             </p>
           )}
         </div>
       </div>
-    </section>
+      </section>
+    </div>
   );
 }

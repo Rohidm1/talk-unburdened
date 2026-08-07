@@ -97,6 +97,8 @@ function StaffPage() {
   const username = user?.email?.split("@")[0] ?? "Agent";
   const voice = useTwilioDevice(!!isStaff);
   const [active, setActive] = useState<Call | null>(null);
+  const [activeCallId, setActiveCallId] = useState<string | null>(null);
+  const [audioState, setAudioState] = useState<"idle" | "connecting" | "live" | "failed">("idle");
   const [activeContext, setActiveContext] = useState<CallContext | null>(null);
   const [incomingContext, setIncomingContext] = useState<CallContext | null>(null);
   const [elapsed, setElapsed] = useState(0);
@@ -116,14 +118,14 @@ function StaffPage() {
   const ringing = useQuery({
     queryKey: ["incoming-call"],
     queryFn: () => pollCall(),
-    enabled: !!isStaff && online && !active,
+    enabled: !!isStaff && online && !activeCallId,
     refetchInterval: 3000,
   });
 
   useEffect(() => {
-    if (active) return;
+    if (activeCallId) return;
     setIncomingCallId(ringing.data?.callId ?? null);
-  }, [ringing.data?.callId, active]);
+  }, [ringing.data?.callId, activeCallId]);
 
   // Pull the caller dossier as soon as the line rings.
   useEffect(() => {
@@ -144,20 +146,23 @@ function StaffPage() {
 
   // Live stopwatch for the active conversation.
   useEffect(() => {
-    if (!active) return;
+    if (!activeCallId) return;
     setElapsed(0);
     const id = setInterval(() => setElapsed((e) => e + 1), 1000);
     return () => clearInterval(id);
-  }, [active]);
+  }, [activeCallId]);
 
   const finishCall = async (call: Call | null, ctx: CallContext | null) => {
     call?.disconnect();
     setActive(null);
+    setActiveCallId(null);
+    setAudioState("idle");
     setMuted(false);
     const body = noteRef.current.trim();
-    if (ctx && body) {
+    const callId = ctx?.callId ?? null;
+    if (callId && body) {
       try {
-        await storeNote({ data: { callId: ctx.callId, body } });
+        await storeNote({ data: { callId, body } });
         toast.success("Gespreksnotitie opgeslagen.");
       } catch {
         toast.error("Notitie kon niet worden opgeslagen.");
@@ -178,7 +183,8 @@ function StaffPage() {
   const acceptCall = async () => {
     const callId = incomingCallId;
     if (!callId) return;
-    const ctx = incomingContext;
+    // The dossier may still be loading — never let that block the workspace.
+    let ctx = incomingContext;
     let conferenceAuth: string | null = null;
     try {
       const res = await accept({ data: { callId } });
@@ -193,6 +199,29 @@ function StaffPage() {
       return;
     }
 
+    if (!ctx) {
+      try {
+        ctx = await fetchContext({ data: { callId } });
+      } catch {
+        ctx = null;
+      }
+    }
+
+    // Open the workspace first: the agent must always see the client details,
+    // notes and hang-up controls, even if the audio leg needs a retry.
+    setActiveContext(ctx);
+    setActiveCallId(callId);
+    setIncomingCallId(null);
+    setIncomingContext(null);
+    await connectAudio(callId, conferenceAuth, ctx);
+  };
+
+  const connectAudio = async (
+    callId: string,
+    conferenceAuth: string,
+    ctx: CallContext | null,
+  ) => {
+    setAudioState("connecting");
     try {
       const call = await voice.connect({
         Mode: "agent",
@@ -200,17 +229,38 @@ function StaffPage() {
         CallRecordId: callId,
         ConferenceAuth: conferenceAuth,
       });
-      if (call) {
-        call.on("disconnect", () => void finishCall(null, ctx));
-        setActive(call);
-      }
-    } catch {
-      toast.error("Kon de audio niet starten. Controleer je microfoon.");
-      return;
+      if (!call) throw new Error("no-call");
+      call.on("disconnect", () => void finishCall(null, ctx));
+      call.on("error", (err: unknown) => {
+        console.error("[voice] agent call error", err);
+        setAudioState("failed");
+      });
+      call.on("accept", () => setAudioState("live"));
+      setActive(call);
+      setAudioState("live");
+    } catch (err) {
+      console.error("[voice] agent audio failed", err);
+      setAudioState("failed");
+      toast.error(
+        (err as Error)?.message === "microphone-denied"
+          ? "Geef toegang tot je microfoon om te kunnen praten."
+          : "De audio kon niet starten. Probeer opnieuw te verbinden.",
+      );
     }
-    setActiveContext(ctx);
-    setIncomingCallId(null);
-    setIncomingContext(null);
+  };
+
+  const retryAudio = async () => {
+    if (!activeCallId) return;
+    try {
+      const res = await accept({ data: { callId: activeCallId } });
+      if (!res.ok || !res.conferenceAuth) {
+        toast.error("Dit gesprek is niet meer actief.");
+        return;
+      }
+      await connectAudio(activeCallId, res.conferenceAuth, activeContext);
+    } catch {
+      toast.error("Opnieuw verbinden is niet gelukt.");
+    }
   };
 
   const rejectCall = async () => {
@@ -315,7 +365,7 @@ function StaffPage() {
             </div>
           </section>
 
-          {active ? (
+          {activeCallId ? (
             <section className="grid gap-6 lg:col-span-3 lg:grid-cols-2">
               <div className="rounded-3xl border border-border bg-card p-6">
                 <div className="flex items-center gap-2">
@@ -324,6 +374,20 @@ function StaffPage() {
                     Gesprek als {activeContext?.profileName ?? "profiel"}
                   </h2>
                 </div>
+                {audioState !== "live" ? (
+                  <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-secondary/30 p-3 text-sm">
+                    <span className="flex-1 text-muted-foreground">
+                      {audioState === "connecting"
+                        ? "Audio wordt verbonden…"
+                        : "Geen audioverbinding met de beller."}
+                    </span>
+                    {audioState === "failed" ? (
+                      <Button size="sm" variant="outline" onClick={() => void retryAudio()}>
+                        Opnieuw verbinden
+                      </Button>
+                    ) : null}
+                  </div>
+                ) : null}
                 <div className="mt-6 text-center">
                   <p className="text-xs text-muted-foreground">Talk time used</p>
                   <p className="font-display text-5xl tabular-nums">{clock(elapsed)}</p>
@@ -332,9 +396,10 @@ function StaffPage() {
                   <Button
                     variant="outline"
                     size="lg"
+                    disabled={!active}
                     onClick={() =>
                       setMuted((m) => {
-                        active.mute(!m);
+                        active?.mute(!m);
                         return !m;
                       })
                     }

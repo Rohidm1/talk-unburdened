@@ -223,11 +223,26 @@ function Index() {
       });
       if (call) {
         call.on("disconnect", () => setVoiceCall(null));
+        call.on("error", (err: unknown) => console.error("[voice] call error", err));
         setVoiceCall(call);
+      } else {
+        throw new Error("no-call");
       }
     } catch (err) {
       console.error("[voice] could not start audio", err);
-      toast.error("Could not start audio. Check your microphone permission.");
+      toast.error(
+        (err as Error)?.message === "microphone-denied"
+          ? "Geef toegang tot je microfoon om te kunnen bellen."
+          : "De audioverbinding kon niet worden gestart. Probeer het opnieuw.",
+      );
+      // Never leave the caller staring at a live-looking screen with no audio.
+      setActiveCall(null);
+      setActiveCallId(null);
+      try {
+        await finish({ data: { callId: result.callId } });
+      } catch {
+        /* nothing was billed while ringing */
+      }
     }
   };
 
