@@ -133,11 +133,11 @@ export function useTwilioDevice(enabled: boolean) {
       const resolvedIdentity = identityRef.current;
       const connectionParams = { ...params };
       if (resolvedIdentity) {
-        if ("CallerIdentity" in connectionParams && !connectionParams.CallerIdentity) {
-          connectionParams.CallerIdentity = resolvedIdentity;
+        if ("CallerIdentity" in connectionParams && !connectionParams["CallerIdentity"]) {
+          connectionParams["CallerIdentity"] = resolvedIdentity;
         }
-        if ("Identity" in connectionParams && !connectionParams.Identity) {
-          connectionParams.Identity = resolvedIdentity;
+        if ("Identity" in connectionParams && !connectionParams["Identity"]) {
+          connectionParams["Identity"] = resolvedIdentity;
         }
       }
       try {
@@ -149,11 +149,11 @@ export function useTwilioDevice(enabled: boolean) {
         const fresh = await ensureDevice();
         const freshIdentity = identityRef.current;
         if (freshIdentity) {
-          if ("CallerIdentity" in connectionParams && !connectionParams.CallerIdentity) {
-            connectionParams.CallerIdentity = freshIdentity;
+          if ("CallerIdentity" in connectionParams && !connectionParams["CallerIdentity"]) {
+            connectionParams["CallerIdentity"] = freshIdentity;
           }
-          if ("Identity" in connectionParams && !connectionParams.Identity) {
-            connectionParams.Identity = freshIdentity;
+          if ("Identity" in connectionParams && !connectionParams["Identity"]) {
+            connectionParams["Identity"] = freshIdentity;
           }
         }
         return await fresh.connect({ params: connectionParams });
