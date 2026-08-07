@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Clock, Sparkles } from "lucide-react";
+import { MessageCircle, Sparkles } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,9 +10,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { BillingDescriptorNotice } from "@/components/site/BillingDescriptorNotice";
 import { CreditCheckoutDialog } from "@/components/site/CreditCheckoutDialog";
-import { CREDIT_PACKAGE_LIST, RATE_PER_MINUTE, type CreditPackageKey } from "@/lib/credit-packages";
+import { CREDIT_PACKAGE_LIST, type CreditPackageKey } from "@/lib/credit-packages";
 
-/** Shown when the caller's free minutes run out, offering credit packages. */
+/** Shown when the customer's free credits run out or balance is low. */
 export function TopUpDialog({
   open,
   reason,
@@ -30,21 +30,19 @@ export function TopUpDialog({
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 font-display">
-              <Clock className="size-5 text-primary" />
+              <MessageCircle className="size-5 text-primary" />
               {reason === "free_used"
-                ? "Your free minutes are up"
-                : "You're out of talk credit"}
+                ? "Je gratis berichten zijn op"
+                : "Je hebt geen credits meer"}
             </DialogTitle>
             <DialogDescription>
-              Want to keep talking? Pick a package below — credits never expire and you can use
-              them with any listener.
+              Kies een bundel om anoniem verder te chatten. Credits verlopen niet.
             </DialogDescription>
           </DialogHeader>
 
           <ul className="flex flex-col gap-2">
             {CREDIT_PACKAGE_LIST.map((p) => {
-              const perMin = p.cents / 100 / p.minutes;
-              const save = Math.round((1 - perMin / RATE_PER_MINUTE) * 100);
+              const perCredit = p.cents / 100 / p.credits;
               return (
                 <li key={p.key}>
                   <button
@@ -55,10 +53,10 @@ export function TopUpDialog({
                   >
                     <span className="flex-1">
                       <span className="block font-display text-base font-semibold">
-                        {p.minutes} minutes
+                        {p.credits} berichten
                       </span>
                       <span className="block text-xs text-muted-foreground">
-                        € {perMin.toFixed(2).replace(".", ",")} per minute · save {save}%
+                        € {perCredit.toFixed(2).replace(".", ",")} per bericht
                       </span>
                     </span>
                     <span className="font-display text-xl font-semibold">
@@ -76,7 +74,7 @@ export function TopUpDialog({
           <BillingDescriptorNotice className="border-t border-border pt-3" />
 
           <Button variant="ghost" onClick={onClose}>
-            Maybe later
+            Misschien later
           </Button>
         </DialogContent>
       </Dialog>

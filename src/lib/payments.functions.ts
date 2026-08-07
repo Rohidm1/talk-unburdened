@@ -50,7 +50,7 @@ export const createCreditCheckout = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z
       .object({
-        packageKey: z.enum(["starter", "deep", "value"]),
+        packageKey: z.enum(["starter", "popular", "pro_value", "vip_club"]),
         returnUrl: z.string().url(),
         environment: z.enum(["sandbox", "live"]),
       })

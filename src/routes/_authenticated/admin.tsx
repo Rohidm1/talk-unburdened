@@ -1,30 +1,19 @@
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Ear, EarOff, MessageCircle, Phone, UserPlus } from "lucide-react";
-import type { Call } from "@twilio/voice-sdk";
+import { MessageCircle, UserPlus, Users } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAdminStats } from "@/lib/staff.functions";
-import {
-  listAgentsLive,
-  listClientStats,
-  listLiveConversations,
-  startMonitor,
-  stopMonitor,
-} from "@/lib/admin.functions";
-import { createAgentAccount, setAgentListener } from "@/lib/crm.functions";
-import { useTwilioDevice } from "@/hooks/useTwilioDevice";
-import { supabase } from "@/integrations/supabase/client";
-import { redirect } from "@tanstack/react-router";
+import { listAgentsLive, listClientStats, listLiveConversations } from "@/lib/admin.functions";
+import { createAgentAccount } from "@/lib/crm.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  // Workers never see revenue, analytics or system settings.
   beforeLoad: async () => {
     const { data } = await supabase.auth.getUser();
     if (!data.user) return;
@@ -39,8 +28,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
       { title: "Admin panel — Anontalk platform analytics" },
       {
         name: "description",
-        content:
-          "Anontalk admin overview: agent availability, live conversations, customer talk time and revenue.",
+        content: "Anontalk admin overview: agent availability, live chats, customer messages and revenue.",
       },
       { property: "og:title", content: "Admin panel — Anontalk" },
       { property: "og:description", content: "Platform analytics for Anontalk operators." },
@@ -62,16 +50,20 @@ function elapsedSince(iso: string | null) {
   return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
 }
 
+function statusLabel(a: { availability: string; inChat: boolean }) {
+  if (a.availability === "offline") return "Offline";
+  if (a.inChat) return "In chat";
+  if (a.availability === "break") return "On break";
+  return "Available";
+}
+
 function AdminPage() {
   const queryClient = useQueryClient();
   const fetchStats = useServerFn(getAdminStats);
   const fetchAgents = useServerFn(listAgentsLive);
   const fetchLive = useServerFn(listLiveConversations);
   const fetchClients = useServerFn(listClientStats);
-  const beginMonitor = useServerFn(startMonitor);
-  const endMonitor = useServerFn(stopMonitor);
   const addAgent = useServerFn(createAgentAccount);
-  const linkAgentProfile = useServerFn(setAgentListener);
 
   const stats = useQuery({ queryKey: ["admin-stats"], queryFn: () => fetchStats(), retry: false });
   const agents = useQuery({
@@ -93,47 +85,6 @@ function AdminPage() {
     retry: false,
   });
 
-  const voice = useTwilioDevice(true);
-  const [monitor, setMonitor] = useState<{ id: string; callId: string; call: Call | null } | null>(
-    null,
-  );
-
-  const listen = async (callId: string) => {
-    if (monitor) await leave();
-    const res = await beginMonitor({ data: { callId } });
-    if (!res.ok || !res.conferenceAuth || !res.monitorId) {
-      toast.error("Dit gesprek loopt niet meer.");
-      return;
-    }
-    try {
-      const call = await voice.connect({
-        Mode: "monitor",
-        Identity: voice.identity ?? "",
-        CallRecordId: callId,
-        ConferenceAuth: res.conferenceAuth,
-      });
-      call?.mute(true);
-      setMonitor({ id: res.monitorId, callId, call: call ?? null });
-      toast.success("Je luistert stil mee. Je microfoon staat uit.");
-    } catch {
-      await endMonitor({ data: { monitorId: res.monitorId } });
-      toast.error("Kon niet meeluisteren. Controleer je audio-instellingen.");
-    }
-    void live.refetch();
-  };
-
-  const leave = async () => {
-    if (!monitor) return;
-    monitor.call?.disconnect();
-    try {
-      await endMonitor({ data: { monitorId: monitor.id } });
-    } catch {
-      /* the log entry closes on the next scan */
-    }
-    setMonitor(null);
-    void live.refetch();
-  };
-
   const denied = agents.isError;
 
   return (
@@ -154,15 +105,9 @@ function AdminPage() {
           <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
               { label: "Agents online", value: agents.data?.onlineCount ?? 0 },
-              {
-                label: "Live gesprekken",
-                value: (live.data?.calls.length ?? 0) + (live.data?.chats.length ?? 0),
-              },
-              { label: "Gespreksminuten", value: stats.data?.totalMinutes ?? 0 },
-              {
-                label: "Omzet",
-                value: `€ ${((stats.data?.revenueCents ?? 0) / 100).toFixed(2)}`,
-              },
+              { label: "Live chats", value: live.data?.chats.length ?? 0 },
+              { label: "Messages sent", value: stats.data?.messagesSent ?? 0 },
+              { label: "Omzet", value: `€ ${((stats.data?.revenueCents ?? 0) / 100).toFixed(2)}` },
             ].map((k) => (
               <div key={k.label} className="rounded-3xl border border-border bg-card p-6">
                 <p className="text-xs tracking-widest text-muted-foreground uppercase">{k.label}</p>
@@ -171,18 +116,6 @@ function AdminPage() {
             ))}
           </section>
 
-          {monitor ? (
-            <div className="mt-6 flex flex-wrap items-center gap-3 rounded-3xl border border-primary/40 bg-primary/10 p-5">
-              <Ear className="size-5 text-primary" />
-              <span className="flex-1 text-sm">
-                Je luistert stil mee. De klant en de agent merken hier niets van.
-              </span>
-              <Button variant="outline" onClick={() => void leave()}>
-                <EarOff className="size-4" /> Stoppen
-              </Button>
-            </div>
-          ) : null}
-
           <Tabs defaultValue="live" className="mt-8">
             <TabsList>
               <TabsTrigger value="live">Live</TabsTrigger>
@@ -190,55 +123,7 @@ function AdminPage() {
               <TabsTrigger value="clients">Klanten</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="live" className="mt-6 grid gap-6">
-              <section className="rounded-3xl border border-border bg-card p-6">
-                <div className="flex items-center gap-2">
-                  <Phone className="size-5 text-primary" />
-                  <h2 className="font-display text-lg font-semibold">Lopende gesprekken</h2>
-                </div>
-                {live.data && live.data.calls.length > 0 ? (
-                  <ul className="mt-4 divide-y divide-border">
-                    {live.data.calls.map((c) => (
-                      <li
-                        key={c.id}
-                        className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"
-                      >
-                        <div>
-                          <p className="font-semibold">
-                            {c.profileName}
-                            <span className="ml-2 font-normal text-muted-foreground">
-                              agent {c.agent ?? "—"}
-                            </span>
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {c.clientAlias} · {c.status === "active" ? "in gesprek" : "gaat over"} ·{" "}
-                            {c.mode === "free" ? "gratis minuten" : "betaald"}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="tabular-nums">
-                            {clock(elapsedSince(c.answeredAt ?? c.startedAt))}
-                          </span>
-                          {c.status === "active" ? (
-                            monitor?.callId === c.id ? (
-                              <Button size="sm" variant="outline" onClick={() => void leave()}>
-                                <EarOff className="size-4" /> Stoppen
-                              </Button>
-                            ) : (
-                              <Button size="sm" onClick={() => void listen(c.id)}>
-                                <Ear className="size-4" /> Meeluisteren
-                              </Button>
-                            )
-                          ) : null}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="mt-4 text-sm text-muted-foreground">Geen lopende gesprekken.</p>
-                )}
-              </section>
-
+            <TabsContent value="live" className="mt-6">
               <section className="rounded-3xl border border-border bg-card p-6">
                 <div className="flex items-center gap-2">
                   <MessageCircle className="size-5 text-primary" />
@@ -283,57 +168,31 @@ function AdminPage() {
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="flex items-center gap-2">
                           <span
-                            className={`size-2.5 rounded-full ${a.status === "online" ? "bg-success" : a.status === "busy" ? "bg-primary" : "bg-muted-foreground"}`}
+                            className={`size-2.5 rounded-full ${a.availability === "available" ? "bg-success" : a.availability === "break" ? "bg-primary" : "bg-muted-foreground"}`}
                           />
                           <span className="font-semibold">{a.username}</span>
                           <span className="text-xs text-muted-foreground capitalize">
-                            {a.status}
+                            {statusLabel(a)}
                           </span>
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          {a.activeChats} chat(s) actief · {a.chatSlotsLeft} plek(ken) vrij
+                          {a.activeChats} chat(s) actief
                         </span>
                       </div>
-                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
-                        {(agents.data?.listeners ?? []).length === 0 ? (
-                          <span className="text-xs text-muted-foreground">
-                            Nog geen fictieve profielen.
-                          </span>
-                        ) : (
-                          (agents.data?.listeners ?? []).map((l) => {
-                            const linked = a.profiles.some((p) => p.id === l.id);
-                            return (
-                              <label
-                                key={l.id}
-                                className="flex items-center gap-2 text-xs text-muted-foreground"
-                              >
-                                <Checkbox
-                                  checked={linked}
-                                  onCheckedChange={async () => {
-                                    try {
-                                      await linkAgentProfile({
-                                        data: {
-                                          agentUserId: a.userId,
-                                          listenerId: l.id,
-                                          linked: !linked,
-                                        },
-                                      });
-                                      void queryClient.invalidateQueries({
-                                        queryKey: ["admin-agents"],
-                                      });
-                                    } catch {
-                                      toast.error("Koppeling kon niet worden opgeslagen.");
-                                    }
-                                  }}
-                                />
-                                <span className={linked ? "text-foreground" : undefined}>
-                                  {l.display_name}
-                                </span>
-                              </label>
-                            );
-                          })
-                        )}
-                      </div>
+                      {a.handling.length > 0 ? (
+                        <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+                          {a.handling.map((h) => (
+                            <li key={h.sessionId}>
+                              {h.profileName} — {h.clientAlias}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
+                      {a.lastSeenAt ? (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Last seen {new Date(a.lastSeenAt).toLocaleString()}
+                        </p>
+                      ) : null}
                     </li>
                   ))}
                   {(agents.data?.agents ?? []).length === 0 ? (
@@ -343,7 +202,6 @@ function AdminPage() {
               </section>
 
               <NewAgentForm
-                listeners={agents.data?.listeners ?? []}
                 onCreate={async (values) => {
                   await addAgent({ data: values });
                   void queryClient.invalidateQueries({ queryKey: ["admin-agents"] });
@@ -359,13 +217,12 @@ function AdminPage() {
                     <thead className="text-xs tracking-wide text-muted-foreground uppercase">
                       <tr>
                         <th className="py-2">Klant</th>
-                        <th className="py-2">Gesprekken</th>
-                        <th className="py-2">Beltijd</th>
                         <th className="py-2">Chats</th>
                         <th className="py-2">Chattijd</th>
-                        <th className="py-2">Totaal</th>
+                        <th className="py-2">Berichten</th>
                         <th className="py-2">Besteed</th>
-                        <th className="py-2">Saldo</th>
+                        <th className="py-2">Credits</th>
+                        <th className="py-2">Free</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
@@ -379,19 +236,14 @@ function AdminPage() {
                               </span>
                             ) : null}
                           </td>
-                          <td className="py-2 tabular-nums">{c.calls}</td>
-                          <td className="py-2 tabular-nums">{clock(c.callSeconds)}</td>
                           <td className="py-2 tabular-nums">{c.chats}</td>
                           <td className="py-2 tabular-nums">{clock(c.chatSeconds)}</td>
-                          <td className="py-2 font-semibold tabular-nums">
-                            {clock(c.totalSeconds)}
-                          </td>
+                          <td className="py-2 tabular-nums">{c.messages}</td>
                           <td className="py-2 tabular-nums">
                             € {(c.purchasedCents / 100).toFixed(2)}
                           </td>
-                          <td className="py-2 tabular-nums">
-                            {clock(c.creditSeconds + c.freeSeconds)}
-                          </td>
+                          <td className="py-2 tabular-nums">{c.credits}</td>
+                          <td className="py-2 tabular-nums">{c.freeCredits}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -413,20 +265,12 @@ type NewAgentValues = {
   username: string;
   password: string;
   displayName: string;
-  listenerIds: string[];
 };
 
-function NewAgentForm({
-  listeners,
-  onCreate,
-}: {
-  listeners: { id: string; display_name: string }[];
-  onCreate: (values: NewAgentValues) => Promise<void>;
-}) {
+function NewAgentForm({ onCreate }: { onCreate: (values: NewAgentValues) => Promise<void> }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [picked, setPicked] = useState<string[]>([]);
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -434,20 +278,15 @@ function NewAgentForm({
         username: username.trim(),
         password,
         displayName: displayName.trim(),
-        listenerIds: picked,
       }),
     onSuccess: () => {
       toast.success("Agent aangemaakt.");
       setUsername("");
       setPassword("");
       setDisplayName("");
-      setPicked([]);
     },
     onError: (e: Error) => toast.error(e.message || "Kon de agent niet aanmaken."),
   });
-
-  const toggle = (id: string) =>
-    setPicked((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
 
   const valid =
     username.trim().length >= 3 && password.length >= 8 && displayName.trim().length > 1;
@@ -496,22 +335,6 @@ function NewAgentForm({
             onChange={(e) => setDisplayName(e.target.value)}
             placeholder="Sanne"
           />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <Label>Koppel aan profielen</Label>
-          <div className="flex max-h-56 flex-col gap-2 overflow-y-auto rounded-2xl border border-border bg-secondary/30 p-3">
-            {listeners.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nog geen profielen.</p>
-            ) : (
-              listeners.map((l) => (
-                <label key={l.id} className="flex items-center gap-2 text-sm">
-                  <Checkbox checked={picked.includes(l.id)} onCheckedChange={() => toggle(l.id)} />
-                  {l.display_name}
-                </label>
-              ))
-            )}
-          </div>
         </div>
 
         <Button type="submit" disabled={!valid || mutation.isPending}>

@@ -1,16 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { CHAT_RATE_CENTS_PER_MINUTE, FREE_CALL_MAX_SECONDS } from "@/lib/credit-packages";
+import { FREE_TRIAL_MESSAGES, LOW_BALANCE_WARNING_CREDITS } from "@/lib/credit-packages";
 
 const sessionInput = (input: unknown) => z.object({ sessionId: z.string().uuid() }).parse(input);
 
 /* ------------------------------------------------------------------ client */
 
-/**
- * Starts a chat with a fictional profile. Nothing is metered until an agent
- * accepts — exactly like the phone line, and out of the same credit pool.
- */
 export const startChat = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ listenerId: z.string().uuid() }).parse(input))
@@ -18,27 +14,25 @@ export const startChat = createServerFn({ method: "POST" })
     const { userId } = context;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    await supabaseAdmin.rpc("settle_stale_chats", {
-      _user_id: userId,
-      _rate_cents: CHAT_RATE_CENTS_PER_MINUTE,
-    });
+    await supabaseAdmin.rpc("expire_stale_chats");
 
     const deny = (reason: "blocked" | "no_credit" | "free_used" | "busy") =>
-      ({ ok: false as const, reason, sessionId: null, allowanceSeconds: 0, mode: "paid" }) as const;
+      ({ ok: false as const, reason, sessionId: null, allowance: 0, mode: "paid" }) as const;
 
     const { data: profile } = await supabaseAdmin
       .from("profiles")
-      .select("credit_seconds, free_seconds_remaining, is_blocked")
+      .select("chat_credits, free_credits, is_blocked")
       .eq("id", userId)
       .maybeSingle();
 
     if (!profile) return deny("no_credit");
     if (profile.is_blocked) return deny("blocked");
 
-    const free = profile.free_seconds_remaining;
-    const mode: "paid" | "free" = profile.credit_seconds <= 0 ? "free" : "paid";
+    const mode: "paid" | "free" = profile.chat_credits > 0 ? "paid" : "free";
     const allowance =
-      mode === "free" ? Math.min(free, FREE_CALL_MAX_SECONDS) : free + profile.credit_seconds;
+      mode === "free"
+        ? Math.min(profile.free_credits, FREE_TRIAL_MESSAGES)
+        : profile.chat_credits + profile.free_credits;
     if (allowance <= 0) return deny(mode === "free" ? "free_used" : "no_credit");
 
     const { data: agentId } = await supabaseAdmin.rpc("assign_chat_agent", {
@@ -60,7 +54,6 @@ export const startChat = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
 
-    // Remember the agent so the next conversation lands with the same person.
     await supabaseAdmin
       .from("client_agent_routes")
       .upsert(
@@ -75,12 +68,43 @@ export const startChat = createServerFn({ method: "POST" })
       ok: true as const,
       reason: null,
       sessionId: session.id,
-      allowanceSeconds: allowance,
+      allowance,
       mode,
     };
   });
 
-/** Keeps the session alive and lets the server decide when credit runs out. */
+export const endChat = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(sessionInput)
+  .handler(async ({ data, context }) => {
+    const { loadClientChat, logChatEvent, supabaseAdmin } = await import("@/lib/chat.server");
+    const session = await loadClientChat(data.sessionId, context.userId);
+    if (!session) return { billed: 0, freeLeft: 0, paidLeft: 0 };
+
+    const { error } = await supabaseAdmin
+      .from("chat_sessions")
+      .update({ status: "ended", ended_at: new Date().toISOString() })
+      .eq("id", data.sessionId)
+      .is("ended_at", null);
+    if (error) throw new Error(error.message);
+
+    await logChatEvent(data.sessionId, "ended", "client", "Gesprek beëindigd door klant");
+    await supabaseAdmin.rpc("sync_listener_status", { _listener_id: session.listener_id ?? "" });
+
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("chat_credits, free_credits")
+      .eq("id", context.userId)
+      .maybeSingle();
+
+    return {
+      billed: 0,
+      freeLeft: profile?.free_credits ?? 0,
+      paidLeft: profile?.chat_credits ?? 0,
+    };
+  });
+
+/** Keeps the session alive and reports remaining credit. */
 export const chatHeartbeat = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(sessionInput)
@@ -90,8 +114,7 @@ export const chatHeartbeat = createServerFn({ method: "POST" })
     const session = await loadClientChat(data.sessionId, userId);
 
     const dead = (status: string) => ({
-      elapsed: 0,
-      allowanceSeconds: 0,
+      allowance: 0,
       remaining: 0,
       shouldEnd: true,
       answered: false,
@@ -108,65 +131,19 @@ export const chatHeartbeat = createServerFn({ method: "POST" })
 
     const { data: profile } = await supabaseAdmin
       .from("profiles")
-      .select("credit_seconds, free_seconds_remaining")
+      .select("chat_credits, free_credits")
       .eq("id", userId)
       .maybeSingle();
 
-    const free = profile?.free_seconds_remaining ?? 0;
-    const allowance =
-      session.mode === "free"
-        ? Math.min(free, FREE_CALL_MAX_SECONDS)
-        : free + (profile?.credit_seconds ?? 0);
-
-    if (!session.answered_at) {
-      return {
-        elapsed: 0,
-        allowanceSeconds: allowance,
-        remaining: allowance,
-        shouldEnd: false,
-        answered: false,
-        status: session.status ?? "ringing",
-      };
-    }
-
-    const elapsed = Math.max(
-      0,
-      Math.floor((Date.now() - new Date(session.answered_at).getTime()) / 1000),
-    );
+    const total = (profile?.chat_credits ?? 0) + (profile?.free_credits ?? 0);
+    const remaining = session.answered_at ? total : Math.max(total, 0);
 
     return {
-      elapsed,
-      allowanceSeconds: allowance,
-      remaining: Math.max(allowance - elapsed, 0),
-      shouldEnd: elapsed >= allowance,
-      answered: true,
-      status: session.status ?? "active",
-    };
-  });
-
-export const endChat = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator(sessionInput)
-  .handler(async ({ data, context }) => {
-    const { loadClientChat, logChatEvent, supabaseAdmin } = await import("@/lib/chat.server");
-    const session = await loadClientChat(data.sessionId, context.userId);
-    if (!session) return { billed: 0, cost: 0, freeLeft: 0, paidLeft: 0 };
-
-    const { data: rows, error } = await supabaseAdmin.rpc("settle_chat", {
-      _session_id: data.sessionId,
-      _rate_cents: CHAT_RATE_CENTS_PER_MINUTE,
-    });
-    if (error) throw new Error(error.message);
-
-    await logChatEvent(data.sessionId, "ended", "client", "Gesprek beëindigd door klant");
-    await supabaseAdmin.rpc("sync_listener_status", { _listener_id: session.listener_id });
-
-    const row = Array.isArray(rows) ? rows[0] : rows;
-    return {
-      billed: row?.billed ?? 0,
-      cost: row?.cost ?? 0,
-      freeLeft: row?.free_left ?? 0,
-      paidLeft: row?.paid_left ?? 0,
+      allowance: total,
+      remaining,
+      shouldEnd: remaining <= 0,
+      answered: !!session.answered_at,
+      status: session.status ?? "ringing",
     };
   });
 
@@ -200,7 +177,16 @@ export const sendChatMessage = createServerFn({ method: "POST" })
         : session.agent_user_id === context.userId
           ? "agent"
           : null;
-    if (!role) throw new Error("Forbidden");
+    if (!role) return { ok: false as const, reason: "forbidden" };
+
+    if (role === "client") {
+      const { data: spent } = await supabaseAdmin.rpc("spend_chat_credit", {
+        _user_id: context.userId,
+        _session_id: data.sessionId,
+      });
+      const row = Array.isArray(spent) ? spent[0] : spent;
+      if (!row?.ok) return { ok: false as const, reason: "no_credit" };
+    }
 
     const { error } = await supabaseAdmin.from("chat_messages").insert({
       session_id: data.sessionId,
@@ -209,6 +195,10 @@ export const sendChatMessage = createServerFn({ method: "POST" })
       body: data.body,
     });
     if (error) throw new Error(error.message);
+
+    // Count messages for the session, separate from billing transactions.
+    await supabaseAdmin.rpc("increment_chat_messages", { _session_id: data.sessionId });
+
     return { ok: true as const, reason: null };
   });
 
@@ -233,11 +223,7 @@ export const listMyChats = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // A customer who simply closes the tab must never keep an agent occupied.
-    await supabaseAdmin.rpc("settle_stale_agent_chats", {
-      _agent_user_id: context.userId,
-      _rate_cents: CHAT_RATE_CENTS_PER_MINUTE,
-    });
+    await supabaseAdmin.rpc("expire_stale_chats");
 
     const { data: sessions } = await supabaseAdmin
       .from("chat_sessions")
@@ -249,13 +235,16 @@ export const listMyChats = createServerFn({ method: "GET" })
       .limit(50);
 
     const allRows = sessions ?? [];
-    const endedIds = allRows.filter((r) => r.ended_at && r.answered_at).map((r) => r.id);
+    const endedIds = allRows
+      .filter((r) => r.ended_at && r.answered_at)
+      .map((r) => r.id)
+      .filter((id): id is string => Boolean(id));
     const { data: completedNotes } = endedIds.length
       ? await supabaseAdmin
           .from("call_notes")
           .select("chat_session_id, created_at")
           .eq("listener_user_id", context.userId)
-          .in("chat_session_id", endedIds)
+          .in("chat_session_id", endedIds as string[])
       : { data: [] as { chat_session_id: string | null; created_at: string }[] };
     const endedAt = new Map(
       allRows.filter((r) => r.ended_at).map((r) => [r.id, Date.parse(r.ended_at ?? "")]),
@@ -269,8 +258,6 @@ export const listMyChats = createServerFn({ method: "GET" })
         .map((n) => n.chat_session_id)
         .filter(Boolean),
     );
-    // Open conversations stay visible. An answered, ended conversation also
-    // stays visible until this agent has saved its logbook entry.
     const rows = allRows
       .filter((r) => !r.ended_at || (Boolean(r.answered_at) && !logged.has(r.id)))
       .sort((a, b) => Date.parse(a.started_at) - Date.parse(b.started_at))
@@ -285,7 +272,10 @@ export const listMyChats = createServerFn({ method: "GET" })
       supabaseAdmin
         .from("listeners")
         .select("id, display_name")
-        .in("id", Array.from(new Set(rows.map((r) => r.listener_id)))),
+        .in(
+          "id",
+          Array.from(new Set(rows.map((r) => r.listener_id).filter((id): id is string => Boolean(id)))),
+        ),
     ]);
 
     const alias = new Map((profiles ?? []).map((p) => [p.id, p.alias]));
@@ -300,12 +290,23 @@ export const listMyChats = createServerFn({ method: "GET" })
       answeredAt: r.answered_at,
       endedAt: r.ended_at,
       requiresLogbook: Boolean(r.ended_at && r.answered_at),
-      /** No heartbeat for a while means the customer left the conversation. */
       clientAway: Date.parse(r.last_heartbeat_at) < Date.now() - 30000,
-      profileName: name.get(r.listener_id) ?? "Anontalk",
-      clientAlias: alias.get(r.client_id) ?? "Anoniem",
-      clientSince: since.get(r.client_id) ?? null,
+      profileName: name.get(r.listener_id ?? "") ?? "Anontalk",
+      clientAlias: alias.get(r.client_id ?? "") ?? "Anoniem",
+      clientSince: since.get(r.client_id ?? "") ?? null,
     }));
+  });
+
+export const claimNextChat = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.rpc("expire_stale_chats");
+    const { data: sessionId } = await supabaseAdmin.rpc("claim_next_chat", {
+      _agent_user_id: context.userId,
+    });
+    if (!sessionId) return { sessionId: null };
+    return { sessionId };
   });
 
 export const acceptChat = createServerFn({ method: "POST" })
@@ -325,7 +326,7 @@ export const acceptChat = createServerFn({ method: "POST" })
         .eq("id", data.sessionId);
       await logChatEvent(data.sessionId, "accepted", "agent", "Aanvraag geaccepteerd door agent");
       await logChatEvent(data.sessionId, "connected", "system", "Verbonden");
-      await supabaseAdmin.rpc("sync_listener_status", { _listener_id: session.listener_id });
+      await supabaseAdmin.rpc("sync_listener_status", { _listener_id: session.listener_id ?? "" });
     }
     return { ok: true as const };
   });
@@ -345,12 +346,11 @@ export const declineChat = createServerFn({ method: "POST" })
       .is("answered_at", null);
 
     await logChatEvent(data.sessionId, "declined", "agent", "Aanvraag geweigerd");
-    await supabaseAdmin.rpc("sync_listener_status", { _listener_id: session.listener_id });
+    await supabaseAdmin.rpc("sync_listener_status", { _listener_id: session.listener_id ?? "" });
 
     return { ok: true as const };
   });
 
-/** Agent hangs up the chat: settles the customer's time and frees the slot. */
 export const closeChatAsAgent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(sessionInput)
@@ -359,19 +359,17 @@ export const closeChatAsAgent = createServerFn({ method: "POST" })
     const session = await loadAgentChat(data.sessionId, context.userId);
     if (!session) throw new Error("Forbidden");
 
-    const { error } = await supabaseAdmin.rpc("settle_chat", {
-      _session_id: data.sessionId,
-      _rate_cents: CHAT_RATE_CENTS_PER_MINUTE,
-    });
-    if (error) throw new Error(error.message);
+    await supabaseAdmin
+      .from("chat_sessions")
+      .update({ status: "ended", ended_at: new Date().toISOString() })
+      .eq("id", data.sessionId);
     await logChatEvent(data.sessionId, "ended", "agent", "Gesprek beëindigd");
-    await supabaseAdmin.rpc("sync_listener_status", { _listener_id: session.listener_id });
+    await supabaseAdmin.rpc("sync_listener_status", { _listener_id: session.listener_id ?? "" });
     return { ok: true as const };
   });
 
 /* ------------------------------------------------------- audit & analytics */
 
-/** The agent's own logbook for this customer: notes from chats and calls. */
 export const listChatNotes = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(sessionInput)
@@ -398,7 +396,6 @@ export const listChatNotes = createServerFn({ method: "POST" })
     }));
   });
 
-/** Adds one entry to the logbook for the current chat. */
 export const saveChatNote = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
@@ -430,7 +427,6 @@ export const saveChatNote = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
 
-    // Read the row back: only a confirmed, committed write may retire a chat.
     const { data: verified, error: verifyError } = await supabaseAdmin
       .from("call_notes")
       .select("id, created_at")
@@ -443,7 +439,6 @@ export const saveChatNote = createServerFn({ method: "POST" })
     return { ok: true as const, noteId: verified.id, createdAt: verified.created_at };
   });
 
-/** Chronological trail of everything that happened in one conversation. */
 export const listChatEvents = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(sessionInput)
@@ -458,7 +453,6 @@ export const listChatEvents = createServerFn({ method: "POST" })
     return rows ?? [];
   });
 
-/** Lets either side record a connection change (drop, retry, reconnect). */
 export const logChatConnection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
@@ -489,10 +483,6 @@ export const logChatConnection = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
-/**
- * Deep stats about the customer behind one chat: everything they ever did with
- * us, plus how quickly this agent tends to answer them.
- */
 export const getChatClientStats = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(sessionInput)
@@ -501,68 +491,43 @@ export const getChatClientStats = createServerFn({ method: "POST" })
     const session = await loadAgentChat(data.sessionId, context.userId);
     if (!session) throw new Error("Forbidden");
 
-    const clientId = session.client_id;
+    const { data: allSessions } = await supabaseAdmin
+      .from("chat_sessions")
+      .select("id, started_at, ended_at")
+      .eq("client_id", session.client_id)
+      .eq("agent_user_id", context.userId)
+      .order("started_at", { ascending: false })
+      .limit(100);
 
-    const [{ data: chats }, { data: calls }, { data: profile }] = await Promise.all([
-      supabaseAdmin
-        .from("chat_sessions")
-        .select("id, duration_seconds, started_at")
-        .eq("client_id", clientId),
-      supabaseAdmin.from("calls").select("id, duration_seconds").eq("client_id", clientId),
-      supabaseAdmin.from("profiles").select("alias, created_at").eq("id", clientId).maybeSingle(),
-    ]);
+    const { data: allNotes } = await supabaseAdmin
+      .from("call_notes")
+      .select("body, created_at")
+      .eq("client_id", session.client_id)
+      .eq("listener_user_id", context.userId)
+      .order("created_at", { ascending: false })
+      .limit(100);
 
-    const sessionIds = (chats ?? []).map((c) => c.id);
-    const { data: messages } = sessionIds.length
-      ? await supabaseAdmin
-          .from("chat_messages")
-          .select("session_id, sender_role, created_at")
-          .in("session_id", sessionIds)
-          .order("created_at", { ascending: true })
-          .limit(5000)
-      : { data: [] as { session_id: string; sender_role: string; created_at: string }[] };
-
-    const rows = messages ?? [];
-    const fromClient = rows.filter((m) => m.sender_role === "client").length;
-    const fromAgent = rows.length - fromClient;
-
-    // Average time between a customer message and the first agent reply.
-    const bySession = new Map<string, typeof rows>();
-    for (const m of rows) {
-      const list = bySession.get(m.session_id) ?? [];
-      list.push(m);
-      bySession.set(m.session_id, list);
-    }
-    const agentGaps: number[] = [];
-    const clientGaps: number[] = [];
-    for (const list of bySession.values()) {
-      for (let i = 1; i < list.length; i++) {
-        const prev = list[i - 1]!;
-        const cur = list[i]!;
-        if (prev.sender_role === cur.sender_role) continue;
-        const gap =
-          (new Date(cur.created_at).getTime() - new Date(prev.created_at).getTime()) / 1000;
-        if (gap < 0 || gap > 3600) continue;
-        (cur.sender_role === "agent" ? agentGaps : clientGaps).push(gap);
-      }
-    }
-    const avg = (list: number[]) =>
-      list.length ? Math.round(list.reduce((a, b) => a + b, 0) / list.length) : null;
-
-    const chatSeconds = (chats ?? []).reduce((sum, c) => sum + (c.duration_seconds ?? 0), 0);
-    const callSeconds = (calls ?? []).reduce((sum, c) => sum + (c.duration_seconds ?? 0), 0);
+    const sessions = allSessions ?? [];
+    const totalSeconds = sessions.reduce((sum, s) => {
+      if (!s.ended_at) return sum;
+      return sum + Math.max(0, Date.parse(s.ended_at) - Date.parse(s.started_at)) / 1000;
+    }, 0);
 
     return {
-      alias: profile?.alias ?? "Anoniem",
-      since: profile?.created_at ?? null,
-      chatCount: chats?.length ?? 0,
-      callCount: calls?.length ?? 0,
-      chatSeconds,
-      callSeconds,
-      totalSeconds: chatSeconds + callSeconds,
-      messagesFromClient: fromClient,
-      messagesFromAgent: fromAgent,
-      avgAgentReplySeconds: avg(agentGaps),
-      avgClientReplySeconds: avg(clientGaps),
+      totalConversations: sessions.length,
+      totalMinutes: Math.round(totalSeconds / 60),
+      notes: (allNotes ?? []).map((n) => ({ body: n.body, createdAt: n.created_at })),
     };
+  });
+
+export const lowBalanceCheck = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: profile } = await context.supabase
+      .from("profiles")
+      .select("chat_credits, free_credits")
+      .eq("id", context.userId)
+      .maybeSingle();
+    const total = (profile?.chat_credits ?? 0) + (profile?.free_credits ?? 0);
+    return { low: total <= LOW_BALANCE_WARNING_CREDITS, total };
   });

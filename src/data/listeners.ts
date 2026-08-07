@@ -145,7 +145,7 @@ export const listeners: Listener[] = [
 export type CreditPackage = {
   id: string;
   key: CreditPackageKey;
-  minutes: number;
+  credits: number;
   priceEur: number;
   popular: boolean;
 };
@@ -153,7 +153,7 @@ export type CreditPackage = {
 export const creditPackages: CreditPackage[] = CREDIT_PACKAGE_LIST.map((p) => ({
   id: p.key,
   key: p.key,
-  minutes: p.minutes,
+  credits: p.credits,
   priceEur: p.cents / 100,
   popular: p.popular === true,
 }));
