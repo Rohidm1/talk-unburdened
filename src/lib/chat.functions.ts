@@ -496,6 +496,12 @@ export const getChatClientStats = createServerFn({ method: "POST" })
       .order("started_at", { ascending: false })
       .limit(100);
 
+    const { data: allMessages } = await supabaseAdmin
+      .from("chat_messages")
+      .select("sender_role, created_at")
+      .eq("session_id", data.sessionId)
+      .order("created_at", { ascending: true });
+
     const { data: allNotes } = await supabaseAdmin
       .from("call_notes")
       .select("body, created_at")
@@ -504,15 +510,50 @@ export const getChatClientStats = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false })
       .limit(100);
 
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("created_at")
+      .eq("id", session.client_id)
+      .maybeSingle();
+
     const sessions = allSessions ?? [];
-    const totalSeconds = sessions.reduce((sum, s) => {
-      if (!s.ended_at) return sum;
-      return sum + Math.max(0, Date.parse(s.ended_at) - Date.parse(s.started_at)) / 1000;
-    }, 0);
+    let totalSeconds = 0;
+    for (const s of sessions) {
+      if (!s.ended_at) continue;
+      const diff = Date.parse(s.ended_at) - Date.parse(s.started_at);
+      if (diff > 0) totalSeconds += diff / 1000;
+    }
+
+    const messages = allMessages ?? [];
+    const messagesFromClient = messages.filter((m) => m.sender_role === "client").length;
+    const messagesFromAgent = messages.filter((m) => m.sender_role === "agent").length;
+
+    function avgReplySeconds(role: "agent" | "client") {
+      const deltas: number[] = [];
+      let lastOpposite: Date | null = null;
+      for (const m of messages) {
+        if (m.sender_role === role) {
+          if (lastOpposite) {
+            const delta = Date.parse(m.created_at) - lastOpposite.getTime();
+            if (delta > 0) deltas.push(delta / 1000);
+          }
+        } else {
+          lastOpposite = new Date(m.created_at);
+        }
+      }
+      if (deltas.length === 0) return null;
+      return Math.round(deltas.reduce((a, b) => a + b, 0) / deltas.length);
+    }
 
     return {
-      totalConversations: sessions.length,
-      totalMinutes: Math.round(totalSeconds / 60),
+      totalSeconds,
+      chatCount: sessions.length,
+      callCount: 0,
+      since: profile?.created_at ?? null,
+      messagesFromClient,
+      messagesFromAgent,
+      avgAgentReplySeconds: avgReplySeconds("agent"),
+      avgClientReplySeconds: avgReplySeconds("client"),
       notes: (allNotes ?? []).map((n) => ({ body: n.body, createdAt: n.created_at })),
     };
   });
