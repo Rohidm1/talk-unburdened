@@ -61,10 +61,12 @@ export const startChat = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     // Remember the agent so the next conversation lands with the same person.
-    await supabaseAdmin.from("client_agent_routes").upsert(
-      { client_id: userId, listener_id: data.listenerId, agent_user_id: agentId },
-      { onConflict: "client_id,listener_id" },
-    );
+    await supabaseAdmin
+      .from("client_agent_routes")
+      .upsert(
+        { client_id: userId, listener_id: data.listenerId, agent_user_id: agentId },
+        { onConflict: "client_id,listener_id" },
+      );
 
     return {
       ok: true as const,

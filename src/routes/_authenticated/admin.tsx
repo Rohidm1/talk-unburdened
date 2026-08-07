@@ -447,7 +447,8 @@ function NewAgentForm({
   const toggle = (id: string) =>
     setPicked((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
 
-  const valid = username.trim().length >= 3 && password.length >= 8 && displayName.trim().length > 1;
+  const valid =
+    username.trim().length >= 3 && password.length >= 8 && displayName.trim().length > 1;
 
   return (
     <section className="rounded-3xl border border-border bg-card p-6 lg:col-span-2">
