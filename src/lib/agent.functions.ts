@@ -1,8 +1,31 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { conferenceNameFor, signConferenceAuth } from "@/lib/voice.server";
 
 const callIdInput = (input: unknown) => z.object({ callId: z.string().uuid() }).parse(input);
+
+/**
+ * Ringing calls waiting for this agent. The agent's browser no longer receives a
+ * Twilio "incoming" event because calls are bridged through a conference, so the
+ * database is the source of truth for who is being rung.
+ */
+export const pollIncomingCall = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("calls")
+      .select("id, started_at")
+      .eq("agent_user_id", context.userId)
+      .eq("status", "ringing")
+      .is("ended_at", null)
+      .gte("started_at", new Date(Date.now() - 60_000).toISOString())
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    return { callId: data?.id ?? null };
+  });
 
 /**
  * Everything the agent needs the moment a call rings: which fictional profile
@@ -60,7 +83,8 @@ export const answerCall = createServerFn({ method: "POST" })
     const { loadAgentCall, supabaseAdmin } = await import("@/lib/agent.server");
     const found = await loadAgentCall(data.callId, context.userId);
     if (!found) throw new Error("Forbidden");
-    if (found.call.ended_at) return { ok: false as const };
+    if (found.call.ended_at)
+      return { ok: false as const, callId: data.callId, conferenceAuth: null };
 
     if (!found.call.answered_at) {
       await supabaseAdmin
@@ -69,6 +93,7 @@ export const answerCall = createServerFn({ method: "POST" })
           answered_at: new Date().toISOString(),
           status: "active",
           last_heartbeat_at: new Date().toISOString(),
+          agent_user_id: context.userId,
         })
         .eq("id", data.callId);
     }
@@ -78,7 +103,16 @@ export const answerCall = createServerFn({ method: "POST" })
       _status: "busy",
     });
 
-    return { ok: true as const };
+    // Credentials to join the conference the caller is already waiting in.
+    const expiresAt = Math.floor(Date.now() / 1000) + 300;
+    const conferenceAuth = await signConferenceAuth(
+      context.userId,
+      conferenceNameFor(data.callId),
+      "agent",
+      expiresAt,
+    );
+
+    return { ok: true as const, callId: data.callId, conferenceAuth };
   });
 
 export const declineCall = createServerFn({ method: "POST" })

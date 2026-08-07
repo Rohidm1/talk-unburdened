@@ -78,6 +78,46 @@ export async function verifyDialAuth(from: string, to: string, auth: string) {
   return diff === 0;
 }
 
+/** Conference name a call is bridged through, so an admin can silently listen in. */
+export function conferenceNameFor(callId: string) {
+  return `anontalk-${callId}`;
+}
+
+export type ConferenceRole = "customer" | "agent" | "monitor";
+
+/** Short-lived proof that this browser may join a conference in a given role. */
+export async function signConferenceAuth(
+  identity: string,
+  conference: string,
+  role: ConferenceRole,
+  expiresAt: number,
+) {
+  const cfg = twilioConfig();
+  if (!cfg) return null;
+  const sig = await hmac(cfg.apiKeySecret, `${identity}|${conference}|${role}|${expiresAt}`);
+  return `${expiresAt}.${b64url(sig)}`;
+}
+
+export async function verifyConferenceAuth(
+  identity: string,
+  conference: string,
+  role: ConferenceRole,
+  auth: string,
+) {
+  const [expRaw] = auth.split(".");
+  const expiresAt = Number(expRaw);
+  if (!expRaw || !Number.isFinite(expiresAt)) return false;
+  if (expiresAt < Math.floor(Date.now() / 1000)) return false;
+  const expected = await signConferenceAuth(identity, conference, role, expiresAt);
+  if (!expected) return false;
+  const a = new TextEncoder().encode(expected);
+  const b = new TextEncoder().encode(auth);
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a[i]! ^ b[i]!;
+  return diff === 0;
+}
+
 export function escapeXml(value: string) {
   return value.replace(/[<>&'"]/g, (c) =>
     c === "<" ? "&lt;" : c === ">" ? "&gt;" : c === "&" ? "&amp;" : c === "'" ? "&apos;" : "&quot;",

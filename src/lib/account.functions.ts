@@ -46,7 +46,14 @@ export const updateAlias = createServerFn({ method: "POST" })
 
 export const startCall = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ listenerId: z.string().uuid() }).parse(input))
+  .inputValidator((input) =>
+    z
+      .object({
+        listenerId: z.string().uuid(),
+        agentUserId: z.string().uuid().nullable().optional(),
+      })
+      .parse(input),
+  )
   .handler(async ({ data, context }) => {
     const { userId } = context;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -78,13 +85,30 @@ export const startCall = createServerFn({ method: "POST" })
 
     if (allowance <= 0) return deny(mode === "free" ? "free_used" : "no_credit");
 
+    // Only an agent that actually staffs this profile may be pinned to the call.
+    let agentUserId: string | null = null;
+    if (data.agentUserId) {
+      const { data: link } = await supabaseAdmin
+        .from("listener_agents")
+        .select("agent_user_id")
+        .eq("listener_id", data.listenerId)
+        .eq("agent_user_id", data.agentUserId)
+        .maybeSingle();
+      if (link) agentUserId = data.agentUserId;
+    }
+
     const { data: call, error } = await supabaseAdmin
       .from("calls")
-      .insert({ client_id: userId, listener_id: data.listenerId, mode })
+      .insert({ client_id: userId, listener_id: data.listenerId, mode, agent_user_id: agentUserId })
       .select("id")
       .single();
 
     if (error) throw new Error(error.message);
+
+    await supabaseAdmin
+      .from("calls")
+      .update({ conference_name: `anontalk-${call.id}` })
+      .eq("id", call.id);
 
     return {
       ok: true as const,

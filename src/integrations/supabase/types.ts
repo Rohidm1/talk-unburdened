@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       agent_presence: {
         Row: {
+          active_chat_count: number
           created_at: string
           last_seen_at: string
           status: Database["public"]["Enums"]["listener_status"]
@@ -23,6 +24,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          active_chat_count?: number
           created_at?: string
           last_seen_at?: string
           status?: Database["public"]["Enums"]["listener_status"]
@@ -30,6 +32,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          active_chat_count?: number
           created_at?: string
           last_seen_at?: string
           status?: Database["public"]["Enums"]["listener_status"]
@@ -37,6 +40,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      call_monitor_sessions: {
+        Row: {
+          admin_user_id: string
+          call_id: string
+          created_at: string
+          ended_at: string | null
+          id: string
+          started_at: string
+        }
+        Insert: {
+          admin_user_id: string
+          call_id: string
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          started_at?: string
+        }
+        Update: {
+          admin_user_id?: string
+          call_id?: string
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          started_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_monitor_sessions_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       call_notes: {
         Row: {
@@ -78,9 +116,12 @@ export type Database = {
       }
       calls: {
         Row: {
+          agent_call_sid: string | null
+          agent_user_id: string | null
           answered_at: string | null
           billed_seconds: number
           client_id: string
+          conference_name: string | null
           cost_cents: number
           duration_seconds: number
           ended_at: string | null
@@ -94,9 +135,12 @@ export type Database = {
           status: string
         }
         Insert: {
+          agent_call_sid?: string | null
+          agent_user_id?: string | null
           answered_at?: string | null
           billed_seconds?: number
           client_id: string
+          conference_name?: string | null
           cost_cents?: number
           duration_seconds?: number
           ended_at?: string | null
@@ -110,9 +154,12 @@ export type Database = {
           status?: string
         }
         Update: {
+          agent_call_sid?: string | null
+          agent_user_id?: string | null
           answered_at?: string | null
           billed_seconds?: number
           client_id?: string
+          conference_name?: string | null
           cost_cents?: number
           duration_seconds?: number
           ended_at?: string | null
@@ -128,6 +175,106 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "calls_listener_id_fkey"
+            columns: ["listener_id"]
+            isOneToOne: false
+            referencedRelation: "listeners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          sender_role: string
+          sender_user_id: string
+          session_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          sender_role: string
+          sender_user_id: string
+          session_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          sender_role?: string
+          sender_user_id?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_sessions: {
+        Row: {
+          agent_user_id: string | null
+          answered_at: string | null
+          billed_seconds: number
+          client_id: string
+          cost_cents: number
+          created_at: string
+          duration_seconds: number
+          ended_at: string | null
+          free_seconds_used: number
+          id: string
+          last_heartbeat_at: string
+          listener_id: string
+          mode: string
+          started_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agent_user_id?: string | null
+          answered_at?: string | null
+          billed_seconds?: number
+          client_id: string
+          cost_cents?: number
+          created_at?: string
+          duration_seconds?: number
+          ended_at?: string | null
+          free_seconds_used?: number
+          id?: string
+          last_heartbeat_at?: string
+          listener_id: string
+          mode?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agent_user_id?: string | null
+          answered_at?: string | null
+          billed_seconds?: number
+          client_id?: string
+          cost_cents?: number
+          created_at?: string
+          duration_seconds?: number
+          ended_at?: string | null
+          free_seconds_used?: number
+          id?: string
+          last_heartbeat_at?: string
+          listener_id?: string
+          mode?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_sessions_listener_id_fkey"
             columns: ["listener_id"]
             isOneToOne: false
             referencedRelation: "listeners"
@@ -342,6 +489,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_chat_agent: {
+        Args: { _client_id: string; _listener_id: string }
+        Returns: string
+      }
       grant_credits: {
         Args: {
           _cents: number
@@ -385,7 +536,20 @@ export type Database = {
           paid_left: number
         }[]
       }
+      settle_chat: {
+        Args: { _end_at?: string; _rate_cents: number; _session_id: string }
+        Returns: {
+          billed: number
+          cost: number
+          free_left: number
+          paid_left: number
+        }[]
+      }
       settle_stale_calls: {
+        Args: { _rate_cents: number; _user_id: string }
+        Returns: undefined
+      }
+      settle_stale_chats: {
         Args: { _rate_cents: number; _user_id: string }
         Returns: undefined
       }

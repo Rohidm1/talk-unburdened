@@ -4,6 +4,12 @@ export type CreditPackageKey = "starter" | "deep" | "value";
 export const RATE_CENTS_PER_MINUTE = 130;
 export const RATE_PER_MINUTE = RATE_CENTS_PER_MINUTE / 100;
 
+/** Live chat is metered from the same credit pool at a lower rate. */
+export const CHAT_RATE_CENTS_PER_MINUTE = 65;
+export const CHAT_RATE_PER_MINUTE = CHAT_RATE_CENTS_PER_MINUTE / 100;
+/** How many chats one agent may run at the same time. */
+export const MAX_CHATS_PER_AGENT = 2;
+
 /** Free trial time granted once at signup (3 minutes). */
 export const FREE_TRIAL_SECONDS = 180;
 /** Hard cap for the free check-in call (5 minutes). */

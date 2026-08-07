@@ -9,12 +9,14 @@ import { Header } from "@/components/site/Header";
 import { Hero } from "@/components/site/Hero";
 import { ListenerCard } from "@/components/site/ListenerCard";
 import { ActiveCallDialog, UnavailableDialog } from "@/components/site/CallDialogs";
+import { ChatDialog } from "@/components/site/ChatDialog";
 import { TopUpDialog } from "@/components/site/TopUpDialog";
 import { ContactSection, Faq, Footer, HowItWorks, Pricing } from "@/components/site/Sections";
 import { listeners as fallbackListeners, type Listener } from "@/data/listeners";
 import { listPublicListeners } from "@/lib/listeners.functions";
 import { endCall, getMyAccount, heartbeatCall, startCall } from "@/lib/account.functions";
 import { prepareDial } from "@/lib/voice.functions";
+import { endChat, startChat } from "@/lib/chat.functions";
 import { useTwilioDevice } from "@/hooks/useTwilioDevice";
 import type { Call } from "@twilio/voice-sdk";
 import { avatarFor } from "@/lib/avatars";
@@ -89,6 +91,8 @@ function Index() {
   const finish = useServerFn(endCall);
   const beat = useServerFn(heartbeatCall);
   const prepare = useServerFn(prepareDial);
+  const beginChat = useServerFn(startChat);
+  const finishChat = useServerFn(endChat);
   const voice = useTwilioDevice(!!session);
 
   const [activeCall, setActiveCall] = useState<Listener | null>(null);
@@ -99,6 +103,10 @@ function Index() {
   const [voiceCall, setVoiceCall] = useState<Call | null>(null);
   const [waitingForListener, setWaitingForListener] = useState(false);
   const [topUp, setTopUp] = useState<"free_used" | "no_credit" | null>(null);
+  const [chatListener, setChatListener] = useState<Listener | null>(null);
+  const [chatSession, setChatSession] = useState<string | null>(null);
+  const [chatAllowance, setChatAllowance] = useState(0);
+  const [chatMode, setChatMode] = useState<"paid" | "free">("paid");
   const notifiedRef = useRef(false);
 
   const listenersQuery = useQuery({
@@ -167,7 +175,7 @@ function Index() {
       return;
     }
 
-    const result = await begin({ data: { listenerId: l.id } });
+    const result = await begin({ data: { listenerId: l.id, agentUserId: dial.toIdentity } });
     if (!result.ok) {
       if (result.reason === "blocked") {
         toast.error("Your account is on hold because of a refund or chargeback. Contact support.");
@@ -198,6 +206,50 @@ function Index() {
       console.error("[voice] could not start audio", err);
       toast.error("Could not start audio. Check your microphone permission.");
     }
+  };
+
+  const handleChat = async (l: Listener) => {
+    if (!session) {
+      void navigate({ to: "/auth" });
+      return;
+    }
+    const result = await beginChat({ data: { listenerId: l.id } });
+    if (!result.ok || !result.sessionId) {
+      if (result.reason === "blocked") {
+        toast.error("Your account is on hold because of a refund or chargeback. Contact support.");
+        return;
+      }
+      if (result.reason === "busy") {
+        toast.error(`${l.displayName} is momenteel in gesprek`);
+        setUnavailable(l);
+        return;
+      }
+      setTopUp(result.reason === "free_used" ? "free_used" : "no_credit");
+      return;
+    }
+    setChatAllowance(result.allowanceSeconds);
+    setChatMode(result.mode === "free" ? "free" : "paid");
+    setChatListener(l);
+    setChatSession(result.sessionId);
+  };
+
+  const handleChatEnd = async (reason: "user" | "out_of_credit" | "closed") => {
+    const sessionId = chatSession;
+    setChatSession(null);
+    setChatListener(null);
+    if (!sessionId) return;
+    try {
+      const result = await finishChat({ data: { sessionId } });
+      void queryClient.invalidateQueries({ queryKey: ["account"] });
+      if (result.billed > 0) {
+        toast.success(
+          `Chat beëindigd · ${Math.floor(result.billed / 60)}m ${result.billed % 60}s · € ${(result.cost / 100).toFixed(2)}`,
+        );
+      }
+    } catch (err) {
+      console.error("[chat] could not close session", err);
+    }
+    if (reason === "out_of_credit") setTopUp(chatMode === "free" ? "free_used" : "no_credit");
   };
 
   const handleTick = async () => {
@@ -277,7 +329,12 @@ function Index() {
           <p className="mt-3 max-w-xl text-muted-foreground">{t("listeners.subtitle")}</p>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {list.map((l) => (
-              <ListenerCard key={l.id} listener={l} onCall={(x) => void handleCall(x)} />
+              <ListenerCard
+                key={l.id}
+                listener={l}
+                onCall={(x) => void handleCall(x)}
+                onChat={(x) => void handleChat(x)}
+              />
             ))}
           </div>
         </section>
@@ -311,6 +368,13 @@ function Index() {
         onPick={(l) => void handleCall(l)}
       />
       <TopUpDialog open={!!topUp} reason={topUp ?? "no_credit"} onClose={() => setTopUp(null)} />
+      <ChatDialog
+        listener={chatListener}
+        sessionId={chatSession}
+        mode={chatMode}
+        allowanceSeconds={chatAllowance}
+        onEnd={(reason) => void handleChatEnd(reason)}
+      />
     </div>
   );
 }
