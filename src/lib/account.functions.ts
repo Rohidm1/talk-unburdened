@@ -40,7 +40,7 @@ export const getMyChatSessions = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data } = await context.supabase
       .from("chat_sessions")
-      .select("id, started_at, ended_at, status, listener_id, messages_count")
+      .select("id, started_at, ended_at, status, listener_id")
       .eq("client_id", context.userId)
       .order("started_at", { ascending: false })
       .limit(50);
