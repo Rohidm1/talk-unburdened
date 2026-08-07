@@ -54,7 +54,7 @@ export const startCall = createServerFn({ method: "POST" })
       .eq("id", userId)
       .maybeSingle();
 
-    const deny = (reason: "blocked" | "no_credit") =>
+    const deny = (reason: "blocked" | "no_credit" | "free_used") =>
       ({ ok: false as const, reason, callId: null, allowanceSeconds: 0, mode: "paid" }) as const;
 
     if (!profile) return deny("no_credit");
@@ -67,7 +67,7 @@ export const startCall = createServerFn({ method: "POST" })
     const allowance =
       mode === "free" ? Math.min(free, FREE_CALL_MAX_SECONDS) : free + profile.credit_seconds;
 
-    if (allowance <= 0) return deny("no_credit");
+    if (allowance <= 0) return deny(mode === "free" ? "free_used" : "no_credit");
 
     const { data: call, error } = await supabaseAdmin
       .from("calls")
