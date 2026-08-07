@@ -187,7 +187,7 @@ function HomePage() {
     <div className="min-h-screen bg-background font-body text-foreground">
       <Header />
       <main>
-        <Hero />
+        <Hero onStart={() => document.getElementById("listeners")?.scrollIntoView({ behavior: "smooth" })} />
 
         <section id="listeners" className="mx-auto max-w-6xl px-5 py-16">
           <div className="mb-8 flex items-end justify-between gap-4">
