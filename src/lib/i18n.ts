@@ -3,7 +3,7 @@ import { initReactI18next } from "react-i18next";
 
 const en = {
   nav: {
-    profiles: "Listeners",
+    profiles: "Chat partners",
     how: "How it works",
     pricing: "Pricing",
     faq: "FAQ",
@@ -24,9 +24,9 @@ const en = {
     badgeCall: "Secure chat in your browser",
   },
   listeners: {
-    title: "Pick a listener",
+    title: "Pick a chat partner",
     subtitle:
-      "Every listener is a trained conversation partner — a supportive peer, never a professional in a white coat.",
+      "Every chat partner is a real person ready to type with you — a supportive peer, never a professional in a white coat.",
     chat: "Start chat",
     online: "Available",
     busy: "In a chat",
@@ -39,7 +39,7 @@ const en = {
     subtitle: "Three steps, under a minute.",
     s1t: "Pick an alias",
     s1d: "Sign up with just an email and a nickname. Nothing else is ever asked of you.",
-    s2t: "Choose a listener",
+    s2t: "Choose a chat partner",
     s2d: "Browse profiles, see who's available and hit Start chat.",
     s3t: "Just type",
     s3d: "Your first 3 messages are free. After that you only pay for the messages you send.",
@@ -47,9 +47,9 @@ const en = {
   chatIntro: {
     title: "Live text chat, nothing else",
     body:
-      "Anontalk is a text-only platform. You write, your listener writes back, and nothing is spoken or recorded. One credit per message you send — replies from your listener are always free.",
+      "Anontalk is a text-only platform. You write, your chat partner writes back, and nothing is spoken or recorded. One credit per message you send — replies from your chat partner are always free.",
     point1: "1 credit per message you send — replies are free",
-    point2: "Your alias is the only thing your listener ever sees",
+    point2: "Your alias is the only thing your chat partner ever sees",
     point3: "Your 3 free messages start right after sign-up",
   },
   pricing: {
@@ -70,19 +70,19 @@ const en = {
   faq: {
     title: "Straight answers",
     q1: "Is it really anonymous?",
-    a1: "Yes. You choose an alias, and that's the only thing your listener ever sees. We never ask for your real name, address or phone number.",
-    q2: "Are your listeners professionals?",
-    a2: "No — and we're upfront about that. Our listeners are trained, warm people who give you their full attention. They offer a listening ear and everyday perspective, not professional advice.",
+    a1: "Yes. You choose an alias, and that's the only thing your chat partner ever sees. We never ask for your real name, address or phone number.",
+    q2: "Are your chat partners professionals?",
+    a2: "No — and we're upfront about that. Our chat partners are warm, attentive people who take the time to read and reply. They offer everyday perspective, not professional advice.",
     q3: "How do the 3 free messages work?",
     a3: "Every new account gets 3 free messages on the very first chat. No credit card needed. When they run out you can top up or simply close the chat.",
     q4: "How am I billed?",
-    a4: "Every message you send costs 1 credit. Replies from your listener are always free. Larger bundles bring the price per message down.",
+    a4: "Every message you send costs 1 credit. Replies from your chat partner are always free. Larger bundles bring the price per message down.",
     q5: "Who can see that I chatted?",
     a5: "Nobody. Your payment description is neutral, chats run in your browser, and we never share anything with third parties.",
     q6: "What can I write about?",
     a6: "Work pressure, your relationship, money worries, a rough week, or nothing in particular. There is no wrong subject here.",
     q7: "How does a chat start?",
-    a7: "Open a listener's profile and press Start chat. Your request goes to the next available listener, who accepts it; from that moment you type back and forth in real time. You can end the chat whenever you like.",
+    a7: "Open a profile and press Start chat. Your request goes to the next available chat partner, who accepts it; from that moment you type back and forth in real time. You can end the chat whenever you like.",
     q8: "Do my credits expire?",
     a8: "No. Once purchased, your credits stay on your account until you use them.",
     q9: "What if I run low on credits?",
@@ -100,29 +100,29 @@ const en = {
     sent: "Thanks — your message is on its way.",
   },
   chat: {
-    connecting: "Finding a listener…",
+    connecting: "Finding a chat partner…",
     inChat: "Chatting with",
     balance: "Balance",
     send: "Send",
     placeholder: "Type your message…",
     end: "End chat",
-    unavailableTitle: "No listener free right now",
+    unavailableTitle: "No chat partner free right now",
     unavailableBody: "Would you like us to notify you as soon as someone is available?",
     cancel: "Not now",
   },
   footer: {
-    brand: "Anontalk — a listening ear when you need it.",
+    brand: "Anontalk — anonymous chat whenever you need it.",
     note: "Anonymous live text chat. Not a care provider, no professional advice.",
-    tagline: "A listening ear when you need it.",
+    tagline: "Anonymous chat whenever you need it.",
     disclaimer:
-      "Anontalk offers informal text conversations with listeners. We are not a care provider and do not offer professional advice. In an emergency, contact your local emergency number.",
+      "Anontalk offers informal text conversations with other users. We are not a care provider and do not offer professional advice. In an emergency, contact your local emergency number.",
     rights: "All rights reserved.",
   },
 };
 
 const nl: typeof en = {
   nav: {
-    profiles: "Luisteraars",
+    profiles: "Chatpartners",
     how: "Hoe het werkt",
     pricing: "Tarieven",
     faq: "FAQ",
@@ -143,9 +143,9 @@ const nl: typeof en = {
     badgeCall: "Veilige chat in je browser",
   },
   listeners: {
-    title: "Kies een luisteraar",
+    title: "Kies een chatpartner",
     subtitle:
-      "Elke luisteraar is een getrainde gesprekspartner — een steunend mens, nooit een professional in een witte jas.",
+      "Elke chatpartner is een echt mens dat met je meetypt — een steunend mens, nooit een professional in een witte jas.",
     chat: "Start chat",
     online: "Beschikbaar",
     busy: "In gesprek",
@@ -158,7 +158,7 @@ const nl: typeof en = {
     subtitle: "Drie stappen, binnen een minuut geregeld.",
     s1t: "Kies een alias",
     s1d: "Meld je aan met alleen een e-mailadres en een bijnaam. Meer vragen we nooit.",
-    s2t: "Kies een luisteraar",
+    s2t: "Kies een chatpartner",
     s2d: "Bekijk de profielen, zie wie beschikbaar is en klik op Start chat.",
     s3t: "Gewoon typen",
     s3d: "Je eerste 3 berichten zijn gratis. Daarna betaal je alleen de berichten die je stuurt.",
@@ -166,9 +166,9 @@ const nl: typeof en = {
   chatIntro: {
     title: "Alleen live chat, niets anders",
     body:
-      "Anontalk is volledig tekstgebaseerd. Jij typt, je luisteraar typt terug — er wordt niets gesproken of opgenomen. Eén credit per bericht dat jij stuurt; antwoorden van je luisteraar zijn altijd gratis.",
+      "Anontalk is volledig tekstgebaseerd. Jij typt, je chatpartner typt terug — er wordt niets gesproken of opgenomen. Eén credit per bericht dat jij stuurt; antwoorden van je chatpartner zijn altijd gratis.",
     point1: "1 credit per verzonden bericht — antwoorden zijn gratis",
-    point2: "Je alias is het enige dat je luisteraar ziet",
+    point2: "Je alias is het enige dat je chatpartner ziet",
     point3: "Je 3 gratis berichten staan direct na aanmelden klaar",
   },
   pricing: {
@@ -189,19 +189,19 @@ const nl: typeof en = {
   faq: {
     title: "Eerlijke antwoorden",
     q1: "Is het echt anoniem?",
-    a1: "Ja. Je kiest een alias en dat is het enige dat je luisteraar ziet. We vragen nooit om je echte naam, adres of telefoonnummer.",
-    q2: "Zijn jullie luisteraars professionals?",
-    a2: "Nee — en daar zijn we eerlijk over. Onze luisteraars zijn getrainde, warme mensen die je hun volledige aandacht geven. Ze bieden een luisterend oor en een frisse blik, geen professioneel advies.",
+    a1: "Ja. Je kiest een alias en dat is het enige dat je chatpartner ziet. We vragen nooit om je echte naam, adres of telefoonnummer.",
+    q2: "Zijn jullie chatpartners professionals?",
+    a2: "Nee — en daar zijn we eerlijk over. Onze chatpartners zijn warme, aandachtige mensen die de tijd nemen om te lezen en te antwoorden. Ze bieden een frisse blik, geen professioneel advies.",
     q3: "Hoe werken de 3 gratis berichten?",
     a3: "Elk nieuw account krijgt 3 gratis berichten bij de allereerste chat. Geen creditcard nodig. Zijn ze op, dan kun je bijvullen of de chat gewoon sluiten.",
     q4: "Hoe wordt er afgerekend?",
-    a4: "Elk bericht dat jij stuurt kost 1 credit. Antwoorden van je luisteraar zijn altijd gratis. Grotere bundels verlagen de prijs per bericht.",
+    a4: "Elk bericht dat jij stuurt kost 1 credit. Antwoorden van je chatpartner zijn altijd gratis. Grotere bundels verlagen de prijs per bericht.",
     q5: "Wie kan zien dat ik gechat heb?",
     a5: "Niemand. De betaalomschrijving is neutraal, chats lopen via je browser en we delen nooit iets met derden.",
     q6: "Waar kan ik over schrijven?",
     a6: "Werkdruk, je relatie, geldzorgen, een rotweek of nergens over in het bijzonder. Er bestaat hier geen verkeerd onderwerp.",
     q7: "Hoe start een chat?",
-    a7: "Open het profiel van een luisteraar en klik op Start chat. Je aanvraag gaat naar de eerstvolgende beschikbare luisteraar, die hem aanneemt; vanaf dat moment typen jullie live heen en weer. Je kunt de chat op elk moment afsluiten.",
+    a7: "Open een profiel en klik op Start chat. Je aanvraag gaat naar de eerstvolgende beschikbare chatpartner, die hem aanneemt; vanaf dat moment typen jullie live heen en weer. Je kunt de chat op elk moment afsluiten.",
     q8: "Verlopen mijn credits?",
     a8: "Nee. Eenmaal gekocht blijven je credits op je account staan tot je ze gebruikt.",
     q9: "Wat als mijn credits bijna op zijn?",
@@ -219,13 +219,13 @@ const nl: typeof en = {
     sent: "Bedankt — je bericht is onderweg.",
   },
   chat: {
-    connecting: "We zoeken een luisteraar…",
+    connecting: "We zoeken een chatpartner…",
     inChat: "In chat met",
     balance: "Saldo",
     send: "Versturen",
     placeholder: "Typ je bericht…",
     end: "Chat afsluiten",
-    unavailableTitle: "Nu even geen luisteraar vrij",
+    unavailableTitle: "Nu even geen chatpartner vrij",
     unavailableBody: "Wil je een seintje zodra er iemand beschikbaar is?",
     cancel: "Nu even niet",
   },
@@ -234,7 +234,7 @@ const nl: typeof en = {
     note: "Anonieme live chat. Geen zorgaanbieder, geen professioneel advies.",
     tagline: "Een luisterend oor wanneer je het nodig hebt.",
     disclaimer:
-      "Anontalk biedt informele chatgesprekken met luisteraars. Wij zijn geen zorgaanbieder en geven geen professioneel advies. Bel in een noodgeval het alarmnummer.",
+      "Anontalk biedt informele chatgesprekken met andere gebruikers. Wij zijn geen zorgaanbieder en geven geen professioneel advies. Bel in een noodgeval het alarmnummer.",
     rights: "Alle rechten voorbehouden.",
   },
 };
