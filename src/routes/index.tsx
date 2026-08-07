@@ -208,6 +208,50 @@ function Index() {
     }
   };
 
+  const handleChat = async (l: Listener) => {
+    if (!session) {
+      void navigate({ to: "/auth" });
+      return;
+    }
+    const result = await beginChat({ data: { listenerId: l.id } });
+    if (!result.ok || !result.sessionId) {
+      if (result.reason === "blocked") {
+        toast.error("Your account is on hold because of a refund or chargeback. Contact support.");
+        return;
+      }
+      if (result.reason === "busy") {
+        toast.error(`${l.displayName} is momenteel in gesprek`);
+        setUnavailable(l);
+        return;
+      }
+      setTopUp(result.reason === "free_used" ? "free_used" : "no_credit");
+      return;
+    }
+    setChatAllowance(result.allowanceSeconds);
+    setChatMode(result.mode === "free" ? "free" : "paid");
+    setChatListener(l);
+    setChatSession(result.sessionId);
+  };
+
+  const handleChatEnd = async (reason: "user" | "out_of_credit" | "closed") => {
+    const sessionId = chatSession;
+    setChatSession(null);
+    setChatListener(null);
+    if (!sessionId) return;
+    try {
+      const result = await finishChat({ data: { sessionId } });
+      void queryClient.invalidateQueries({ queryKey: ["account"] });
+      if (result.billed > 0) {
+        toast.success(
+          `Chat beëindigd · ${Math.floor(result.billed / 60)}m ${result.billed % 60}s · € ${(result.cost / 100).toFixed(2)}`,
+        );
+      }
+    } catch (err) {
+      console.error("[chat] could not close session", err);
+    }
+    if (reason === "out_of_credit") setTopUp(chatMode === "free" ? "free_used" : "no_credit");
+  };
+
   const handleTick = async () => {
     const callId = activeCallId;
     if (!callId) return null;
@@ -285,7 +329,12 @@ function Index() {
           <p className="mt-3 max-w-xl text-muted-foreground">{t("listeners.subtitle")}</p>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {list.map((l) => (
-              <ListenerCard key={l.id} listener={l} onCall={(x) => void handleCall(x)} />
+              <ListenerCard
+                key={l.id}
+                listener={l}
+                onCall={(x) => void handleCall(x)}
+                onChat={(x) => void handleChat(x)}
+              />
             ))}
           </div>
         </section>
@@ -319,6 +368,13 @@ function Index() {
         onPick={(l) => void handleCall(l)}
       />
       <TopUpDialog open={!!topUp} reason={topUp ?? "no_credit"} onClose={() => setTopUp(null)} />
+      <ChatDialog
+        listener={chatListener}
+        sessionId={chatSession}
+        mode={chatMode}
+        allowanceSeconds={chatAllowance}
+        onEnd={(reason) => void handleChatEnd(reason)}
+      />
     </div>
   );
 }
