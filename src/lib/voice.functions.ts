@@ -11,6 +11,22 @@ export const getVoiceToken = createServerFn({ method: "GET" })
   });
 
 /**
+ * Authorises a short diagnostic call that only reaches Twilio's own TwiML
+ * (no agent, no customer, nothing billed). Used by the "Test voice call"
+ * button on the agent desk.
+ */
+export const prepareSelfTest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    if (!twilioConfig()) {
+      return { ready: false as const, reason: "voice-unconfigured" as const, testAuth: null };
+    }
+    const expiresAt = Math.floor(Date.now() / 1000) + 120;
+    const testAuth = await signDialAuth(context.userId, "selftest", expiresAt);
+    return { ready: true as const, reason: null, testAuth };
+  });
+
+/**
  * Picks the real agent that should take this call.
  *
  * Sticky routing: the agent a caller already spoke to through this profile is
