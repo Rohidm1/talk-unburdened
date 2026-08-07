@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { PhoneCall } from "lucide-react";
+import { MessageCircle, PhoneCall } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Listener } from "@/data/listeners";
 
@@ -18,9 +18,11 @@ const dotStyles: Record<Listener["status"], string> = {
 export function ListenerCard({
   listener,
   onCall,
+  onChat,
 }: {
   listener: Listener;
   onCall: (l: Listener) => void;
+  onChat: (l: Listener) => void;
 }) {
   const { t, i18n } = useTranslation();
   const lang = (i18n.language ?? "en").startsWith("nl") ? "nl" : "en";
@@ -71,10 +73,14 @@ export function ListenerCard({
           ))}
         </div>
 
-        <div className="mt-auto flex flex-col gap-2 pt-1">
-          <Button className="w-full" onClick={() => onCall(listener)}>
+        <div className="mt-auto flex gap-2 pt-1">
+          <Button className="flex-1" onClick={() => onCall(listener)}>
             <PhoneCall className="size-4" />
             {nl ? "Bel nu" : "Call now"}
+          </Button>
+          <Button variant="outline" className="flex-1" onClick={() => onChat(listener)}>
+            <MessageCircle className="size-4" />
+            {nl ? "Chat" : "Chat"}
           </Button>
         </div>
       </div>
