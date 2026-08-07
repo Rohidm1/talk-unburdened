@@ -11,7 +11,14 @@ import { ListenerCard } from "@/components/site/ListenerCard";
 import { ActiveCallDialog, UnavailableDialog } from "@/components/site/CallDialogs";
 import { ChatDialog } from "@/components/site/ChatDialog";
 import { TopUpDialog } from "@/components/site/TopUpDialog";
-import { ContactSection, Faq, Footer, HowItWorks, Pricing } from "@/components/site/Sections";
+import {
+  ChatIntro,
+  ContactSection,
+  Faq,
+  Footer,
+  HowItWorks,
+  Pricing,
+} from "@/components/site/Sections";
 import { listeners as fallbackListeners, type Listener } from "@/data/listeners";
 import { listPublicListeners } from "@/lib/listeners.functions";
 import { endCall, getMyAccount, heartbeatCall, startCall } from "@/lib/account.functions";
@@ -62,6 +69,22 @@ export const Route = createFileRoute("/")({
             [
               "Who can see that I called?",
               "Nobody. Your payment description is neutral, calls run in the browser, and we never share anything with third parties.",
+            ],
+            [
+              "How does chatting work?",
+              "Open a listener's profile and press Chat instead of Call. The listener accepts your request and from that moment you type back and forth in real time. You can end the chat whenever you like.",
+            ],
+            [
+              "Do I need separate credits for chat?",
+              "No. Calling and chatting share one credit balance. Every bundle works for both — credits are stored as time, not as call-only or chat-only minutes.",
+            ],
+            [
+              "How are chat minutes deducted?",
+              "Chat costs EUR 0.65 per minute, billed per second while the session is active, counting from the moment your listener accepts. Free minutes are used first, then paid credits.",
+            ],
+            [
+              "Can I switch between calling and chatting?",
+              "Yes. Chat first and call later the same day, or the other way round. Your balance keeps counting down at the rate of whatever you are using at that moment.",
             ],
             [
               "What can I talk about?",
@@ -340,7 +363,8 @@ function Index() {
         </section>
 
         <HowItWorks />
-        <Pricing />
+        <ChatIntro />
+      <Pricing />
         <Faq />
         <ContactSection />
       </main>

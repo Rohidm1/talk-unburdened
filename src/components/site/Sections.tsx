@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Check, MessageSquareHeart, UserRound, Volume2 } from "lucide-react";
+import { Check, MessageCircle, MessageSquareHeart, UserRound, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -47,6 +47,35 @@ export function HowItWorks() {
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{s.body}</p>
           </div>
         ))}
+      </div>
+    </section>
+  );
+}
+
+export function ChatIntro() {
+  const { t } = useTranslation();
+  const points = [t("chatIntro.point1"), t("chatIntro.point2"), t("chatIntro.point3")];
+
+  return (
+    <section className="mx-auto w-full max-w-6xl px-5 pb-4">
+      <div className="rounded-3xl border border-primary/25 bg-card p-7 md:p-9">
+        <div className="flex size-11 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+          <MessageCircle className="size-5" />
+        </div>
+        <h2 className="mt-5 font-display text-2xl font-semibold tracking-tight md:text-3xl">
+          {t("chatIntro.title")}
+        </h2>
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
+          {t("chatIntro.body")}
+        </p>
+        <ul className="mt-5 grid gap-2 md:grid-cols-3">
+          {points.map((p) => (
+            <li key={p} className="flex items-start gap-2 text-sm text-muted-foreground">
+              <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+              <span>{p}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );
@@ -138,7 +167,7 @@ export function Pricing() {
 
 export function Faq() {
   const { t } = useTranslation();
-  const items = [1, 2, 3, 4, 5, 6];
+  const items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
   return (
     <section id="faq" className="mx-auto w-full max-w-3xl px-5 py-20">
