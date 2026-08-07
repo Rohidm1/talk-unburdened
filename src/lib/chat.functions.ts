@@ -196,9 +196,6 @@ export const sendChatMessage = createServerFn({ method: "POST" })
     });
     if (error) throw new Error(error.message);
 
-    // Count messages for the session, separate from billing transactions.
-    await supabaseAdmin.rpc("increment_chat_messages", { _session_id: data.sessionId });
-
     return { ok: true as const, reason: null };
   });
 
