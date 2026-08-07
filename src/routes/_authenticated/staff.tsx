@@ -215,7 +215,13 @@ function StaffPage() {
     let cancelled = false;
     void fetchContext({ data: { callId: incomingCallId } })
       .then((ctx) => {
-        if (!cancelled) setIncomingContext(ctx);
+        if (cancelled) return;
+        setIncomingContext(ctx);
+        toast.info(`Inkomende oproep van ${ctx.callerAlias}`, {
+          id: `incoming-${incomingCallId}`,
+          description: `Voor profiel ${ctx.profileName}`,
+          duration: 45_000,
+        });
       })
       .catch(() => undefined);
     return () => {
