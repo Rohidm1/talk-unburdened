@@ -30,11 +30,9 @@ async function grantCredits(session: any) {
     return;
   }
 
-  // grant_credits records the transaction and increments the balance atomically.
-  // Replayed webhooks hit the unique index on stripe_session_id and return false.
-  const { data: granted, error } = await getSupabase().rpc("grant_credits", {
+  const { data: granted, error } = await getSupabase().rpc("grant_chat_credits", {
     _user_id: userId,
-    _seconds: pkg.minutes * 60,
+    _credits: pkg.credits,
     _cents: pkg.cents,
     _session: sessionId,
   });
@@ -74,13 +72,12 @@ async function clawBack(
     return;
   }
 
-  // Partial refunds take back a proportional slice of the minutes.
   const ratio = Math.min(Math.max(opts.amountCents / pkg.cents, 0), 1);
-  const seconds = Math.round(pkg.minutes * 60 * ratio);
+  const credits = Math.round(pkg.credits * ratio);
 
-  const { error } = await getSupabase().rpc("revoke_credits", {
+  const { error } = await getSupabase().rpc("revoke_chat_credits", {
     _user_id: userId,
-    _seconds: seconds,
+    _credits: credits,
     _cents: opts.amountCents,
     _ref: opts.ref,
     _kind: opts.kind,
@@ -88,7 +85,7 @@ async function clawBack(
   });
 
   if (error) console.error("[payments] could not revoke credits", error);
-  else console.log("[payments] revoked credits", { userId, seconds, ref: opts.ref });
+  else console.log("[payments] revoked credits", { userId, credits, ref: opts.ref });
 }
 
 async function handleWebhook(req: Request, env: StripeEnv) {
