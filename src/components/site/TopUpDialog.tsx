@@ -56,7 +56,7 @@ export function TopUpDialog({
                         {p.credits} berichten
                       </span>
                       <span className="block text-xs text-muted-foreground">
-                        ${perCredit.toFixed(2).replace(".", ",")} per bericht
+                        ${perCredit.toFixed(2)} per bericht
                       </span>
                     </span>
                     <span className="font-display text-xl font-semibold">
