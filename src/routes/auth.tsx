@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 
 const title = "Sign in to Anontalk — anonymous, alias-only accounts";
 const description =
-  "Create an alias-only Anontalk account to call a listener anonymously. Your first 3 minutes are free, no real name required.";
+  "Create an alias-only Anontalk account to chat anonymously. Your first 3 messages are free, no real name required.";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -110,7 +110,7 @@ function AuthPage() {
                 {mode === "signin" ? "Welcome back" : "Create your alias"}
               </h1>
               <p className="mt-2 text-sm text-muted-foreground">
-                No real names. Only your alias is ever shown to a listener.
+                No real names. Only your alias is ever shown to a chat partner.
               </p>
 
               <Button

@@ -125,7 +125,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           name: "Anontalk",
           url: "https://anontalk.online",
           description:
-            "Anonymous live text chat with warm listeners. No names, no judgment. First 3 messages free.",
+            "Anonymous live text chat with warm chat partners. No names, no judgment. First 3 messages free.",
         }),
       },
     ],

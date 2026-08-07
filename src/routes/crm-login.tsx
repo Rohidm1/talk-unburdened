@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const title = "Anontalk CRM — team login";
-const description = "Private Anontalk CRM sign-in for admins and listeners managing the team.";
+const description = "Private Anontalk CRM sign-in for admins and chat partners managing the team.";
 
 export const Route = createFileRoute("/crm-login")({
   head: () => ({

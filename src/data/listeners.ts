@@ -116,7 +116,7 @@ export const listeners: Listener[] = [
     language: "EN",
     topics: [
       { en: "Comforting talk", nl: "Comforting talk" },
-      { en: "Quiet listening", nl: "Quiet listening" },
+      { en: "Quiet chats", nl: "Quiet chats" },
     ],
     status: "online",
     years: 6,
