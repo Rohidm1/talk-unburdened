@@ -5,6 +5,7 @@ import { Loader2, SendHorizonal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "sonner";
 import { chatHeartbeat, listChatMessages, sendChatMessage } from "@/lib/chat.functions";
 import type { Listener } from "@/data/listeners";
 
@@ -78,8 +79,24 @@ export function ChatDialog({
     setSending(true);
     setDraft("");
     try {
-      await send({ data: { sessionId, body } });
+      const result = await send({ data: { sessionId, body } });
+      if (!result.ok) {
+        setDraft(body);
+        if (result.reason === "no_credit") {
+          toast.error("You're out of credits. Top up to keep chatting.");
+          onEnd("out_of_credit");
+        } else if (result.reason === "closed") {
+          toast.error("This chat has ended.");
+          onEnd("closed");
+        } else {
+          toast.error("Your message could not be sent. Please try again.");
+        }
+        return;
+      }
       await messages.refetch();
+    } catch {
+      setDraft(body);
+      toast.error("Your message could not be sent. Please try again.");
     } finally {
       setSending(false);
     }
@@ -101,7 +118,8 @@ export function ChatDialog({
           {!answered ? (
             <div className="flex items-center gap-2 rounded-2xl bg-secondary/40 p-4 text-sm text-muted-foreground">
               <Loader2 className="size-4 animate-spin" />
-              We verbinden je met {listener?.displayName}. Er wordt nog niets afgeschreven.
+              {listener?.displayName} hasn't joined yet — you can already send your message and it
+              will be waiting for them.
             </div>
           ) : null}
 
@@ -124,8 +142,8 @@ export function ChatDialog({
           <Input
             value={draft}
             maxLength={2000}
-            disabled={!answered || remaining <= 0}
-            placeholder={answered ? "Typ je bericht…" : "Even geduld…"}
+            disabled={sending || remaining <= 0}
+            placeholder={remaining <= 0 ? "Out of credits" : "Type your message…"}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -134,11 +152,11 @@ export function ChatDialog({
               }
             }}
           />
-          <Button size="icon" disabled={!answered || !draft.trim() || remaining <= 0} onClick={() => void submit()}>
+          <Button size="icon" disabled={sending || !draft.trim() || remaining <= 0} onClick={() => void submit()}>
             <SendHorizonal className="size-4" />
           </Button>
           <Button variant="outline" onClick={() => onEnd("user")}>
-            Stop
+            End
           </Button>
         </div>
       </DialogContent>
