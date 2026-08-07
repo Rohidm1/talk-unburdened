@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -8,7 +8,6 @@ import "@/lib/i18n";
 import { Header } from "@/components/site/Header";
 import { Hero } from "@/components/site/Hero";
 import { ListenerCard } from "@/components/site/ListenerCard";
-import { ActiveCallDialog, UnavailableDialog } from "@/components/site/CallDialogs";
 import { ChatDialog } from "@/components/site/ChatDialog";
 import { TopUpDialog } from "@/components/site/TopUpDialog";
 import {
@@ -21,35 +20,16 @@ import {
 } from "@/components/site/Sections";
 import { listeners as fallbackListeners, type Listener } from "@/data/listeners";
 import { listPublicListeners } from "@/lib/listeners.functions";
-import { endCall, getMyAccount, heartbeatCall, startCall } from "@/lib/account.functions";
-import { prepareDial } from "@/lib/voice.functions";
+import { getMyAccount } from "@/lib/account.functions";
 import { endChat, startChat } from "@/lib/chat.functions";
-import { useTwilioDevice } from "@/hooks/useTwilioDevice";
-import type { Call } from "@twilio/voice-sdk";
 import { avatarFor } from "@/lib/avatars";
 import { useAuth } from "@/hooks/useAuth";
+import { CreditCheckoutDialog } from "@/components/site/CreditCheckoutDialog";
+import type { CreditPackageKey } from "@/lib/credit-packages";
 
-const title = "Anontalk — Anonymous voice calls with a listening ear";
-
-/** Turns an internal failure code into something the caller can act on. */
-function voiceErrorMessage(reason: string) {
-  if (reason === "microphone-denied")
-    return "Geef toegang tot je microfoon om te kunnen bellen.";
-  if (reason === "microphone-missing")
-    return "We vinden geen microfoon. Sluit er een aan en probeer opnieuw.";
-  if (reason === "voice-unconfigured")
-    return "Bellen is tijdelijk niet beschikbaar. Probeer het straks opnieuw.";
-  if (reason === "token-request-failed")
-    return "We konden geen verbinding maken met de belservice. Probeer het opnieuw.";
-  if (reason === "voice-no-answer-from-provider")
-    return "De belverbinding kwam niet tot stand. Controleer je internetverbinding en probeer opnieuw.";
-  if (reason.startsWith("voice-call-error") || reason.startsWith("voice-connect-failed"))
-    return `De audioverbinding kon niet worden gestart (${reason.split(":")[1] ?? "onbekend"}). Probeer het opnieuw.`;
-  return "De audioverbinding kon niet worden gestart. Probeer het opnieuw.";
-}
-
+const title = "Anontalk — Anonymous live chat with a listening ear";
 const description =
-  "Talk it out anonymously. Anontalk connects men in Belgium, the Netherlands and the US with warm listeners over a safe browser call. First 3 minutes free.";
+  "Talk it out anonymously. Anontalk connects men in Belgium, the Netherlands and the US with warm listeners over a safe browser chat. First 3 messages free.";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -68,384 +48,207 @@ export const Route = createFileRoute("/")({
           "@context": "https://schema.org",
           "@type": "FAQPage",
           mainEntity: [
-            [
-              "Is it really anonymous?",
-              "Yes. You choose an alias, and that's the only thing your listener ever sees. We never ask for your real name, address or phone number.",
-            ],
-            [
-              "Are your listeners professionals?",
-              "No — and we're upfront about that. Our listeners are trained, warm people who give you their full attention. They offer a listening ear and everyday perspective, not professional advice.",
-            ],
-            [
-              "How do the 3 free minutes work?",
-              "Every new account gets 3 free minutes on the very first call. No credit card needed. When the timer runs out you can top up or simply hang up.",
-            ],
-            [
-              "How am I billed?",
-              "Calls cost EUR 1.30 per minute, billed per second from your credit balance. Bundles bring the price down.",
-            ],
-            [
-              "Who can see that I called?",
-              "Nobody. Your payment description is neutral, calls run in the browser, and we never share anything with third parties.",
-            ],
-            [
-              "How does chatting work?",
-              "Open a listener's profile and press Chat instead of Call. The listener accepts your request and from that moment you type back and forth in real time. You can end the chat whenever you like.",
-            ],
-            [
-              "Do I need separate credits for chat?",
-              "No. Calling and chatting share one credit balance. Every bundle works for both — credits are stored as time, not as call-only or chat-only minutes.",
-            ],
-            [
-              "How are chat minutes deducted?",
-              "Chat costs EUR 0.65 per minute, billed per second while the session is active, counting from the moment your listener accepts. Free minutes are used first, then paid credits.",
-            ],
-            [
-              "Can I switch between calling and chatting?",
-              "Yes. Chat first and call later the same day, or the other way round. Your balance keeps counting down at the rate of whatever you are using at that moment.",
-            ],
-            [
-              "What can I talk about?",
-              "Work pressure, your relationship, money worries, a rough week, or nothing in particular. There is no wrong subject here.",
-            ],
-          ].map(([q, a]) => ({
-            "@type": "Question",
-            name: q,
-            acceptedAnswer: { "@type": "Answer", text: a },
-          })),
+            {
+              "@type": "Question",
+              name: "Is it really anonymous?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Yes. You choose an alias, and that's the only thing your listener ever sees. We never ask for your real name, address or phone number.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "Are your listeners professionals?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "No — and we're upfront about that. Our listeners are trained, warm people who give you their full attention. They offer a listening ear and everyday perspective, not professional advice.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "How do the 3 free messages work?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Every new account gets 3 free messages on the very first chat. No credit card needed. When they run out you can top up or simply close the chat.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "How am I billed?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Each message you send costs 1 credit. Agent replies are always free. Bundles bring the price per message down.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "Who can see that I chatted?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Nobody. Your payment description is neutral, chats run in the browser, and we never share anything with third parties.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "How does chatting work?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Open a listener's profile and press Chat. The listener accepts your request and from that moment you type back and forth in real time. You can end the chat whenever you like.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "Do my credits expire?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "No. Once purchased, your credits stay on your account until you use them.",
+              },
+            },
+          ],
         }),
       },
     ],
   }),
-  component: Index,
+  component: HomePage,
 });
 
-function Index() {
+function HomePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { session } = useAuth();
-
-  const fetchListeners = useServerFn(listPublicListeners);
+  const { user } = useAuth();
   const fetchAccount = useServerFn(getMyAccount);
-  const begin = useServerFn(startCall);
-  const finish = useServerFn(endCall);
-  const beat = useServerFn(heartbeatCall);
-  const prepare = useServerFn(prepareDial);
-  const beginChat = useServerFn(startChat);
-  const finishChat = useServerFn(endChat);
-  const voice = useTwilioDevice(!!session);
+  const fetchListeners = useServerFn(listPublicListeners);
+  const start = useServerFn(startChat);
+  const stop = useServerFn(endChat);
 
-  const [activeCall, setActiveCall] = useState<Listener | null>(null);
-  const [activeCallId, setActiveCallId] = useState<string | null>(null);
-  const [unavailable, setUnavailable] = useState<Listener | null>(null);
-  const [waitingAhead, setWaitingAhead] = useState(0);
+  const [activeListener, setActiveListener] = useState<Listener | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionMode, setSessionMode] = useState<"paid" | "free">("paid");
   const [allowance, setAllowance] = useState(0);
-  const [callMode, setCallMode] = useState<"paid" | "free">("paid");
-  const [voiceCall, setVoiceCall] = useState<Call | null>(null);
-  const [waitingForListener, setWaitingForListener] = useState(false);
-  const [topUp, setTopUp] = useState<"free_used" | "no_credit" | null>(null);
-  const [chatListener, setChatListener] = useState<Listener | null>(null);
-  const [chatSession, setChatSession] = useState<string | null>(null);
-  const [chatAllowance, setChatAllowance] = useState(0);
-  const [chatMode, setChatMode] = useState<"paid" | "free">("paid");
-  const notifiedRef = useRef(false);
+  const [topUpReason, setTopUpReason] = useState<"free_used" | "no_credit" | null>(null);
+  const [checkoutKey, setCheckoutKey] = useState<CreditPackageKey | null>(null);
 
-  const listenersQuery = useQuery({
-    queryKey: ["listeners"],
+  const account = useQuery({ queryKey: ["account"], queryFn: () => fetchAccount(), enabled: !!user });
+  const listeners = useQuery({
+    queryKey: ["public-listeners"],
     queryFn: () => fetchListeners(),
-    refetchInterval: 30000,
+    initialData: fallbackListeners,
   });
 
-  const account = useQuery({
-    queryKey: ["account"],
-    queryFn: () => fetchAccount(),
-    enabled: !!session,
-  });
+  const profile = account.data?.profile;
+  const totalCredits = (profile?.chat_credits ?? 0) + (profile?.free_credits ?? 0);
 
-  const list: Listener[] = useMemo(() => {
-    const rows = listenersQuery.data;
-    if (!rows || rows.length === 0) return fallbackListeners;
-    return rows.map((r) => ({
-      id: r.id,
-      displayName: r.display_name,
-      avatar: avatarFor(r.avatar_key),
-      age: r.years,
-      bio: { en: r.bio_en, nl: r.bio_nl },
-      language: (r.languages?.[0] ?? "EN").toUpperCase().startsWith("N") ? "NL" : "EN",
-      topics: r.topics_en.map((en, i) => ({ en, nl: r.topics_nl[i] ?? en })),
-      status: r.status,
-      years: r.years,
-    }));
-  }, [listenersQuery.data]);
+  const listenersOnline = useMemo(
+    () => (listeners.data ?? fallbackListeners).map((l) => ({ ...l, status: "online" as const })),
+    [listeners.data],
+  );
 
-  const onlineList = useMemo(() => list.filter((l) => l.status === "online"), [list]);
-
-  // Waiting line: alert the caller as soon as a listener frees up.
   useEffect(() => {
-    if (!waitingForListener) {
-      notifiedRef.current = false;
+    // low-balance nudge only when not already in a chat
+    if (!activeListener && totalCredits > 0 && totalCredits <= 2) {
+      toast.info("Your credit is low. Buy a bundle to keep chatting.", {
+        action: {
+          label: "Top up",
+          onClick: () => setTopUpReason("no_credit"),
+        },
+      });
+    }
+  }, [activeListener, totalCredits]);
+
+  async function handleChat(listener: Listener) {
+    if (!user) {
+      await navigate({ to: "/auth", search: { redirect: "/" } });
       return;
     }
-    const next = onlineList[0];
-    if (!next || notifiedRef.current) return;
-    notifiedRef.current = true;
-    setWaitingForListener(false);
-    setUnavailable(null);
-    toast.success(`${next.displayName} is free now`, {
-      duration: 15000,
-      action: { label: "Call now", onClick: () => void handleCall(next) },
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [waitingForListener, onlineList]);
-
-  const handleCall = async (l: Listener) => {
-    if (!session) {
-      void navigate({ to: "/auth" });
-      return;
-    }
-
-    // Find a live agent first — no call is created (or billed) without one.
-    const dial = await prepare({ data: { listenerId: l.id } });
-    if (!dial.ready || !dial.toIdentity || !dial.dialAuth) {
-      if (dial.reason === "unconfigured") {
-        toast.error("Calling is temporarily unavailable. Please try again shortly.");
-        return;
-      }
-      toast.error(`${l.displayName} is momenteel in gesprek`);
-      setWaitingAhead(dial.waitingAhead ?? 0);
-      setUnavailable(l);
-      return;
-    }
-
-    const result = await begin({ data: { listenerId: l.id, agentUserId: dial.toIdentity } });
+    setActiveListener(listener);
+    const result = await start({ data: { listenerId: listener.id } });
     if (!result.ok) {
+      setActiveListener(null);
       if (result.reason === "blocked") {
-        toast.error("Your account is on hold because of a refund or chargeback. Contact support.");
-        return;
+        toast.error("Your account is on hold.");
+      } else if (result.reason === "free_used" || result.reason === "no_credit") {
+        setTopUpReason(result.reason);
+      } else {
+        toast.error("No listener is available right now. Please try again in a moment.");
       }
-      setTopUp(result.reason === "free_used" ? "free_used" : "no_credit");
       return;
     }
+    setSessionId(result.sessionId);
+    setSessionMode(result.mode);
+    setAllowance(result.allowance);
+  }
 
-    setAllowance(result.allowanceSeconds);
-    setCallMode(result.mode === "free" ? "free" : "paid");
-    setActiveCallId(result.callId);
-    setUnavailable(null);
-    setActiveCall(l);
-
-    try {
-      const call = await voice.connect({
-        CallerIdentity: voice.identity ?? session?.user?.id ?? "",
-        TargetIdentity: dial.toIdentity,
-        DialAuth: dial.dialAuth,
-        CallRecordId: result.callId,
-      });
-      if (!call) throw new Error("no-call-object");
-
-      // Only show a live-looking screen once the provider really has the leg.
-      await new Promise<void>((resolve, reject) => {
-        const timer = setTimeout(() => reject(new Error("voice-no-answer-from-provider")), 10_000);
-        const done = () => {
-          clearTimeout(timer);
-          resolve();
-        };
-        call.on("ringing", done);
-        call.on("accept", done);
-        call.on("error", (err: { code?: number; message?: string }) => {
-          clearTimeout(timer);
-          console.error(`[voice] call error ${err?.code ?? "?"}: ${err?.message ?? ""}`, err);
-          reject(new Error(err?.code ? `voice-call-error:${err.code}` : "voice-call-error"));
-        });
-      });
-
-      call.on("disconnect", () => setVoiceCall(null));
-      call.on("error", (err: unknown) => console.error("[voice] call error", err));
-      setVoiceCall(call);
-    } catch (err) {
-      const reason = (err as Error)?.message ?? "unknown";
-      console.error(`[voice] could not start audio (${reason})`, err);
-      toast.error(voiceErrorMessage(reason));
-      // Never leave the caller staring at a live-looking screen with no audio.
-      setActiveCall(null);
-      setActiveCallId(null);
+  async function handleChatEnd(reason: "user" | "out_of_credit" | "closed") {
+    if (sessionId) {
       try {
-        await finish({ data: { callId: result.callId, failureReason: reason.slice(0, 300) } });
+        await stop({ data: { sessionId } });
       } catch {
-        /* nothing was billed while ringing */
+        /* ignore */
       }
     }
-  };
-
-  const handleChat = async (l: Listener) => {
-    if (!session) {
-      void navigate({ to: "/auth" });
-      return;
+    setActiveListener(null);
+    setSessionId(null);
+    if (reason === "out_of_credit") {
+      setTopUpReason("no_credit");
     }
-    const result = await beginChat({ data: { listenerId: l.id } });
-    if (!result.ok || !result.sessionId) {
-      if (result.reason === "blocked") {
-        toast.error("Your account is on hold because of a refund or chargeback. Contact support.");
-        return;
-      }
-      if (result.reason === "busy") {
-        toast.error(`${l.displayName} is momenteel in gesprek`);
-        setUnavailable(l);
-        return;
-      }
-      setTopUp(result.reason === "free_used" ? "free_used" : "no_credit");
-      return;
-    }
-    setChatAllowance(result.allowanceSeconds);
-    setChatMode(result.mode === "free" ? "free" : "paid");
-    setChatListener(l);
-    setChatSession(result.sessionId);
-  };
-
-  const handleChatEnd = async (reason: "user" | "out_of_credit" | "closed") => {
-    const sessionId = chatSession;
-    setChatSession(null);
-    setChatListener(null);
-    if (!sessionId) return;
-    try {
-      const result = await finishChat({ data: { sessionId } });
-      void queryClient.invalidateQueries({ queryKey: ["account"] });
-      if (result.billed > 0) {
-        toast.success(
-          `Chat beëindigd · ${Math.floor(result.billed / 60)}m ${result.billed % 60}s · € ${(result.cost / 100).toFixed(2)}`,
-        );
-      }
-    } catch (err) {
-      console.error("[chat] could not close session", err);
-    }
-    if (reason === "out_of_credit") setTopUp(chatMode === "free" ? "free_used" : "no_credit");
-  };
-
-  const handleTick = async () => {
-    const callId = activeCallId;
-    if (!callId) return null;
-    try {
-      const status = await beat({ data: { callId } });
-      return {
-        remaining: status.remaining,
-        shouldEnd: status.shouldEnd,
-        answered: status.answered,
-        status: status.status,
-      };
-    } catch (err) {
-      console.error("[call] heartbeat failed", err);
-      return null;
-    }
-  };
-
-  /** Ringing ended without a live agent: nothing was billed. */
-  const handleNoAnswer = async () => {
-    const callId = activeCallId;
-    const listener = activeCall;
-    voiceCall?.disconnect();
-    setVoiceCall(null);
-    setActiveCall(null);
-    setActiveCallId(null);
-    if (callId) {
-      try {
-        await finish({ data: { callId } });
-      } catch (err) {
-        console.error("[call] could not close ringing call", err);
-      }
-    }
-    if (listener) {
-      toast.error(`${listener.displayName} is momenteel in gesprek`);
-      setUnavailable(listener);
-    }
-  };
-
-  const handleEnd = async () => {
-    const callId = activeCallId;
-    voiceCall?.disconnect();
-    setVoiceCall(null);
-    setActiveCall(null);
-    setActiveCallId(null);
-    if (!callId) return;
-    const result = await finish({ data: { callId } });
-    void queryClient.invalidateQueries({ queryKey: ["account"] });
-    toast.success(
-      `Call ended · ${Math.floor(result.billed / 60)}m ${result.billed % 60}s · € ${(result.cost / 100).toFixed(2)}`,
-    );
-    if (result.freeLeft <= 0 && result.paidLeft <= 0) {
-      setTopUp(callMode === "free" ? "free_used" : "no_credit");
-    }
-  };
-
-  const startFirstAvailable = () => {
-    const first = onlineList[0];
-    if (first) {
-      void handleCall(first);
-      return;
-    }
-    setUnavailable(list[0] ?? null);
-  };
+  }
 
   return (
-    <div className="min-h-screen font-body">
+    <div className="min-h-screen bg-background font-body text-foreground">
       <Header />
       <main>
-        <Hero onStart={startFirstAvailable} />
+        <Hero />
 
-        <section id="listeners" className="mx-auto w-full max-w-6xl px-5 py-20">
-          <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
-            {t("listeners.title")}
-          </h2>
-          <p className="mt-3 max-w-xl text-muted-foreground">{t("listeners.subtitle")}</p>
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {list.map((l) => (
+        <section id="listeners" className="mx-auto max-w-6xl px-5 py-16">
+          <div className="mb-8 flex items-end justify-between gap-4">
+            <div>
+              <h2 className="font-display text-2xl font-semibold sm:text-3xl">
+                {t("listeners.title")}
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">{t("listeners.subtitle")}</p>
+            </div>
+            {user && totalCredits > 0 ? (
+              <span className="rounded-full border border-border bg-card px-3 py-1 text-sm tabular-nums">
+                {totalCredits} credits
+              </span>
+            ) : null}
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {listenersOnline.map((l: Listener) => (
               <ListenerCard
                 key={l.id}
                 listener={l}
-                onCall={(x) => void handleCall(x)}
-                onChat={(x) => void handleChat(x)}
+                avatar={avatarFor(l.id)}
+                onChat={() => handleChat(l)}
               />
             ))}
           </div>
         </section>
 
-        <HowItWorks />
         <ChatIntro />
-      <Pricing />
+        <HowItWorks />
+        <Pricing onSelect={(key) => setCheckoutKey(key)} />
         <Faq />
         <ContactSection />
       </main>
       <Footer />
 
-      <ActiveCallDialog
-        listener={activeCall}
-        allowanceSeconds={allowance}
-        mode={callMode}
-        call={voiceCall}
-        onTick={handleTick}
-        onEnd={() => void handleEnd()}
-        onNoAnswer={() => void handleNoAnswer()}
-      />
-      <UnavailableDialog
-        listener={unavailable}
-        available={onlineList}
-        waiting={waitingForListener}
-        waitingAhead={waitingAhead}
-        onJoinWaitlist={() => {
-          setWaitingForListener(true);
-          void listenersQuery.refetch();
-          toast.success("You're in the waiting line — keep this tab open.");
-        }}
-        onClose={() => setUnavailable(null)}
-        onPick={(l) => void handleCall(l)}
-      />
-      <TopUpDialog open={!!topUp} reason={topUp ?? "no_credit"} onClose={() => setTopUp(null)} />
       <ChatDialog
-        listener={chatListener}
-        sessionId={chatSession}
-        mode={chatMode}
-        allowanceSeconds={chatAllowance}
-        onEnd={(reason) => void handleChatEnd(reason)}
+        listener={activeListener}
+        sessionId={sessionId}
+        mode={sessionMode}
+        allowance={allowance}
+        onEnd={handleChatEnd}
       />
+
+      <TopUpDialog
+        open={topUpReason !== null}
+        reason={topUpReason ?? "no_credit"}
+        onClose={() => setTopUpReason(null)}
+      />
+
+      <CreditCheckoutDialog packageKey={checkoutKey} onClose={() => setCheckoutKey(null)} />
     </div>
   );
 }
