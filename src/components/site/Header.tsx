@@ -14,9 +14,8 @@ const links = [
 ];
 
 export function Header() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const lang = i18n.language ?? "en";
   const { session, loading } = useAuth();
 
   return (
@@ -42,21 +41,6 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <div className="flex items-center rounded-full border border-border p-0.5">
-            {(["nl", "en"] as const).map((code) => (
-              <button
-                key={code}
-                onClick={() => void i18n.changeLanguage(code)}
-                className={`rounded-full px-2.5 py-1 text-xs font-semibold uppercase transition-colors ${
-                  lang === code
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {code}
-              </button>
-            ))}
-          </div>
           {loading ? null : session ? (
             <Button size="sm" className="hidden sm:inline-flex" asChild>
               <Link to="/account">{t("nav.account")}</Link>
