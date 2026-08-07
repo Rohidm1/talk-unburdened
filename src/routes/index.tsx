@@ -218,7 +218,7 @@ function Index() {
 
     try {
       const call = await voice.connect({
-        CallerIdentity: voice.identity ?? "",
+        CallerIdentity: voice.identity ?? session?.user?.id ?? "",
         TargetIdentity: dial.toIdentity,
         DialAuth: dial.dialAuth,
         CallRecordId: result.callId,
