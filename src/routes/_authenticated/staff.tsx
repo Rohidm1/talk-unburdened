@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
   BellRing,
+  Headphones,
   History,
   Mic,
   MicOff,
@@ -36,6 +37,7 @@ import {
   saveCallNote,
 } from "@/lib/agent.functions";
 import { AgentChatPanel } from "@/components/site/AgentChatPanel";
+import { AudioDiagnostics } from "@/components/site/AudioDiagnostics";
 import { useTwilioDevice } from "@/hooks/useTwilioDevice";
 import { useIncomingCallAlert } from "@/hooks/useIncomingCallAlert";
 import { useAuth } from "@/hooks/useAuth";
@@ -99,6 +101,8 @@ function StaffPage() {
   const [active, setActive] = useState<Call | null>(null);
   const [activeCallId, setActiveCallId] = useState<string | null>(null);
   const [audioState, setAudioState] = useState<"idle" | "connecting" | "live" | "failed">("idle");
+  const [audioMessage, setAudioMessage] = useState("");
+  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const [activeContext, setActiveContext] = useState<CallContext | null>(null);
   const [incomingContext, setIncomingContext] = useState<CallContext | null>(null);
   const [elapsed, setElapsed] = useState(0);
@@ -216,12 +220,18 @@ function StaffPage() {
     await connectAudio(callId, conferenceAuth, ctx);
   };
 
+  const MAX_AUDIO_ATTEMPTS = 3;
+
   const connectAudio = async (
     callId: string,
     conferenceAuth: string,
     ctx: CallContext | null,
+    attempt = 1,
   ) => {
     setAudioState("connecting");
+    setAudioMessage(
+      attempt === 1 ? "Audio wordt verbonden…" : `Opnieuw verbinden… poging ${attempt}/${MAX_AUDIO_ATTEMPTS}`,
+    );
     try {
       const call = await voice.connect({
         Mode: "agent",
@@ -234,15 +244,43 @@ function StaffPage() {
       call.on("error", (err: unknown) => {
         console.error("[voice] agent call error", err);
         setAudioState("failed");
+        setAudioMessage("Verbinding verbroken. Probeer opnieuw te verbinden.");
       });
       call.on("accept", () => setAudioState("live"));
       setActive(call);
       setAudioState("live");
+      setAudioMessage("Audio-input gecontroleerd — je bent verbonden.");
     } catch (err) {
       console.error("[voice] agent audio failed", err);
+      const denied = (err as Error)?.message === "microphone-denied";
+
+      // A dropped media leg is usually transient: retry a few times with
+      // exponential backoff before handing it back to the agent.
+      if (!denied && attempt < MAX_AUDIO_ATTEMPTS) {
+        setAudioMessage(
+          `Verbinding verbroken… poging ${attempt + 1}/${MAX_AUDIO_ATTEMPTS} over ${2 ** (attempt - 1)}s`,
+        );
+        await new Promise((r) => setTimeout(r, 2 ** (attempt - 1) * 1000));
+        try {
+          const res = await accept({ data: { callId } });
+          if (res.ok && res.conferenceAuth) {
+            await connectAudio(callId, res.conferenceAuth, ctx, attempt + 1);
+            return;
+          }
+        } catch {
+          /* fall through to the manual retry state */
+        }
+      }
+
       setAudioState("failed");
+      setAudioMessage(
+        denied
+          ? "Geen toegang tot je microfoon. Sta toegang toe en verbind opnieuw."
+          : `Audio kon niet starten na ${attempt} poging(en). Draai de audio-diagnose.`,
+      );
+      setDiagnosticsOpen(true);
       toast.error(
-        (err as Error)?.message === "microphone-denied"
+        denied
           ? "Geef toegang tot je microfoon om te kunnen praten."
           : "De audio kon niet starten. Probeer opnieuw te verbinden.",
       );
@@ -377,17 +415,29 @@ function StaffPage() {
                 {audioState !== "live" ? (
                   <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-secondary/30 p-3 text-sm">
                     <span className="flex-1 text-muted-foreground">
-                      {audioState === "connecting"
-                        ? "Audio wordt verbonden…"
-                        : "Geen audioverbinding met de beller."}
+                      {audioMessage ||
+                        (audioState === "connecting"
+                          ? "Audio wordt verbonden…"
+                          : "Geen audioverbinding met de beller.")}
                     </span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setDiagnosticsOpen(true)}
+                    >
+                      <Headphones className="size-4" /> Audio-diagnose
+                    </Button>
                     {audioState === "failed" ? (
                       <Button size="sm" variant="outline" onClick={() => void retryAudio()}>
                         Opnieuw verbinden
                       </Button>
                     ) : null}
                   </div>
-                ) : null}
+                ) : (
+                  <p className="mt-4 rounded-2xl border border-success/40 bg-success/10 p-3 text-sm text-success">
+                    Audio-input gecontroleerd — verbinding actief.
+                  </p>
+                )}
                 <div className="mt-6 text-center">
                   <p className="text-xs text-muted-foreground">Talk time used</p>
                   <p className="font-display text-5xl tabular-nums">{clock(elapsed)}</p>
@@ -539,6 +589,20 @@ function StaffPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AudioDiagnostics
+        open={diagnosticsOpen}
+        onOpenChange={setDiagnosticsOpen}
+        statusLine={audioMessage || "We controleren je microfoon, geluid en verbinding."}
+        onRetry={
+          activeCallId
+            ? () => {
+                setDiagnosticsOpen(false);
+                void retryAudio();
+              }
+            : undefined
+        }
+      />
     </main>
   );
 }

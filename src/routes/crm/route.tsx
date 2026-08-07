@@ -6,6 +6,15 @@ export const Route = createFileRoute("/crm")({
   beforeLoad: async () => {
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user) throw redirect({ to: "/crm-login" });
+
+    // Workers only ever see their own agent dashboard — team management,
+    // revenue and system settings stay with admins.
+    const { data: isAdmin } = await supabase.rpc("has_role", {
+      _user_id: data.user.id,
+      _role: "admin",
+    });
+    if (!isAdmin) throw redirect({ to: "/staff" });
+
     return { user: data.user };
   },
   component: () => <Outlet />,

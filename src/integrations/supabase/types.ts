@@ -182,6 +182,41 @@ export type Database = {
           },
         ]
       }
+      chat_events: {
+        Row: {
+          actor_role: string
+          created_at: string
+          detail: string | null
+          event: string
+          id: string
+          session_id: string
+        }
+        Insert: {
+          actor_role?: string
+          created_at?: string
+          detail?: string | null
+          event: string
+          id?: string
+          session_id: string
+        }
+        Update: {
+          actor_role?: string
+          created_at?: string
+          detail?: string | null
+          event?: string
+          id?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           body: string

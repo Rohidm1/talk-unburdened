@@ -1,23 +1,57 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Inbox, MessageCircle, SendHorizonal, UserRound } from "lucide-react";
+import {
+  BarChart3,
+  Bell,
+  BellOff,
+  ChevronDown,
+  ChevronRight,
+  History,
+  Inbox,
+  MessageCircle,
+  SendHorizonal,
+  UserRound,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import {
   acceptChat,
   closeChatAsAgent,
   declineChat,
+  getChatClientStats,
+  listChatEvents,
   listChatMessages,
   listMyChats,
   sendChatMessage,
 } from "@/lib/chat.functions";
+import { useInboxAlert } from "@/hooks/useInboxAlert";
+
+function duration(seconds: number) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  return h > 0 ? `${h} u ${m} min` : `${m} min`;
+}
+
+const eventLabels: Record<string, string> = {
+  request_received: "Nieuwe aanvraag ontvangen",
+  accepted: "Aanvraag geaccepteerd door agent",
+  declined: "Aanvraag geweigerd",
+  expired: "Aanvraag verlopen",
+  connected: "Verbonden",
+  interrupted: "Netwerkonderbreking",
+  reconnected: "Opnieuw verbonden",
+  ended: "Beëindigd",
+};
 
 export function AgentChatPanel({ enabled }: { enabled: boolean }) {
   const queryClient = useQueryClient();
   const fetchChats = useServerFn(listMyChats);
   const fetchMessages = useServerFn(listChatMessages);
+  const fetchEvents = useServerFn(listChatEvents);
+  const fetchStats = useServerFn(getChatClientStats);
   const send = useServerFn(sendChatMessage);
   const take = useServerFn(acceptChat);
   const refuse = useServerFn(declineChat);
@@ -25,6 +59,8 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
 
   const [openId, setOpenId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
+  const [showAudit, setShowAudit] = useState(false);
+  const [showStats, setShowStats] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const chats = useQuery({
@@ -41,10 +77,25 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
     refetchInterval: 2000,
   });
 
+  const events = useQuery({
+    queryKey: ["chat-events", openId],
+    queryFn: () => fetchEvents({ data: { sessionId: openId! } }),
+    enabled: !!openId && showAudit,
+    refetchInterval: 10000,
+  });
+
+  const stats = useQuery({
+    queryKey: ["chat-stats", openId],
+    queryFn: () => fetchStats({ data: { sessionId: openId! } }),
+    enabled: !!openId && showStats,
+    refetchInterval: 30000,
+  });
+
   const rows = chats.data ?? [];
   const pending = rows.filter((c) => c.status !== "active");
   const activeChats = rows.filter((c) => c.status === "active");
   const current = activeChats.find((c) => c.id === openId) ?? null;
+  const alert = useInboxAlert(pending.length);
 
   useEffect(() => {
     if (openId && !activeChats.some((c) => c.id === openId)) setOpenId(null);
@@ -73,10 +124,36 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
         <div className="flex items-center gap-2">
           <Inbox className="size-5 text-primary" />
           <h2 className="font-display text-lg font-semibold">Berichtverzoeken</h2>
-          <span className="ml-auto rounded-full bg-secondary/60 px-3 py-1 text-xs font-semibold">
-            {pending.length} open
-          </span>
+          {pending.length > 0 ? (
+            <span className="inline-flex min-w-6 items-center justify-center rounded-full bg-destructive px-2 py-0.5 text-xs font-bold text-destructive-foreground">
+              {pending.length}
+            </span>
+          ) : null}
+          <div className="ml-auto flex items-center gap-2">
+            {alert.soundOn ? (
+              <Bell className="size-4 text-primary" />
+            ) : (
+              <BellOff className="size-4 text-muted-foreground" />
+            )}
+            <span className="text-xs text-muted-foreground">Geluid</span>
+            <Switch
+              checked={alert.soundOn}
+              onCheckedChange={(next) => alert.toggleSound(next)}
+              aria-label="Meldingsgeluid"
+            />
+          </div>
         </div>
+        {alert.soundOn && alert.permission !== "granted" ? (
+          <div className="mt-3 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-secondary/30 p-3">
+            <span className="flex-1 text-xs text-muted-foreground">
+              Geef eenmalig toestemming voor geluid en meldingen, dan hoor je nieuwe verzoeken ook
+              met dit tabblad op de achtergrond.
+            </span>
+            <Button size="sm" variant="outline" onClick={() => void alert.enableSound()}>
+              Geluid activeren
+            </Button>
+          </div>
+        ) : null}
         {pending.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">
             Geen openstaande berichtverzoeken. Nieuwe verzoeken verschijnen hier vanzelf.
@@ -220,6 +297,105 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                 <Button size="icon" disabled={!draft.trim()} onClick={() => void submit()}>
                   <SendHorizonal className="size-4" />
                 </Button>
+              </div>
+
+              <div className="border-t border-border">
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium"
+                  onClick={() => setShowStats((v) => !v)}
+                >
+                  {showStats ? (
+                    <ChevronDown className="size-4" />
+                  ) : (
+                    <ChevronRight className="size-4" />
+                  )}
+                  <BarChart3 className="size-4 text-primary" /> Klantstatistieken
+                </button>
+                {showStats ? (
+                  <dl className="grid grid-cols-2 gap-3 px-4 pb-4 text-sm sm:grid-cols-3">
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Totale gespreksduur</dt>
+                      <dd className="font-semibold">
+                        {duration(stats.data?.totalSeconds ?? 0)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Sessies (chat / bel)</dt>
+                      <dd className="font-semibold">
+                        {stats.data?.chatCount ?? 0} / {stats.data?.callCount ?? 0}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Lid sinds</dt>
+                      <dd className="font-semibold">
+                        {stats.data?.since
+                          ? new Date(stats.data.since).toLocaleDateString("nl-NL")
+                          : "—"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Berichten ontvangen</dt>
+                      <dd className="font-semibold">{stats.data?.messagesFromClient ?? 0}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Berichten verstuurd</dt>
+                      <dd className="font-semibold">{stats.data?.messagesFromAgent ?? 0}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Gem. responstijd</dt>
+                      <dd className="font-semibold">
+                        {stats.data?.avgAgentReplySeconds != null
+                          ? `jij ${stats.data.avgAgentReplySeconds}s`
+                          : "jij —"}
+                        {" · "}
+                        {stats.data?.avgClientReplySeconds != null
+                          ? `klant ${stats.data.avgClientReplySeconds}s`
+                          : "klant —"}
+                      </dd>
+                    </div>
+                  </dl>
+                ) : null}
+              </div>
+
+              <div className="border-t border-border">
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium"
+                  onClick={() => setShowAudit((v) => !v)}
+                >
+                  {showAudit ? (
+                    <ChevronDown className="size-4" />
+                  ) : (
+                    <ChevronRight className="size-4" />
+                  )}
+                  <History className="size-4 text-primary" /> Audit log
+                </button>
+                {showAudit ? (
+                  <ol className="max-h-48 space-y-2 overflow-y-auto px-4 pb-4 text-sm">
+                    {(events.data ?? []).length === 0 ? (
+                      <li className="text-muted-foreground">Nog geen gebeurtenissen.</li>
+                    ) : (
+                      (events.data ?? []).map((e) => (
+                        <li key={e.id} className="flex gap-3">
+                          <span className="tabular-nums text-xs text-muted-foreground">
+                            {new Date(e.created_at).toLocaleTimeString("nl-NL", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              second: "2-digit",
+                            })}
+                          </span>
+                          <span>
+                            {eventLabels[e.event] ?? e.detail ?? e.event}
+                            <span className="ml-2 text-xs text-muted-foreground">
+                              ({e.actor_role})
+                            </span>
+                          </span>
+                        </li>
+                      ))
+                    )}
+                  </ol>
+                ) : null}
               </div>
             </>
           ) : (

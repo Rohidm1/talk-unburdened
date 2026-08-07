@@ -121,6 +121,7 @@ function Index() {
   const [activeCall, setActiveCall] = useState<Listener | null>(null);
   const [activeCallId, setActiveCallId] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState<Listener | null>(null);
+  const [waitingAhead, setWaitingAhead] = useState(0);
   const [allowance, setAllowance] = useState(0);
   const [callMode, setCallMode] = useState<"paid" | "free">("paid");
   const [voiceCall, setVoiceCall] = useState<Call | null>(null);
@@ -194,6 +195,7 @@ function Index() {
         return;
       }
       toast.error(`${l.displayName} is momenteel in gesprek`);
+      setWaitingAhead(dial.waitingAhead ?? 0);
       setUnavailable(l);
       return;
     }
@@ -398,6 +400,7 @@ function Index() {
         listener={unavailable}
         available={onlineList}
         waiting={waitingForListener}
+        waitingAhead={waitingAhead}
         onJoinWaitlist={() => {
           setWaitingForListener(true);
           void listenersQuery.refetch();

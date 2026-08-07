@@ -68,6 +68,9 @@ export const startChat = createServerFn({ method: "POST" })
         { onConflict: "client_id,listener_id" },
       );
 
+    const { logChatEvent } = await import("@/lib/chat.server");
+    await logChatEvent(session.id, "request_received", "client", "Nieuwe aanvraag ontvangen");
+
     return {
       ok: true as const,
       reason: null,
@@ -145,7 +148,7 @@ export const endChat = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(sessionInput)
   .handler(async ({ data, context }) => {
-    const { loadClientChat, supabaseAdmin } = await import("@/lib/chat.server");
+    const { loadClientChat, logChatEvent, supabaseAdmin } = await import("@/lib/chat.server");
     const session = await loadClientChat(data.sessionId, context.userId);
     if (!session) return { billed: 0, cost: 0, freeLeft: 0, paidLeft: 0 };
 
@@ -155,9 +158,8 @@ export const endChat = createServerFn({ method: "POST" })
     });
     if (error) throw new Error(error.message);
 
-    if (session.agent_user_id) {
-      await supabaseAdmin.rpc("sync_listener_status", { _listener_id: session.listener_id });
-    }
+    await logChatEvent(data.sessionId, "ended", "client", "Gesprek beëindigd door klant");
+    await supabaseAdmin.rpc("sync_listener_status", { _listener_id: session.listener_id });
 
     const row = Array.isArray(rows) ? rows[0] : rows;
     return {
@@ -273,7 +275,7 @@ export const acceptChat = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(sessionInput)
   .handler(async ({ data, context }) => {
-    const { loadAgentChat, supabaseAdmin } = await import("@/lib/chat.server");
+    const { loadAgentChat, logChatEvent, supabaseAdmin } = await import("@/lib/chat.server");
     const session = await loadAgentChat(data.sessionId, context.userId);
     if (!session) throw new Error("Forbidden");
     if (session.ended_at) return { ok: false as const };
@@ -284,6 +286,9 @@ export const acceptChat = createServerFn({ method: "POST" })
         .from("chat_sessions")
         .update({ answered_at: now, status: "active", last_heartbeat_at: now })
         .eq("id", data.sessionId);
+      await logChatEvent(data.sessionId, "accepted", "agent", "Aanvraag geaccepteerd door agent");
+      await logChatEvent(data.sessionId, "connected", "system", "Verbonden");
+      await supabaseAdmin.rpc("sync_listener_status", { _listener_id: session.listener_id });
     }
     return { ok: true as const };
   });
@@ -292,7 +297,7 @@ export const declineChat = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(sessionInput)
   .handler(async ({ data, context }) => {
-    const { loadAgentChat, supabaseAdmin } = await import("@/lib/chat.server");
+    const { loadAgentChat, logChatEvent, supabaseAdmin } = await import("@/lib/chat.server");
     const session = await loadAgentChat(data.sessionId, context.userId);
     if (!session) throw new Error("Forbidden");
 
@@ -302,6 +307,9 @@ export const declineChat = createServerFn({ method: "POST" })
       .eq("id", data.sessionId)
       .is("answered_at", null);
 
+    await logChatEvent(data.sessionId, "declined", "agent", "Aanvraag geweigerd");
+    await supabaseAdmin.rpc("sync_listener_status", { _listener_id: session.listener_id });
+
     return { ok: true as const };
   });
 
@@ -310,7 +318,7 @@ export const closeChatAsAgent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(sessionInput)
   .handler(async ({ data, context }) => {
-    const { loadAgentChat, supabaseAdmin } = await import("@/lib/chat.server");
+    const { loadAgentChat, logChatEvent, supabaseAdmin } = await import("@/lib/chat.server");
     const session = await loadAgentChat(data.sessionId, context.userId);
     if (!session) throw new Error("Forbidden");
 
@@ -319,5 +327,133 @@ export const closeChatAsAgent = createServerFn({ method: "POST" })
       _rate_cents: CHAT_RATE_CENTS_PER_MINUTE,
     });
     if (error) throw new Error(error.message);
+    await logChatEvent(data.sessionId, "ended", "agent", "Gesprek beëindigd");
+    await supabaseAdmin.rpc("sync_listener_status", { _listener_id: session.listener_id });
     return { ok: true as const };
+  });
+
+/* ------------------------------------------------------- audit & analytics */
+
+/** Chronological trail of everything that happened in one conversation. */
+export const listChatEvents = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(sessionInput)
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase
+      .from("chat_events")
+      .select("id, event, actor_role, detail, created_at")
+      .eq("session_id", data.sessionId)
+      .order("created_at", { ascending: true })
+      .limit(200);
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
+/** Lets either side record a connection change (drop, retry, reconnect). */
+export const logChatConnection = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        sessionId: z.string().uuid(),
+        event: z.enum(["interrupted", "reconnected", "connected"]),
+        detail: z.string().trim().max(200).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { logChatEvent, supabaseAdmin } = await import("@/lib/chat.server");
+    const { data: session } = await supabaseAdmin
+      .from("chat_sessions")
+      .select("id, client_id, agent_user_id")
+      .eq("id", data.sessionId)
+      .maybeSingle();
+    if (!session) throw new Error("Forbidden");
+    const role =
+      session.client_id === context.userId
+        ? "client"
+        : session.agent_user_id === context.userId
+          ? "agent"
+          : null;
+    if (!role) throw new Error("Forbidden");
+    await logChatEvent(data.sessionId, data.event, role, data.detail ?? null);
+    return { ok: true as const };
+  });
+
+/**
+ * Deep stats about the customer behind one chat: everything they ever did with
+ * us, plus how quickly this agent tends to answer them.
+ */
+export const getChatClientStats = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(sessionInput)
+  .handler(async ({ data, context }) => {
+    const { loadAgentChat, supabaseAdmin } = await import("@/lib/chat.server");
+    const session = await loadAgentChat(data.sessionId, context.userId);
+    if (!session) throw new Error("Forbidden");
+
+    const clientId = session.client_id;
+
+    const [{ data: chats }, { data: calls }, { data: profile }] = await Promise.all([
+      supabaseAdmin
+        .from("chat_sessions")
+        .select("id, duration_seconds, started_at")
+        .eq("client_id", clientId),
+      supabaseAdmin.from("calls").select("id, duration_seconds").eq("client_id", clientId),
+      supabaseAdmin.from("profiles").select("alias, created_at").eq("id", clientId).maybeSingle(),
+    ]);
+
+    const sessionIds = (chats ?? []).map((c) => c.id);
+    const { data: messages } = sessionIds.length
+      ? await supabaseAdmin
+          .from("chat_messages")
+          .select("session_id, sender_role, created_at")
+          .in("session_id", sessionIds)
+          .order("created_at", { ascending: true })
+          .limit(5000)
+      : { data: [] as { session_id: string; sender_role: string; created_at: string }[] };
+
+    const rows = messages ?? [];
+    const fromClient = rows.filter((m) => m.sender_role === "client").length;
+    const fromAgent = rows.length - fromClient;
+
+    // Average time between a customer message and the first agent reply.
+    const bySession = new Map<string, typeof rows>();
+    for (const m of rows) {
+      const list = bySession.get(m.session_id) ?? [];
+      list.push(m);
+      bySession.set(m.session_id, list);
+    }
+    const agentGaps: number[] = [];
+    const clientGaps: number[] = [];
+    for (const list of bySession.values()) {
+      for (let i = 1; i < list.length; i++) {
+        const prev = list[i - 1]!;
+        const cur = list[i]!;
+        if (prev.sender_role === cur.sender_role) continue;
+        const gap =
+          (new Date(cur.created_at).getTime() - new Date(prev.created_at).getTime()) / 1000;
+        if (gap < 0 || gap > 3600) continue;
+        (cur.sender_role === "agent" ? agentGaps : clientGaps).push(gap);
+      }
+    }
+    const avg = (list: number[]) =>
+      list.length ? Math.round(list.reduce((a, b) => a + b, 0) / list.length) : null;
+
+    const chatSeconds = (chats ?? []).reduce((sum, c) => sum + (c.duration_seconds ?? 0), 0);
+    const callSeconds = (calls ?? []).reduce((sum, c) => sum + (c.duration_seconds ?? 0), 0);
+
+    return {
+      alias: profile?.alias ?? "Anoniem",
+      since: profile?.created_at ?? null,
+      chatCount: chats?.length ?? 0,
+      callCount: calls?.length ?? 0,
+      chatSeconds,
+      callSeconds,
+      totalSeconds: chatSeconds + callSeconds,
+      messagesFromClient: fromClient,
+      messagesFromAgent: fromAgent,
+      avgAgentReplySeconds: avg(agentGaps),
+      avgClientReplySeconds: avg(clientGaps),
+    };
   });

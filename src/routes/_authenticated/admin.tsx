@@ -20,8 +20,20 @@ import {
 } from "@/lib/admin.functions";
 import { createAgentAccount, setAgentListener } from "@/lib/crm.functions";
 import { useTwilioDevice } from "@/hooks/useTwilioDevice";
+import { supabase } from "@/integrations/supabase/client";
+import { redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/admin")({
+  // Workers never see revenue, analytics or system settings.
+  beforeLoad: async () => {
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) return;
+    const { data: isAdmin } = await supabase.rpc("has_role", {
+      _user_id: data.user.id,
+      _role: "admin",
+    });
+    if (!isAdmin) throw redirect({ to: "/staff" });
+  },
   head: () => ({
     meta: [
       { title: "Admin panel — Anontalk platform analytics" },

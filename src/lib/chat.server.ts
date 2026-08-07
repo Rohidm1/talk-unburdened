@@ -25,3 +25,18 @@ export async function loadClientChat(sessionId: string, clientId: string) {
 }
 
 export { supabaseAdmin };
+
+/** Append one line to the chronological audit trail of a chat. */
+export async function logChatEvent(
+  sessionId: string,
+  event: string,
+  actorRole: "client" | "agent" | "system" = "system",
+  detail?: string | null,
+) {
+  await supabaseAdmin.from("chat_events").insert({
+    session_id: sessionId,
+    event,
+    actor_role: actorRole,
+    detail: detail ?? null,
+  });
+}
