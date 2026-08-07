@@ -18,7 +18,7 @@ import {
   startMonitor,
   stopMonitor,
 } from "@/lib/admin.functions";
-import { createWorker, setListenerAgents } from "@/lib/crm.functions";
+import { createAgentAccount, setAgentListener } from "@/lib/crm.functions";
 import { useTwilioDevice } from "@/hooks/useTwilioDevice";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -58,8 +58,8 @@ function AdminPage() {
   const fetchClients = useServerFn(listClientStats);
   const beginMonitor = useServerFn(startMonitor);
   const endMonitor = useServerFn(stopMonitor);
-  const addWorker = useServerFn(createWorker);
-  const linkProfiles = useServerFn(setListenerAgents);
+  const addAgent = useServerFn(createAgentAccount);
+  const linkAgentProfile = useServerFn(setAgentListener);
 
   const stats = useQuery({ queryKey: ["admin-stats"], queryFn: () => fetchStats(), retry: false });
   const agents = useQuery({
@@ -282,20 +282,44 @@ function AdminPage() {
                           {a.activeChats} chat(s) actief · {a.chatSlotsLeft} plek(ken) vrij
                         </span>
                       </div>
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        {a.profiles.length === 0 ? (
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
+                        {(agents.data?.listeners ?? []).length === 0 ? (
                           <span className="text-xs text-muted-foreground">
-                            Nog geen profielen gekoppeld
+                            Nog geen fictieve profielen.
                           </span>
                         ) : (
-                          a.profiles.map((p) => (
-                            <span
-                              key={p.id}
-                              className="rounded-md bg-secondary px-2 py-0.5 text-[11px] text-secondary-foreground"
-                            >
-                              {p.name}
-                            </span>
-                          ))
+                          (agents.data?.listeners ?? []).map((l) => {
+                            const linked = a.profiles.some((p) => p.id === l.id);
+                            return (
+                              <label
+                                key={l.id}
+                                className="flex items-center gap-2 text-xs text-muted-foreground"
+                              >
+                                <Checkbox
+                                  checked={linked}
+                                  onCheckedChange={async () => {
+                                    try {
+                                      await linkAgentProfile({
+                                        data: {
+                                          agentUserId: a.userId,
+                                          listenerId: l.id,
+                                          linked: !linked,
+                                        },
+                                      });
+                                      void queryClient.invalidateQueries({
+                                        queryKey: ["admin-agents"],
+                                      });
+                                    } catch {
+                                      toast.error("Koppeling kon niet worden opgeslagen.");
+                                    }
+                                  }}
+                                />
+                                <span className={linked ? "text-foreground" : undefined}>
+                                  {l.display_name}
+                                </span>
+                              </label>
+                            );
+                          })
                         )}
                       </div>
                     </li>
@@ -308,23 +332,8 @@ function AdminPage() {
 
               <NewAgentForm
                 listeners={agents.data?.listeners ?? []}
-                onCreate={async (values, profileIds) => {
-                  await addWorker({ data: values });
-                  const fresh = await fetchAgents();
-                  const created = fresh.agents.find((a) => a.username === values.username);
-                  if (created) {
-                    for (const listenerId of profileIds) {
-                      const current = fresh.agents
-                        .filter((a) => a.profiles.some((p) => p.id === listenerId))
-                        .map((a) => a.userId);
-                      await linkProfiles({
-                        data: {
-                          listenerId,
-                          agentUserIds: Array.from(new Set([...current, created.userId])),
-                        },
-                      });
-                    }
-                  }
+                onCreate={async (values) => {
+                  await addAgent({ data: values });
                   void queryClient.invalidateQueries({ queryKey: ["admin-agents"] });
                 }}
               />
@@ -392,14 +401,7 @@ type NewAgentValues = {
   username: string;
   password: string;
   displayName: string;
-  avatarKey: string;
-  bioEn: string;
-  bioNl: string;
-  languages: string[];
-  topicsEn: string[];
-  topicsNl: string[];
-  years: number;
-  existingListenerId: string | null;
+  listenerIds: string[];
 };
 
 function NewAgentForm({
@@ -407,7 +409,7 @@ function NewAgentForm({
   onCreate,
 }: {
   listeners: { id: string; display_name: string }[];
-  onCreate: (values: NewAgentValues, profileIds: string[]) => Promise<void>;
+  onCreate: (values: NewAgentValues) => Promise<void>;
 }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -416,24 +418,12 @@ function NewAgentForm({
 
   const mutation = useMutation({
     mutationFn: () =>
-      onCreate(
-        {
-          username: username.trim(),
-          password,
-          displayName: displayName.trim(),
-          // The agent works behind existing fictional profiles, so no new card
-          // is created — these are only defaults if none is linked.
-          avatarKey: "amara",
-          bioEn: "A warm listener.",
-          bioNl: "Een warme luisteraar.",
-          languages: ["NL"],
-          topicsEn: [],
-          topicsNl: [],
-          years: 1,
-          existingListenerId: picked[0] ?? null,
-        },
-        picked,
-      ),
+      onCreate({
+        username: username.trim(),
+        password,
+        displayName: displayName.trim(),
+        listenerIds: picked,
+      }),
     onSuccess: () => {
       toast.success("Agent aangemaakt.");
       setUsername("");

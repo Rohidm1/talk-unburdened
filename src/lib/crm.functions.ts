@@ -214,3 +214,104 @@ export const amIAdmin = createServerFn({ method: "GET" })
     });
     return { isAdmin: Boolean(data) };
   });
+
+/**
+ * Minimal agent account: a login + screen name only.
+ * It never creates or renames a fictional profile — linking is separate.
+ */
+export const createAgentAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        username: z
+          .string()
+          .trim()
+          .min(3)
+          .max(32)
+          .regex(/^[a-zA-Z0-9._-]+$/),
+        password: z.string().min(8).max(72),
+        displayName: z.string().trim().min(2).max(40),
+        listenerIds: z.array(z.string().uuid()).max(50).default([]),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    const { requireAdminClient } = await import("@/lib/crm.server");
+    const admin = requireAdminClient(Boolean(isAdmin));
+
+    const { data: created, error: createError } = await admin.auth.admin.createUser({
+      email: usernameToEmail(data.username),
+      password: data.password,
+      email_confirm: true,
+      user_metadata: { alias: data.displayName },
+    });
+    if (createError || !created.user)
+      throw new Error(createError?.message ?? "Could not create login");
+
+    const userId = created.user.id;
+    await admin.from("user_roles").insert({ user_id: userId, role: "staff" });
+
+    if (data.listenerIds.length > 0) {
+      const { error } = await admin
+        .from("listener_agents")
+        .insert(data.listenerIds.map((listener_id) => ({ listener_id, agent_user_id: userId })));
+      if (error) throw new Error(error.message);
+    }
+
+    await admin.rpc("set_agent_status", { _agent_user_id: userId, _status: "offline" });
+    for (const listenerId of data.listenerIds) {
+      await admin.rpc("sync_listener_status", { _listener_id: listenerId });
+    }
+
+    return { ok: true, userId, username: data.username };
+  });
+
+/** Link/unlink one agent to one fictional profile without touching other agents. */
+export const setAgentListener = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        agentUserId: z.string().uuid(),
+        listenerId: z.string().uuid(),
+        linked: z.boolean(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    const { requireAdminClient } = await import("@/lib/crm.server");
+    const admin = requireAdminClient(Boolean(isAdmin));
+
+    if (data.linked) {
+      const { data: existing } = await admin
+        .from("listener_agents")
+        .select("id")
+        .eq("listener_id", data.listenerId)
+        .eq("agent_user_id", data.agentUserId)
+        .maybeSingle();
+      if (!existing) {
+        const { error } = await admin
+          .from("listener_agents")
+          .insert({ listener_id: data.listenerId, agent_user_id: data.agentUserId });
+        if (error) throw new Error(error.message);
+      }
+    } else {
+      await admin
+        .from("listener_agents")
+        .delete()
+        .eq("listener_id", data.listenerId)
+        .eq("agent_user_id", data.agentUserId);
+    }
+
+    await admin.rpc("sync_listener_status", { _listener_id: data.listenerId });
+    return { ok: true };
+  });
