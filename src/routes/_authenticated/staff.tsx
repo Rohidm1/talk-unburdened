@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { NotebookPen, Phone, PhoneOff } from "lucide-react";
+import { BellRing, NotebookPen, Phone, PhoneOff } from "lucide-react";
 import type { Call } from "@twilio/voice-sdk";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { getMyAccount } from "@/lib/account.functions";
 import { addNote, listMyNotes, setMyStatus } from "@/lib/staff.functions";
 import { useTwilioDevice } from "@/hooks/useTwilioDevice";
+import { useIncomingCallAlert } from "@/hooks/useIncomingCallAlert";
 
 export const Route = createFileRoute("/_authenticated/staff")({
   head: () => ({
@@ -71,6 +72,7 @@ function StaffPage() {
   const listener = account.data?.listener;
   const voice = useTwilioDevice(!!isStaff);
   const [active, setActive] = useState<Call | null>(null);
+  const alerts = useIncomingCallAlert(!!voice.incoming);
 
   const acceptCall = () => {
     const call = voice.incoming;
@@ -116,6 +118,18 @@ function StaffPage() {
                 ? "You're reachable — keep this page open to receive calls."
                 : "Connecting your line…"}
             </p>
+
+            {alerts.permission !== "granted" ? (
+              <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-secondary/30 p-4">
+                <span className="flex-1 text-sm text-muted-foreground">
+                  Turn on sound and desktop alerts so you don't miss a call when this tab is in the
+                  background.
+                </span>
+                <Button variant="outline" onClick={() => void alerts.requestPermission()}>
+                  <BellRing className="size-4" /> Enable alerts
+                </Button>
+              </div>
+            ) : null}
 
             {voice.incoming ? (
               <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-primary/50 bg-secondary/40 p-4">
