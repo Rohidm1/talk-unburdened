@@ -10,6 +10,7 @@ import {
   History,
   Inbox,
   MessageCircle,
+  NotebookPen,
   SendHorizonal,
   UserRound,
   X,
@@ -17,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import {
   acceptChat,
@@ -25,7 +27,9 @@ import {
   getChatClientStats,
   listChatEvents,
   listChatMessages,
+  listChatNotes,
   listMyChats,
+  saveChatNote,
   sendChatMessage,
 } from "@/lib/chat.functions";
 import { useInboxAlert } from "@/hooks/useInboxAlert";
@@ -45,6 +49,7 @@ const eventLabels: Record<string, string> = {
   interrupted: "Netwerkonderbreking",
   reconnected: "Opnieuw verbonden",
   ended: "Beëindigd",
+  note_added: "Notitie toegevoegd aan logboek",
 };
 
 export function AgentChatPanel({ enabled }: { enabled: boolean }) {
@@ -53,6 +58,8 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
   const fetchMessages = useServerFn(listChatMessages);
   const fetchEvents = useServerFn(listChatEvents);
   const fetchStats = useServerFn(getChatClientStats);
+  const fetchNotes = useServerFn(listChatNotes);
+  const addNote = useServerFn(saveChatNote);
   const send = useServerFn(sendChatMessage);
   const take = useServerFn(acceptChat);
   const refuse = useServerFn(declineChat);
@@ -62,6 +69,9 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
   const [draft, setDraft] = useState("");
   const [showAudit, setShowAudit] = useState(false);
   const [showStats, setShowStats] = useState(true);
+  const [showNotes, setShowNotes] = useState(true);
+  const [noteDraft, setNoteDraft] = useState("");
+  const [savingNote, setSavingNote] = useState(false);
   const [closingId, setClosingId] = useState<string | null>(null);
   const [closedIds, setClosedIds] = useState<string[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -92,6 +102,12 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
     queryFn: () => fetchStats({ data: { sessionId: openId! } }),
     enabled: !!openId && showStats,
     refetchInterval: 30000,
+  });
+
+  const notes = useQuery({
+    queryKey: ["chat-notes", openId],
+    queryFn: () => fetchNotes({ data: { sessionId: openId! } }),
+    enabled: !!openId && showNotes,
   });
 
   const rows = (chats.data ?? []).filter((c) => !closedIds.includes(c.id));
@@ -136,6 +152,22 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
     setDraft("");
     await send({ data: { sessionId: openId, body } });
     await messages.refetch();
+  };
+
+  const submitNote = async () => {
+    const body = noteDraft.trim();
+    if (!body || !openId || savingNote) return;
+    setSavingNote(true);
+    try {
+      await addNote({ data: { sessionId: openId, body } });
+      setNoteDraft("");
+      await notes.refetch();
+      toast.success("Notitie opgeslagen in het logboek.");
+    } catch {
+      toast.error("Notitie kon niet worden opgeslagen.");
+    } finally {
+      setSavingNote(false);
+    }
   };
 
   if (!enabled) return null;
@@ -340,6 +372,79 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                 <Button size="icon" disabled={!draft.trim()} onClick={() => void submit()}>
                   <SendHorizonal className="size-4" />
                 </Button>
+              </div>
+
+              <div className="border-t border-border">
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium"
+                  onClick={() => setShowNotes((v) => !v)}
+                >
+                  {showNotes ? (
+                    <ChevronDown className="size-4" />
+                  ) : (
+                    <ChevronRight className="size-4" />
+                  )}
+                  <NotebookPen className="size-4 text-primary" /> Logboek
+                  {(notes.data ?? []).length > 0 ? (
+                    <span className="ml-1 rounded-full bg-secondary px-2 py-0.5 text-xs text-muted-foreground">
+                      {(notes.data ?? []).length}
+                    </span>
+                  ) : null}
+                </button>
+                {showNotes ? (
+                  <div className="px-4 pb-4">
+                    <div className="flex items-start gap-2">
+                      <Textarea
+                        value={noteDraft}
+                        maxLength={4000}
+                        rows={2}
+                        placeholder="Belangrijke informatie over dit gesprek…"
+                        onChange={(e) => setNoteDraft(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                            e.preventDefault();
+                            void submitNote();
+                          }
+                        }}
+                      />
+                      <Button
+                        size="sm"
+                        disabled={!noteDraft.trim() || savingNote}
+                        onClick={() => void submitNote()}
+                      >
+                        Opslaan
+                      </Button>
+                    </div>
+                    <ul className="mt-3 max-h-48 space-y-2 overflow-y-auto text-sm">
+                      {(notes.data ?? []).length === 0 ? (
+                        <li className="text-muted-foreground">Nog geen notities voor deze klant.</li>
+                      ) : (
+                        (notes.data ?? []).map((n) => (
+                          <li key={n.id} className="rounded-2xl border border-border bg-card p-3">
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <span>
+                                {new Date(n.createdAt).toLocaleString("nl-NL", {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </span>
+                              <span className="rounded-full bg-secondary px-2 py-0.5">
+                                {n.source === "chat" ? "chat" : n.source === "call" ? "gesprek" : "algemeen"}
+                              </span>
+                              {n.thisConversation ? (
+                                <span className="text-primary">deze chat</span>
+                              ) : null}
+                            </div>
+                            <p className="mt-1 whitespace-pre-wrap">{n.body}</p>
+                          </li>
+                        ))
+                      )}
+                    </ul>
+                  </div>
+                ) : null}
               </div>
 
               <div className="border-t border-border">

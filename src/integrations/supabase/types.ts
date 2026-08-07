@@ -80,6 +80,7 @@ export type Database = {
         Row: {
           body: string
           call_id: string | null
+          chat_session_id: string | null
           client_alias: string | null
           client_id: string | null
           created_at: string
@@ -89,6 +90,7 @@ export type Database = {
         Insert: {
           body: string
           call_id?: string | null
+          chat_session_id?: string | null
           client_alias?: string | null
           client_id?: string | null
           created_at?: string
@@ -98,6 +100,7 @@ export type Database = {
         Update: {
           body?: string
           call_id?: string | null
+          chat_session_id?: string | null
           client_alias?: string | null
           client_id?: string | null
           created_at?: string
@@ -110,6 +113,13 @@ export type Database = {
             columns: ["call_id"]
             isOneToOne: false
             referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_notes_chat_session_id_fkey"
+            columns: ["chat_session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
             referencedColumns: ["id"]
           },
         ]
