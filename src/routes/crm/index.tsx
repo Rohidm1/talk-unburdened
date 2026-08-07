@@ -24,7 +24,7 @@ export const Route = createFileRoute("/crm/")({
       { title: "Team screen — Anontalk CRM" },
       {
         name: "description",
-        content: "Create listener logins, reset passwords and manage who is live on Anontalk.",
+        content: "Create chat partner logins, reset passwords and manage who is live on Anontalk.",
       },
       { name: "robots", content: "noindex, nofollow" },
       { property: "og:title", content: "Team screen — Anontalk CRM" },
@@ -169,7 +169,7 @@ function CrmTeam() {
       {team.data ? (
         <>
           <section className="mt-8 rounded-3xl border border-border bg-card p-6">
-            <h2 className="font-display text-lg font-semibold">Listeners</h2>
+            <h2 className="font-display text-lg font-semibold">Chat partners</h2>
             <ul className="mt-4 divide-y divide-border">
               {team.data.listeners.map((l) => (
                 <li key={l.id} className="flex flex-wrap items-center gap-4 py-4">
@@ -265,11 +265,11 @@ function CrmTeam() {
 
           <section className="mt-6 rounded-3xl border border-border bg-card p-6">
             <h2 className="flex items-center gap-2 font-display text-lg font-semibold">
-              <UserPlus className="size-4" /> Create a listener login
+              <UserPlus className="size-4" /> Create a chat partner login
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
               You set the username and password directly and hand them to your worker. They sign in
-              at /crm-login and land on the listener desk.
+              at /crm-login and land on the agent desk.
             </p>
             <form
               className="mt-5 grid gap-4 sm:grid-cols-2"
@@ -286,7 +286,7 @@ function CrmTeam() {
                   onChange={(e) => setLinkTo(e.target.value)}
                   className="h-10 rounded-md border border-input bg-background px-3 text-sm"
                 >
-                  <option value="">Create a new listener profile</option>
+                  <option value="">Create a new chat partner profile</option>
                   {team.data.listeners
                     .filter((l) => !l.user_id)
                     .map((l) => (
@@ -325,7 +325,7 @@ function CrmTeam() {
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="years">Years listening</Label>
+                <Label htmlFor="years">Years chatting</Label>
                 <Input
                   id="years"
                   type="number"

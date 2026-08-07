@@ -99,12 +99,12 @@ function AccountPage() {
             Hey {profile?.alias ?? "there"}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Signed in anonymously. Only your alias is visible to listeners.
+            Signed in anonymously. Only your alias is visible to chat partners.
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" asChild>
-            <Link to="/">Find a listener</Link>
+            <Link to="/">Find a chat partner</Link>
           </Button>
           {roles.includes("staff") ? (
             <Button variant="outline" asChild>
@@ -180,7 +180,7 @@ function AccountPage() {
 
         <div className="rounded-3xl border border-border bg-card p-6">
           <h2 className="font-display text-lg font-semibold">Your alias</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Change how listeners see you.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Change how chat partners see you.</p>
           <div className="mt-4 flex flex-col gap-2">
             <Label htmlFor="alias">New alias</Label>
             <Input
