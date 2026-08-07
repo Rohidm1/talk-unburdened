@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { MessageCircle, PhoneCall } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Listener } from "@/data/listeners";
 
@@ -17,17 +17,14 @@ const dotStyles: Record<Listener["status"], string> = {
 
 export function ListenerCard({
   listener,
-  onCall,
   onChat,
 }: {
   listener: Listener;
-  onCall: (l: Listener) => void;
   onChat: (l: Listener) => void;
 }) {
   const { t, i18n } = useTranslation();
   const lang = (i18n.language ?? "en").startsWith("nl") ? "nl" : "en";
   const languageLabel = listener.language === "NL" ? "Nederlands" : "English";
-  const nl = listener.language === "NL";
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)] transition-colors hover:border-primary/40">
@@ -74,13 +71,9 @@ export function ListenerCard({
         </div>
 
         <div className="mt-auto flex gap-2 pt-1">
-          <Button className="flex-1" onClick={() => onCall(listener)}>
-            <PhoneCall className="size-4" />
-            {nl ? "Bel nu" : "Call now"}
-          </Button>
-          <Button variant="outline" className="flex-1" onClick={() => onChat(listener)}>
+          <Button className="flex-1" onClick={() => onChat(listener)}>
             <MessageCircle className="size-4" />
-            {nl ? "Chat" : "Chat"}
+            {lang === "nl" ? "Start chat" : "Start chat"}
           </Button>
         </div>
       </div>
