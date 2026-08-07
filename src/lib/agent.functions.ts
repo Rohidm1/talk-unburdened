@@ -160,13 +160,27 @@ export const saveCallNote = createServerFn({ method: "POST" })
       .eq("id", found.call.client_id)
       .maybeSingle();
 
-    const { error } = await supabaseAdmin.from("call_notes").insert({
-      call_id: found.call.id,
-      client_id: found.call.client_id,
-      listener_user_id: context.userId,
-      client_alias: profile?.alias ?? null,
-      body: data.body,
-    });
+    const { data: inserted, error } = await supabaseAdmin
+      .from("call_notes")
+      .insert({
+        call_id: found.call.id,
+        client_id: found.call.client_id,
+        listener_user_id: context.userId,
+        client_alias: profile?.alias ?? null,
+        body: data.body,
+      })
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
-    return { ok: true as const };
+    if (!inserted?.id) throw new Error("note-not-saved");
+
+    // Read the row back so the desk only closes the task on a confirmed write.
+    const { data: verified } = await supabaseAdmin
+      .from("call_notes")
+      .select("id")
+      .eq("id", inserted.id)
+      .maybeSingle();
+    if (!verified?.id) throw new Error("note-not-saved");
+
+    return { ok: true as const, noteId: verified.id };
   });
