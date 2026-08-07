@@ -167,7 +167,7 @@ function Index() {
       return;
     }
 
-    const result = await begin({ data: { listenerId: l.id } });
+    const result = await begin({ data: { listenerId: l.id, agentUserId: dial.toIdentity } });
     if (!result.ok) {
       if (result.reason === "blocked") {
         toast.error("Your account is on hold because of a refund or chargeback. Contact support.");
