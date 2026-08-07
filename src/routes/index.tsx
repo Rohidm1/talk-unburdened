@@ -173,7 +173,7 @@ function Index() {
         toast.error("Your account is on hold because of a refund or chargeback. Contact support.");
         return;
       }
-      setTopUp("no_credit");
+      setTopUp(result.reason === "free_used" ? "free_used" : "no_credit");
       return;
     }
 
