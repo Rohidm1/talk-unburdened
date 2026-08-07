@@ -1,11 +1,17 @@
 import { useCallback, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import type { Call } from "@twilio/voice-sdk";
-import { CheckCircle2, Loader2, PhoneCall, XCircle } from "lucide-react";
+import { CheckCircle2, Copy, Loader2, PhoneCall, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { prepareSelfTest } from "@/lib/voice.functions";
 
-type Result = { ok: boolean; title: string; detail: string } | null;
+type Result = {
+  ok: boolean;
+  title: string;
+  detail: string;
+  /** Correlation id + timeline + stack, for reporting to the admin. */
+  diagnostics: string;
+} | null;
 
 /** Turns a raw failure into something an agent can act on. */
 function explain(reason: string, credentialsOk: boolean | null): { title: string; detail: string } {
