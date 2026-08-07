@@ -233,9 +233,15 @@ export const listMyChats = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    // A customer who simply closes the tab must never keep an agent occupied.
+    await supabaseAdmin.rpc("settle_stale_agent_chats", {
+      _agent_user_id: context.userId,
+      _rate_cents: CHAT_RATE_CENTS_PER_MINUTE,
+    });
+
     const { data: sessions } = await supabaseAdmin
       .from("chat_sessions")
-      .select("id, client_id, listener_id, status, mode, started_at, answered_at")
+      .select("id, client_id, listener_id, status, mode, started_at, answered_at, last_heartbeat_at")
       .eq("agent_user_id", context.userId)
       .is("ended_at", null)
       .order("started_at", { ascending: true })
@@ -265,6 +271,8 @@ export const listMyChats = createServerFn({ method: "GET" })
       mode: r.mode,
       startedAt: r.started_at,
       answeredAt: r.answered_at,
+      /** No heartbeat for a while means the customer left the conversation. */
+      clientAway: Date.parse(r.last_heartbeat_at) < Date.now() - 30000,
       profileName: name.get(r.listener_id) ?? "Anontalk",
       clientAlias: alias.get(r.client_id) ?? "Anoniem",
       clientSince: since.get(r.client_id) ?? null,
