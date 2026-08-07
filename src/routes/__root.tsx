@@ -113,6 +113,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
     ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Anontalk",
+          url: "https://anontalk.online",
+          description:
+            "Anonymous voice calls with warm listeners. No names, no judgment. First 3 minutes free.",
+        }),
+      },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
