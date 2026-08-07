@@ -593,10 +593,60 @@ function StaffPage() {
                     placeholder="Belangrijke informatie voor een volgend gesprek…"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Wordt automatisch opgeslagen zodra je ophangt.
+                    Blijft na het ophangen als taak openstaan tot je hem opslaat.
                   </p>
                 </div>
               </div>
+            </section>
+          ) : null}
+
+          {wrapUps.length > 0 ? (
+            <section className="rounded-3xl border border-primary/40 bg-card p-6 lg:col-span-3">
+              <div className="flex items-center gap-2">
+                <ClipboardCheck className="size-5 text-primary" />
+                <h2 className="font-display text-lg font-semibold">
+                  Af te ronden gesprekken ({wrapUps.length})
+                </h2>
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Leg belangrijke informatie vast. De taak verdwijnt pas als de notitie is opgeslagen.
+              </p>
+              <ul className="mt-4 grid gap-4">
+                {wrapUps.map((w) => (
+                  <li key={w.callId} className="rounded-2xl border border-border bg-secondary/30 p-4">
+                    <div className="flex flex-wrap justify-between gap-2 text-sm">
+                      <span className="font-semibold">
+                        {w.callerAlias} · {w.profileName}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(w.endedAt).toLocaleString("nl-NL")} · {clock(w.seconds)}
+                      </span>
+                    </div>
+                    <Textarea
+                      className="mt-3"
+                      rows={3}
+                      value={w.draft}
+                      placeholder="Belangrijke informatie uit dit gesprek…"
+                      onChange={(e) =>
+                        persistWrapUps(
+                          wrapUps.map((x) =>
+                            x.callId === w.callId ? { ...x, draft: e.target.value } : x,
+                          ),
+                        )
+                      }
+                    />
+                    <div className="mt-3 flex justify-end">
+                      <Button
+                        disabled={savingWrapUp === w.callId || !w.draft.trim()}
+                        onClick={() => void closeWrapUp(w.callId)}
+                      >
+                        <ClipboardCheck className="size-4" />
+                        {savingWrapUp === w.callId ? "Opslaan…" : "Opslaan & taak afsluiten"}
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </section>
           ) : null}
 
