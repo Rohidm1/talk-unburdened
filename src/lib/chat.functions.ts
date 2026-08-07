@@ -253,11 +253,22 @@ export const listMyChats = createServerFn({ method: "GET" })
     const { data: completedNotes } = endedIds.length
       ? await supabaseAdmin
           .from("call_notes")
-          .select("chat_session_id")
+          .select("chat_session_id, created_at")
           .eq("listener_user_id", context.userId)
           .in("chat_session_id", endedIds)
-      : { data: [] as { chat_session_id: string | null }[] };
-    const logged = new Set((completedNotes ?? []).map((n) => n.chat_session_id).filter(Boolean));
+      : { data: [] as { chat_session_id: string | null; created_at: string }[] };
+    const endedAt = new Map(
+      allRows.filter((r) => r.ended_at).map((r) => [r.id, Date.parse(r.ended_at ?? "")]),
+    );
+    const logged = new Set(
+      (completedNotes ?? [])
+        .filter((n) => {
+          const closedAt = n.chat_session_id ? endedAt.get(n.chat_session_id) : undefined;
+          return closedAt != null && Date.parse(n.created_at) >= closedAt;
+        })
+        .map((n) => n.chat_session_id)
+        .filter(Boolean),
+    );
     // Open conversations stay visible. An answered, ended conversation also
     // stays visible until this agent has saved its logbook entry.
     const rows = allRows
