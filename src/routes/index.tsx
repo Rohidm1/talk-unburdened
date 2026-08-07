@@ -21,7 +21,6 @@ import {
 import { listeners as fallbackListeners, type Listener } from "@/data/listeners";
 import { getMyAccount } from "@/lib/account.functions";
 import { endChat, startChat } from "@/lib/chat.functions";
-import { avatarFor } from "@/lib/avatars";
 import { useAuth } from "@/hooks/useAuth";
 import { CreditCheckoutDialog } from "@/components/site/CreditCheckoutDialog";
 import type { CreditPackageKey } from "@/lib/credit-packages";
