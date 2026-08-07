@@ -155,20 +155,30 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
   const submitNote = async () => {
     const body = noteDraft.trim();
     if (!body || !openId || savingNote) return;
+    const sessionId = openId;
     setSavingNote(true);
     try {
-      await addNote({ data: { sessionId: openId, body } });
+      const saved = await addNote({ data: { sessionId, body } });
+      const noteId = (saved as { noteId?: string } | undefined)?.noteId;
+      if (!noteId) throw new Error("unconfirmed");
+
+      // Read the logbook back and only continue when the entry is really there.
+      const fresh = await notes.refetch();
+      const confirmed = (fresh.data ?? []).some((n) => n.id === noteId);
+      if (!confirmed) throw new Error("unconfirmed");
+
       setNoteDraft("");
-      if (current?.requiresLogbook) {
+      const wasClosed = current?.requiresLogbook;
+      const list = await chats.refetch();
+      const stillListed = (list.data ?? []).some((c) => c.id === sessionId);
+      if (wasClosed && !stillListed) {
         setOpenId(null);
-        await chats.refetch();
         toast.success("Notitie opgeslagen. De afgesloten chat is uit je overzicht verwijderd.");
       } else {
-        await notes.refetch();
         toast.success("Notitie opgeslagen in het logboek.");
       }
     } catch {
-      toast.error("Notitie kon niet worden opgeslagen.");
+      toast.error("Notitie niet bevestigd opgeslagen. De chat blijft open — probeer opnieuw.");
     } finally {
       setSavingNote(false);
     }
