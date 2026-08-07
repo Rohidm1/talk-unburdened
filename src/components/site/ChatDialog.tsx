@@ -8,23 +8,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { chatHeartbeat, listChatMessages, sendChatMessage } from "@/lib/chat.functions";
 import type { Listener } from "@/data/listeners";
 
-function clock(seconds: number) {
-  const m = Math.floor(Math.max(seconds, 0) / 60);
-  const s = Math.max(seconds, 0) % 60;
-  return `${m}:${s.toString().padStart(2, "0")}`;
-}
-
 export function ChatDialog({
   listener,
   sessionId,
   mode,
-  allowanceSeconds,
+  allowance,
   onEnd,
 }: {
   listener: Listener | null;
   sessionId: string | null;
   mode: "paid" | "free";
-  allowanceSeconds: number;
+  allowance: number;
   onEnd: (reason: "user" | "out_of_credit" | "closed") => void;
 }) {
   const beat = useServerFn(chatHeartbeat);
@@ -32,7 +26,7 @@ export function ChatDialog({
   const fetchMessages = useServerFn(listChatMessages);
 
   const [answered, setAnswered] = useState(false);
-  const [remaining, setRemaining] = useState(allowanceSeconds);
+  const [remaining, setRemaining] = useState(allowance);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -48,10 +42,9 @@ export function ChatDialog({
   useEffect(() => {
     if (!open) return;
     setAnswered(false);
-    setRemaining(allowanceSeconds);
-  }, [sessionId, open, allowanceSeconds]);
+    setRemaining(allowance);
+  }, [sessionId, open, allowance]);
 
-  // The server owns the clock: it decides when the credit runs out.
   useEffect(() => {
     if (!open || !sessionId) return;
     let stop = false;
@@ -74,13 +67,6 @@ export function ChatDialog({
       window.clearInterval(id);
     };
   }, [open, sessionId, beat, onEnd]);
-
-  // Local countdown between heartbeats so the timer feels live.
-  useEffect(() => {
-    if (!open || !answered) return;
-    const id = window.setInterval(() => setRemaining((r) => Math.max(r - 1, 0)), 1000);
-    return () => window.clearInterval(id);
-  }, [open, answered]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -106,7 +92,7 @@ export function ChatDialog({
           <DialogTitle className="flex items-center justify-between gap-3 font-display">
             <span>{listener?.displayName ?? "Chat"}</span>
             <span className="text-sm font-normal tabular-nums text-muted-foreground">
-              {mode === "free" ? "Gratis minuten" : "Resterend"} {clock(remaining)}
+              {mode === "free" ? "Gratis berichten" : "Resterende credits"}: {remaining}
             </span>
           </DialogTitle>
         </DialogHeader>
@@ -138,7 +124,7 @@ export function ChatDialog({
           <Input
             value={draft}
             maxLength={2000}
-            disabled={!answered}
+            disabled={!answered || remaining <= 0}
             placeholder={answered ? "Typ je bericht…" : "Even geduld…"}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
@@ -148,7 +134,7 @@ export function ChatDialog({
               }
             }}
           />
-          <Button size="icon" disabled={!answered || !draft.trim()} onClick={() => void submit()}>
+          <Button size="icon" disabled={!answered || !draft.trim() || remaining <= 0} onClick={() => void submit()}>
             <SendHorizonal className="size-4" />
           </Button>
           <Button variant="outline" onClick={() => onEnd("user")}>
