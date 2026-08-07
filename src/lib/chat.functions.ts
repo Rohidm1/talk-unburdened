@@ -342,6 +342,64 @@ export const closeChatAsAgent = createServerFn({ method: "POST" })
 
 /* ------------------------------------------------------- audit & analytics */
 
+/** The agent's own logbook for this customer: notes from chats and calls. */
+export const listChatNotes = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(sessionInput)
+  .handler(async ({ data, context }) => {
+    const { loadAgentChat, supabaseAdmin } = await import("@/lib/chat.server");
+    const session = await loadAgentChat(data.sessionId, context.userId);
+    if (!session) throw new Error("Forbidden");
+
+    const { data: rows, error } = await supabaseAdmin
+      .from("call_notes")
+      .select("id, body, created_at, chat_session_id, call_id")
+      .eq("client_id", session.client_id)
+      .eq("listener_user_id", context.userId)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (error) throw new Error(error.message);
+
+    return (rows ?? []).map((r) => ({
+      id: r.id,
+      body: r.body,
+      createdAt: r.created_at,
+      source: r.chat_session_id ? ("chat" as const) : r.call_id ? ("call" as const) : ("other" as const),
+      thisConversation: r.chat_session_id === data.sessionId,
+    }));
+  });
+
+/** Adds one entry to the logbook for the current chat. */
+export const saveChatNote = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({ sessionId: z.string().uuid(), body: z.string().trim().min(1).max(4000) })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { loadAgentChat, logChatEvent, supabaseAdmin } = await import("@/lib/chat.server");
+    const session = await loadAgentChat(data.sessionId, context.userId);
+    if (!session) throw new Error("Forbidden");
+
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("alias")
+      .eq("id", session.client_id)
+      .maybeSingle();
+
+    const { error } = await supabaseAdmin.from("call_notes").insert({
+      chat_session_id: session.id,
+      client_id: session.client_id,
+      listener_user_id: context.userId,
+      client_alias: profile?.alias ?? null,
+      body: data.body,
+    });
+    if (error) throw new Error(error.message);
+    await logChatEvent(data.sessionId, "note_added", "agent", "Notitie toegevoegd aan logboek");
+    return { ok: true as const };
+  });
+
 /** Chronological trail of everything that happened in one conversation. */
 export const listChatEvents = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
