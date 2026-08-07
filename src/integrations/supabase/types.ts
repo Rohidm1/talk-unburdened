@@ -17,24 +17,30 @@ export type Database = {
       agent_presence: {
         Row: {
           active_chat_count: number
+          availability: string
           created_at: string
           last_seen_at: string
+          online_since: string | null
           status: Database["public"]["Enums"]["listener_status"]
           updated_at: string
           user_id: string
         }
         Insert: {
           active_chat_count?: number
+          availability?: string
           created_at?: string
           last_seen_at?: string
+          online_since?: string | null
           status?: Database["public"]["Enums"]["listener_status"]
           updated_at?: string
           user_id: string
         }
         Update: {
           active_chat_count?: number
+          availability?: string
           created_at?: string
           last_seen_at?: string
+          online_since?: string | null
           status?: Database["public"]["Enums"]["listener_status"]
           updated_at?: string
           user_id?: string
@@ -278,7 +284,7 @@ export type Database = {
           free_seconds_used: number
           id: string
           last_heartbeat_at: string
-          listener_id: string
+          listener_id: string | null
           mode: string
           started_at: string
           status: string
@@ -296,7 +302,7 @@ export type Database = {
           free_seconds_used?: number
           id?: string
           last_heartbeat_at?: string
-          listener_id: string
+          listener_id?: string | null
           mode?: string
           started_at?: string
           status?: string
@@ -314,7 +320,7 @@ export type Database = {
           free_seconds_used?: number
           id?: string
           last_heartbeat_at?: string
-          listener_id?: string
+          listener_id?: string | null
           mode?: string
           started_at?: string
           status?: string
@@ -369,6 +375,7 @@ export type Database = {
         Row: {
           amount_cents: number
           created_at: string
+          credits_delta: number
           id: string
           kind: string
           seconds_delta: number
@@ -378,6 +385,7 @@ export type Database = {
         Insert: {
           amount_cents?: number
           created_at?: string
+          credits_delta?: number
           id?: string
           kind?: string
           seconds_delta: number
@@ -387,6 +395,7 @@ export type Database = {
         Update: {
           amount_cents?: number
           created_at?: string
+          credits_delta?: number
           id?: string
           kind?: string
           seconds_delta?: number
@@ -481,8 +490,10 @@ export type Database = {
       profiles: {
         Row: {
           alias: string
+          chat_credits: number
           created_at: string
           credit_seconds: number
+          free_credits: number
           free_seconds_remaining: number
           id: string
           is_blocked: boolean
@@ -491,8 +502,10 @@ export type Database = {
         }
         Insert: {
           alias?: string
+          chat_credits?: number
           created_at?: string
           credit_seconds?: number
+          free_credits?: number
           free_seconds_remaining?: number
           id: string
           is_blocked?: boolean
@@ -501,8 +514,10 @@ export type Database = {
         }
         Update: {
           alias?: string
+          chat_credits?: number
           created_at?: string
           credit_seconds?: number
+          free_credits?: number
           free_seconds_remaining?: number
           id?: string
           is_blocked?: boolean
@@ -541,6 +556,17 @@ export type Database = {
         Args: { _client_id: string; _listener_id: string }
         Returns: string
       }
+      claim_next_chat: { Args: { _agent_user_id: string }; Returns: string }
+      expire_stale_chats: { Args: never; Returns: undefined }
+      grant_chat_credits: {
+        Args: {
+          _cents: number
+          _credits: number
+          _session: string
+          _user_id: string
+        }
+        Returns: boolean
+      }
       grant_credits: {
         Args: {
           _cents: number
@@ -557,6 +583,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      revoke_chat_credits: {
+        Args: {
+          _block: boolean
+          _cents: number
+          _credits: number
+          _kind: string
+          _ref: string
+          _user_id: string
+        }
+        Returns: boolean
+      }
       revoke_credits: {
         Args: {
           _block: boolean
@@ -567,6 +604,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      set_agent_availability: {
+        Args: { _agent_user_id: string; _availability: string }
+        Returns: undefined
       }
       set_agent_status: {
         Args: {
@@ -604,6 +645,14 @@ export type Database = {
       settle_stale_chats: {
         Args: { _rate_cents: number; _user_id: string }
         Returns: undefined
+      }
+      spend_chat_credit: {
+        Args: { _session_id: string; _user_id: string }
+        Returns: {
+          free_left: number
+          ok: boolean
+          paid_left: number
+        }[]
       }
       sync_listener_status: {
         Args: { _listener_id: string }
