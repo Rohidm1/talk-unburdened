@@ -10,6 +10,7 @@ import {
   History,
   Inbox,
   MessageCircle,
+  NotebookPen,
   SendHorizonal,
   UserRound,
   X,
@@ -25,7 +26,9 @@ import {
   getChatClientStats,
   listChatEvents,
   listChatMessages,
+  listChatNotes,
   listMyChats,
+  saveChatNote,
   sendChatMessage,
 } from "@/lib/chat.functions";
 import { useInboxAlert } from "@/hooks/useInboxAlert";
@@ -45,6 +48,7 @@ const eventLabels: Record<string, string> = {
   interrupted: "Netwerkonderbreking",
   reconnected: "Opnieuw verbonden",
   ended: "Beëindigd",
+  note_added: "Notitie toegevoegd aan logboek",
 };
 
 export function AgentChatPanel({ enabled }: { enabled: boolean }) {
@@ -53,6 +57,8 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
   const fetchMessages = useServerFn(listChatMessages);
   const fetchEvents = useServerFn(listChatEvents);
   const fetchStats = useServerFn(getChatClientStats);
+  const fetchNotes = useServerFn(listChatNotes);
+  const addNote = useServerFn(saveChatNote);
   const send = useServerFn(sendChatMessage);
   const take = useServerFn(acceptChat);
   const refuse = useServerFn(declineChat);
@@ -62,6 +68,9 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
   const [draft, setDraft] = useState("");
   const [showAudit, setShowAudit] = useState(false);
   const [showStats, setShowStats] = useState(true);
+  const [showNotes, setShowNotes] = useState(true);
+  const [noteDraft, setNoteDraft] = useState("");
+  const [savingNote, setSavingNote] = useState(false);
   const [closingId, setClosingId] = useState<string | null>(null);
   const [closedIds, setClosedIds] = useState<string[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -92,6 +101,12 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
     queryFn: () => fetchStats({ data: { sessionId: openId! } }),
     enabled: !!openId && showStats,
     refetchInterval: 30000,
+  });
+
+  const notes = useQuery({
+    queryKey: ["chat-notes", openId],
+    queryFn: () => fetchNotes({ data: { sessionId: openId! } }),
+    enabled: !!openId && showNotes,
   });
 
   const rows = (chats.data ?? []).filter((c) => !closedIds.includes(c.id));
