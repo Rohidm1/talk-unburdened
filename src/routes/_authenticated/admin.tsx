@@ -18,7 +18,7 @@ import {
   startMonitor,
   stopMonitor,
 } from "@/lib/admin.functions";
-import { createWorker, setListenerAgents } from "@/lib/crm.functions";
+import { createAgentAccount, setAgentListener } from "@/lib/crm.functions";
 import { useTwilioDevice } from "@/hooks/useTwilioDevice";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -58,8 +58,8 @@ function AdminPage() {
   const fetchClients = useServerFn(listClientStats);
   const beginMonitor = useServerFn(startMonitor);
   const endMonitor = useServerFn(stopMonitor);
-  const addWorker = useServerFn(createWorker);
-  const linkProfiles = useServerFn(setListenerAgents);
+  const addAgent = useServerFn(createAgentAccount);
+  const linkAgentProfile = useServerFn(setAgentListener);
 
   const stats = useQuery({ queryKey: ["admin-stats"], queryFn: () => fetchStats(), retry: false });
   const agents = useQuery({
