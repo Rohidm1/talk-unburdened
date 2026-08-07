@@ -135,7 +135,7 @@ export const listeners: Listener[] = [
       { en: "Rustige stem", nl: "Rustige stem" },
       { en: "Even stilstaan", nl: "Even stilstaan" },
     ],
-    status: "offline",
+    status: "online",
     years: 5,
   },
 ];
