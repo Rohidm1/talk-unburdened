@@ -87,6 +87,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Anonymous voice calls with warm listeners. No names, no judgment. First 3 minutes free.",
       },
       { name: "author", content: "Anontalk" },
+      {
+        name: "google-site-verification",
+        content: "ZPvCJoja56guGnmJfVoQXXyRuSJL283iMVQXMdgu3Ho",
+      },
       { property: "og:title", content: "Anontalk — A listening ear when you need it" },
       {
         property: "og:description",
