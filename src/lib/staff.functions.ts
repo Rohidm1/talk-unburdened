@@ -8,10 +8,12 @@ export const setMyStatus = createServerFn({ method: "POST" })
     z.object({ status: z.enum(["online", "busy", "offline"]) }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
-      .from("listeners")
-      .update({ status: data.status })
-      .eq("user_id", context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Availability lives on the agent and fans out to every profile they staff.
+    const { error } = await supabaseAdmin.rpc("set_agent_status", {
+      _agent_user_id: context.userId,
+      _status: data.status,
+    });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
