@@ -282,20 +282,44 @@ function AdminPage() {
                           {a.activeChats} chat(s) actief · {a.chatSlotsLeft} plek(ken) vrij
                         </span>
                       </div>
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        {a.profiles.length === 0 ? (
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
+                        {(agents.data?.listeners ?? []).length === 0 ? (
                           <span className="text-xs text-muted-foreground">
-                            Nog geen profielen gekoppeld
+                            Nog geen fictieve profielen.
                           </span>
                         ) : (
-                          a.profiles.map((p) => (
-                            <span
-                              key={p.id}
-                              className="rounded-md bg-secondary px-2 py-0.5 text-[11px] text-secondary-foreground"
-                            >
-                              {p.name}
-                            </span>
-                          ))
+                          (agents.data?.listeners ?? []).map((l) => {
+                            const linked = a.profiles.some((p) => p.id === l.id);
+                            return (
+                              <label
+                                key={l.id}
+                                className="flex items-center gap-2 text-xs text-muted-foreground"
+                              >
+                                <Checkbox
+                                  checked={linked}
+                                  onCheckedChange={async () => {
+                                    try {
+                                      await linkAgentProfile({
+                                        data: {
+                                          agentUserId: a.userId,
+                                          listenerId: l.id,
+                                          linked: !linked,
+                                        },
+                                      });
+                                      void queryClient.invalidateQueries({
+                                        queryKey: ["admin-agents"],
+                                      });
+                                    } catch {
+                                      toast.error("Koppeling kon niet worden opgeslagen.");
+                                    }
+                                  }}
+                                />
+                                <span className={linked ? "text-foreground" : undefined}>
+                                  {l.display_name}
+                                </span>
+                              </label>
+                            );
+                          })
                         )}
                       </div>
                     </li>
