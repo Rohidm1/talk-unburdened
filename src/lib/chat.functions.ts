@@ -241,13 +241,29 @@ export const listMyChats = createServerFn({ method: "GET" })
 
     const { data: sessions } = await supabaseAdmin
       .from("chat_sessions")
-      .select("id, client_id, listener_id, status, mode, started_at, answered_at, last_heartbeat_at")
+      .select(
+        "id, client_id, listener_id, status, mode, started_at, answered_at, ended_at, last_heartbeat_at",
+      )
       .eq("agent_user_id", context.userId)
-      .is("ended_at", null)
-      .order("started_at", { ascending: true })
-      .limit(20);
+      .order("started_at", { ascending: false })
+      .limit(50);
 
-    const rows = sessions ?? [];
+    const allRows = sessions ?? [];
+    const endedIds = allRows.filter((r) => r.ended_at && r.answered_at).map((r) => r.id);
+    const { data: completedNotes } = endedIds.length
+      ? await supabaseAdmin
+          .from("call_notes")
+          .select("chat_session_id")
+          .eq("listener_user_id", context.userId)
+          .in("chat_session_id", endedIds)
+      : { data: [] as { chat_session_id: string | null }[] };
+    const logged = new Set((completedNotes ?? []).map((n) => n.chat_session_id).filter(Boolean));
+    // Open conversations stay visible. An answered, ended conversation also
+    // stays visible until this agent has saved its logbook entry.
+    const rows = allRows
+      .filter((r) => !r.ended_at || (Boolean(r.answered_at) && !logged.has(r.id)))
+      .sort((a, b) => Date.parse(a.started_at) - Date.parse(b.started_at))
+      .slice(0, 20);
     if (rows.length === 0) return [];
 
     const [{ data: profiles }, { data: listeners }] = await Promise.all([
@@ -271,6 +287,8 @@ export const listMyChats = createServerFn({ method: "GET" })
       mode: r.mode,
       startedAt: r.started_at,
       answeredAt: r.answered_at,
+      endedAt: r.ended_at,
+      requiresLogbook: Boolean(r.ended_at && r.answered_at),
       /** No heartbeat for a while means the customer left the conversation. */
       clientAway: Date.parse(r.last_heartbeat_at) < Date.now() - 30000,
       profileName: name.get(r.listener_id) ?? "Anontalk",

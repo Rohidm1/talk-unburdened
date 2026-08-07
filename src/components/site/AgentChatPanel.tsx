@@ -73,7 +73,6 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
   const [noteDraft, setNoteDraft] = useState("");
   const [savingNote, setSavingNote] = useState(false);
   const [closingId, setClosingId] = useState<string | null>(null);
-  const [closedIds, setClosedIds] = useState<string[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const chats = useQuery({
@@ -110,9 +109,9 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
     enabled: !!openId && showNotes,
   });
 
-  const rows = (chats.data ?? []).filter((c) => !closedIds.includes(c.id));
-  const pending = rows.filter((c) => c.status !== "active");
-  const activeChats = rows.filter((c) => c.status === "active");
+  const rows = chats.data ?? [];
+  const pending = rows.filter((c) => !c.answeredAt && !c.endedAt);
+  const activeChats = rows.filter((c) => Boolean(c.answeredAt));
   const current = activeChats.find((c) => c.id === openId) ?? null;
   const alert = useInboxAlert(pending.length);
 
@@ -126,18 +125,17 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
 
   const refresh = () => void queryClient.invalidateQueries({ queryKey: ["agent-chats"] });
 
-  /** Ends the conversation and releases the fictional profile straight away. */
+  /** Ends the conversation and releases the profile, but keeps the dossier open. */
   const closeSession = async (sessionId: string) => {
     if (closingId) return;
     setClosingId(sessionId);
-    // Free the slot in the UI immediately; the server call confirms right after.
-    setClosedIds((ids) => [...ids, sessionId]);
-    if (openId === sessionId) setOpenId(null);
     try {
       await close({ data: { sessionId } });
-      toast.success("Chat afgesloten — je profiel is weer beschikbaar.");
+      await chats.refetch();
+      setOpenId(sessionId);
+      setShowNotes(true);
+      toast.success("Chat afgesloten. Sla nu de belangrijke informatie op in het logboek.");
     } catch {
-      setClosedIds((ids) => ids.filter((id) => id !== sessionId));
       toast.error("Afsluiten mislukt. Probeer het opnieuw.");
     } finally {
       setClosingId(null);
@@ -161,8 +159,14 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
     try {
       await addNote({ data: { sessionId: openId, body } });
       setNoteDraft("");
-      await notes.refetch();
-      toast.success("Notitie opgeslagen in het logboek.");
+      if (current?.requiresLogbook) {
+        setOpenId(null);
+        await chats.refetch();
+        toast.success("Notitie opgeslagen. De afgesloten chat is uit je overzicht verwijderd.");
+      } else {
+        await notes.refetch();
+        toast.success("Notitie opgeslagen in het logboek.");
+      }
     } catch {
       toast.error("Notitie kon niet worden opgeslagen.");
     } finally {
@@ -267,7 +271,7 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
         <MessageCircle className="size-5 text-primary" />
         <h2 className="font-display text-lg font-semibold">Live chats</h2>
         <span className="ml-auto text-xs text-muted-foreground">
-          {activeChats.length} actief
+          {activeChats.filter((c) => !c.endedAt).length} actief
         </span>
       </div>
 
@@ -292,21 +296,25 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                   <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <span
                       className={`size-2 rounded-full ${
-                        c.clientAway ? "bg-muted-foreground" : "animate-pulse bg-emerald-500"
+                        c.endedAt || c.clientAway
+                          ? "bg-muted-foreground"
+                          : "animate-pulse bg-emerald-500"
                       }`}
                     />
-                    als {c.profileName} · {c.clientAway ? "klant offline" : "verbonden"}
+                    als {c.profileName} · {c.endedAt ? "logboek invullen" : c.clientAway ? "klant offline" : "verbonden"}
                   </span>
                 </button>
-                <Button
-                  size="sm"
-                  variant={c.clientAway ? "destructive" : "outline"}
-                  className="mt-2 w-full"
-                  disabled={closingId === c.id}
-                  onClick={() => void closeSession(c.id)}
-                >
-                  <X className="size-4" /> Chat afsluiten
-                </Button>
+                {!c.endedAt ? (
+                  <Button
+                    size="sm"
+                    variant={c.clientAway ? "destructive" : "outline"}
+                    className="mt-2 w-full"
+                    disabled={closingId === c.id}
+                    onClick={() => void closeSession(c.id)}
+                  >
+                    <X className="size-4" /> Chat afsluiten
+                  </Button>
+                ) : null}
               </li>
             ))
           )}
@@ -329,17 +337,23 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                           : "animate-pulse bg-emerald-500"
                       }`}
                     />
-                    {current.clientAway ? "klant heeft de chat verlaten" : "live verbonden"}
+                     {current.endedAt
+                       ? "afgesloten — logboek nog opslaan"
+                       : current.clientAway
+                         ? "klant heeft de chat verlaten"
+                         : "live verbonden"}
                   </span>
                 </span>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  disabled={closingId === current.id}
-                  onClick={() => void closeSession(current.id)}
-                >
-                  <X className="size-4" /> Chat afsluiten
-                </Button>
+                 {!current.endedAt ? (
+                   <Button
+                     size="sm"
+                     variant="destructive"
+                     disabled={closingId === current.id}
+                     onClick={() => void closeSession(current.id)}
+                   >
+                     <X className="size-4" /> Chat afsluiten
+                   </Button>
+                 ) : null}
               </div>
               <div className="flex-1 space-y-2 overflow-y-auto p-4">
                 {(messages.data ?? []).map((m) => (
@@ -356,6 +370,7 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                 ))}
                 <div ref={bottomRef} />
               </div>
+              {!current.endedAt ? (
               <div className="flex items-center gap-2 border-t border-border p-3">
                 <Input
                   value={draft}
@@ -373,6 +388,11 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                   <SendHorizonal className="size-4" />
                 </Button>
               </div>
+              ) : (
+                <p className="border-t border-border px-4 py-3 text-sm text-primary">
+                  Deze chat is afgesloten. Schrijf de belangrijke informatie hieronder en klik op Opslaan; daarna verdwijnt de chat.
+                </p>
+              )}
 
               <div className="border-t border-border">
                 <button

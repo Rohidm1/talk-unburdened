@@ -65,13 +65,16 @@ export function useTwilioDevice(enabled: boolean) {
     device.on("unregistered", () => {
       if (mountedRef.current) setReady(false);
     });
-    await device.register();
     deviceRef.current = device;
     if (mountedRef.current) {
       setIdentity(res.identity);
       setReady(true);
       setError(null);
     }
+    // Conference calls are always started with device.connect(). Registering
+    // is only required for Twilio's incoming-call signalling and can fail on
+    // mobile/background browsers even though outbound audio works perfectly.
+    // Do not block customer calls on that unrelated registration step.
     return device;
   }, [teardown]);
 
