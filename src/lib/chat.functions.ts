@@ -417,16 +417,30 @@ export const saveChatNote = createServerFn({ method: "POST" })
       .eq("id", session.client_id)
       .maybeSingle();
 
-    const { error } = await supabaseAdmin.from("call_notes").insert({
-      chat_session_id: session.id,
-      client_id: session.client_id,
-      listener_user_id: context.userId,
-      client_alias: profile?.alias ?? null,
-      body: data.body,
-    });
+    const { data: inserted, error } = await supabaseAdmin
+      .from("call_notes")
+      .insert({
+        chat_session_id: session.id,
+        client_id: session.client_id,
+        listener_user_id: context.userId,
+        client_alias: profile?.alias ?? null,
+        body: data.body,
+      })
+      .select("id, created_at")
+      .single();
     if (error) throw new Error(error.message);
+
+    // Read the row back: only a confirmed, committed write may retire a chat.
+    const { data: verified, error: verifyError } = await supabaseAdmin
+      .from("call_notes")
+      .select("id, created_at")
+      .eq("id", inserted.id)
+      .maybeSingle();
+    if (verifyError) throw new Error(verifyError.message);
+    if (!verified) throw new Error("Notitie kon niet worden bevestigd");
+
     await logChatEvent(data.sessionId, "note_added", "agent", "Notitie toegevoegd aan logboek");
-    return { ok: true as const };
+    return { ok: true as const, noteId: verified.id, createdAt: verified.created_at };
   });
 
 /** Chronological trail of everything that happened in one conversation. */
