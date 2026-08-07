@@ -25,9 +25,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { CreditCheckoutDialog } from "@/components/site/CreditCheckoutDialog";
 import type { CreditPackageKey } from "@/lib/credit-packages";
 
-const title = "Anontalk — Anonymous live chat with a listening ear";
-const description =
-  "Talk it out anonymously. Anontalk connects men in Belgium, the Netherlands and the US with warm listeners over a safe browser chat. First 3 messages free.";
+const title = "Anontalk - 100% Private & Anonymous Chat Platform.";
+const description = "Anontalk - 100% Private & Anonymous Chat Platform";
 
 export const Route = createFileRoute("/")({
   head: () => ({
