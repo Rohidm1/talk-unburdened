@@ -19,6 +19,8 @@ export function useTwilioDevice(enabled: boolean) {
   const settingUpRef = useRef<Promise<Device | null> | null>(null);
   const mountedRef = useRef(true);
   const identityRef = useRef<string | null>(null);
+  // Last provider error code seen, so failures can be reported precisely.
+  const lastCodeRef = useRef<number | null>(null);
 
   const [ready, setReady] = useState(false);
   const [identity, setIdentity] = useState<string | null>(null);
