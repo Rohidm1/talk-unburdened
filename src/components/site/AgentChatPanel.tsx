@@ -61,6 +61,8 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
   const [draft, setDraft] = useState("");
   const [showAudit, setShowAudit] = useState(false);
   const [showStats, setShowStats] = useState(true);
+  const [closingId, setClosingId] = useState<string | null>(null);
+  const [closedIds, setClosedIds] = useState<string[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const chats = useQuery({
@@ -91,7 +93,7 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
     refetchInterval: 30000,
   });
 
-  const rows = chats.data ?? [];
+  const rows = (chats.data ?? []).filter((c) => !closedIds.includes(c.id));
   const pending = rows.filter((c) => c.status !== "active");
   const activeChats = rows.filter((c) => c.status === "active");
   const current = activeChats.find((c) => c.id === openId) ?? null;
@@ -106,6 +108,26 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
   }, [messages.data?.length]);
 
   const refresh = () => void queryClient.invalidateQueries({ queryKey: ["agent-chats"] });
+
+  /** Ends the conversation and releases the fictional profile straight away. */
+  const closeSession = async (sessionId: string) => {
+    if (closingId) return;
+    setClosingId(sessionId);
+    // Free the slot in the UI immediately; the server call confirms right after.
+    setClosedIds((ids) => [...ids, sessionId]);
+    if (openId === sessionId) setOpenId(null);
+    try {
+      await close({ data: { sessionId } });
+      toast.success("Chat afgesloten — je profiel is weer beschikbaar.");
+    } catch {
+      setClosedIds((ids) => ids.filter((id) => id !== sessionId));
+      toast.error("Afsluiten mislukt. Probeer het opnieuw.");
+    } finally {
+      setClosingId(null);
+      refresh();
+      void queryClient.invalidateQueries({ queryKey: ["agent-listeners"] });
+    }
+  };
 
   const submit = async () => {
     const body = draft.trim();
