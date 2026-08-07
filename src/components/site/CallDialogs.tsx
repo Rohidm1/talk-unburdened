@@ -115,7 +115,7 @@ export function ActiveCallDialog({
                 {t("call.inCall")} {listener.displayName}
               </DialogTitle>
               <DialogDescription>
-                {audioLive ? t("call.liveAudio") : t("call.demo")}
+                {audioLive ? t("call.liveAudio") : "Connecting your line…"}
               </DialogDescription>
             </DialogHeader>
 
@@ -132,17 +132,21 @@ export function ActiveCallDialog({
               </div>
             ) : null}
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className={`grid gap-3 ${mode === "free" ? "grid-cols-2" : "grid-cols-3"}`}>
               <div className="rounded-2xl border border-border bg-secondary/40 p-3 text-center">
-                <p className="text-xs text-muted-foreground">
-                  {mode === "free" ? "Free minutes left" : "Talk time left"}
-                </p>
+                <p className="text-xs text-muted-foreground">Talk time left</p>
                 <p className="font-display text-lg text-primary tabular-nums">{format(left)}</p>
               </div>
               <div className="rounded-2xl border border-border bg-secondary/40 p-3 text-center">
-                <p className="text-xs text-muted-foreground">{t("call.balance")}</p>
-                <p className="font-display text-lg tabular-nums">€ {cost.toFixed(2)}</p>
+                <p className="text-xs text-muted-foreground">Talk time used</p>
+                <p className="font-display text-lg tabular-nums">{format(elapsed)}</p>
               </div>
+              {mode === "free" ? null : (
+                <div className="rounded-2xl border border-border bg-secondary/40 p-3 text-center">
+                  <p className="text-xs text-muted-foreground">{t("call.balance")}</p>
+                  <p className="font-display text-lg tabular-nums">€ {cost.toFixed(2)}</p>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-center gap-3">
