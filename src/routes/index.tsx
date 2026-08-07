@@ -209,7 +209,6 @@ function Index() {
   };
 
   const handleTick = async () => {
-    const _unused = null;
     const callId = activeCallId;
     if (!callId) return null;
     try {
