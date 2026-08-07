@@ -43,6 +43,7 @@ export type Database = {
           body: string
           call_id: string | null
           client_alias: string | null
+          client_id: string | null
           created_at: string
           id: string
           listener_user_id: string
@@ -51,6 +52,7 @@ export type Database = {
           body: string
           call_id?: string | null
           client_alias?: string | null
+          client_id?: string | null
           created_at?: string
           id?: string
           listener_user_id: string
@@ -59,6 +61,7 @@ export type Database = {
           body?: string
           call_id?: string | null
           client_alias?: string | null
+          client_id?: string | null
           created_at?: string
           id?: string
           listener_user_id?: string
@@ -75,6 +78,7 @@ export type Database = {
       }
       calls: {
         Row: {
+          answered_at: string | null
           billed_seconds: number
           client_id: string
           cost_cents: number
@@ -87,8 +91,10 @@ export type Database = {
           mode: string
           room_name: string | null
           started_at: string
+          status: string
         }
         Insert: {
+          answered_at?: string | null
           billed_seconds?: number
           client_id: string
           cost_cents?: number
@@ -101,8 +107,10 @@ export type Database = {
           mode?: string
           room_name?: string | null
           started_at?: string
+          status?: string
         }
         Update: {
+          answered_at?: string | null
           billed_seconds?: number
           client_id?: string
           cost_cents?: number
@@ -115,6 +123,7 @@ export type Database = {
           mode?: string
           room_name?: string | null
           started_at?: string
+          status?: string
         }
         Relationships: [
           {
