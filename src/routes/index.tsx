@@ -188,6 +188,7 @@ function Index() {
         CallerIdentity: voice.identity ?? "",
         TargetIdentity: dial.toIdentity,
         DialAuth: dial.dialAuth,
+        CallRecordId: result.callId,
       });
       if (call) {
         call.on("disconnect", () => setVoiceCall(null));
@@ -204,10 +205,36 @@ function Index() {
     if (!callId) return null;
     try {
       const status = await beat({ data: { callId } });
-      return { remaining: status.remaining, shouldEnd: status.shouldEnd };
+      return {
+        remaining: status.remaining,
+        shouldEnd: status.shouldEnd,
+        answered: status.answered,
+        status: status.status,
+      };
     } catch (err) {
       console.error("[call] heartbeat failed", err);
       return null;
+    }
+  };
+
+  /** Ringing ended without a live agent: nothing was billed. */
+  const handleNoAnswer = async () => {
+    const callId = activeCallId;
+    const listener = activeCall;
+    voiceCall?.disconnect();
+    setVoiceCall(null);
+    setActiveCall(null);
+    setActiveCallId(null);
+    if (callId) {
+      try {
+        await finish({ data: { callId } });
+      } catch (err) {
+        console.error("[call] could not close ringing call", err);
+      }
+    }
+    if (listener) {
+      toast.error(`${listener.displayName} is momenteel in gesprek`);
+      setUnavailable(listener);
     }
   };
 
@@ -267,9 +294,9 @@ function Index() {
         allowanceSeconds={allowance}
         mode={callMode}
         call={voiceCall}
-        audioLive={!!voiceCall}
         onTick={handleTick}
         onEnd={() => void handleEnd()}
+        onNoAnswer={() => void handleNoAnswer()}
       />
       <UnavailableDialog
         listener={unavailable}
