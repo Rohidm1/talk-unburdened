@@ -39,6 +39,7 @@ import {
 } from "@/lib/agent.functions";
 import { AgentChatPanel } from "@/components/site/AgentChatPanel";
 import { AudioDiagnostics } from "@/components/site/AudioDiagnostics";
+import { supabase } from "@/integrations/supabase/client";
 import { useTwilioDevice } from "@/hooks/useTwilioDevice";
 import { useIncomingCallAlert } from "@/hooks/useIncomingCallAlert";
 import { useAuth } from "@/hooks/useAuth";
@@ -127,6 +128,8 @@ function StaffPage() {
   const noteRef = useRef("");
   const alerts = useIncomingCallAlert(!!incomingCallId);
   const online = account.data?.agentStatus === "online";
+  // Live push channel: green means new calls arrive instantly, not on a poll.
+  const [realtime, setRealtime] = useState<"connecting" | "live" | "offline">("connecting");
 
   useEffect(() => {
     noteRef.current = noteDraft;
@@ -173,6 +176,35 @@ function StaffPage() {
     if (activeCallId) return;
     setIncomingCallId(ringing.data?.callId ?? null);
   }, [ringing.data?.callId, activeCallId]);
+
+  // Realtime push: the moment a call row appears for this agent we refresh the
+  // ringing query instead of waiting up to 3 seconds for the next poll.
+  useEffect(() => {
+    if (!isStaff || !user?.id) return;
+    const channel = supabase
+      .channel(`agent-calls-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "calls",
+          filter: `agent_user_id=eq.${user.id}`,
+        },
+        () => {
+          void queryClient.invalidateQueries({ queryKey: ["incoming-call"] });
+        },
+      )
+      .subscribe((status) => {
+        setRealtime(
+          status === "SUBSCRIBED" ? "live" : status === "CHANNEL_ERROR" || status === "CLOSED" ? "offline" : "connecting",
+        );
+      });
+    return () => {
+      void supabase.removeChannel(channel);
+      setRealtime("connecting");
+    };
+  }, [isStaff, user?.id, queryClient]);
 
   // Pull the caller dossier as soon as the line rings.
   useEffect(() => {
@@ -434,6 +466,40 @@ function StaffPage() {
                   aria-label="Beschikbaarheid"
                 />
               </div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-secondary/20 p-3 text-sm">
+              <span
+                className={`inline-flex items-center gap-2 font-semibold ${
+                  incomingCallId
+                    ? "text-primary"
+                    : realtime === "live"
+                      ? "text-success"
+                      : "text-muted-foreground"
+                }`}
+              >
+                <span
+                  className={`size-2.5 rounded-full ${
+                    incomingCallId
+                      ? "animate-ping bg-primary"
+                      : realtime === "live"
+                        ? "animate-pulse bg-success"
+                        : "bg-muted-foreground"
+                  }`}
+                />
+                {incomingCallId
+                  ? "Inkomende oproep!"
+                  : realtime === "live"
+                    ? "Live verbonden — meldingen actief"
+                    : realtime === "connecting"
+                      ? "Verbinding maken…"
+                      : "Geen live verbinding"}
+              </span>
+              <span className="text-muted-foreground">
+                {incomingCallId
+                  ? "Er wacht iemand op je — neem op of weiger."
+                  : "Nieuwe oproepen verschijnen hier direct."}
+              </span>
             </div>
 
             {alerts.permission !== "granted" ? (
