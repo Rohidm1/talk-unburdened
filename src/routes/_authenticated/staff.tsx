@@ -105,10 +105,7 @@ function StaffPage() {
     }
   }, [account.data?.agentAvailability]);
 
-  useInboxAlert({
-    enabled: soundEnabled && availability === "available",
-    hasItems: chats.data && chats.data.length > 0,
-  });
+  useInboxAlert(availability === "available" ? ringing.length : 0);
 
   const statusMutation = useMutation({
     mutationFn: (value: Availability) => saveStatus({ data: { availability: value } }),
