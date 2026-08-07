@@ -80,27 +80,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Anontalk — Anonymous live chat with a listening ear" },
+      { title: "Anontalk - 100% Private & Anonymous Chat Platform." },
       {
         name: "description",
-        content:
-          "Anonymous live text chat with warm listeners. No names, no judgment. First 3 messages free.",
+        content: "Anontalk - 100% Private & Anonymous Chat Platform",
       },
       { name: "author", content: "Anontalk" },
       {
         name: "google-site-verification",
         content: "ZPvCJoja56guGnmJfVoQXXyRuSJL283iMVQXMdgu3Ho",
       },
-      { property: "og:title", content: "Anontalk — Anonymous live chat with a listening ear" },
+      { property: "og:title", content: "Anontalk - 100% Private & Anonymous Chat Platform." },
       {
         property: "og:description",
-        content: "Anonymous live text chat with warm listeners. No names, no judgment. First 3 messages free.",
+        content: "Anontalk - 100% Private & Anonymous Chat Platform",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Anontalk — Anonymous live chat with a listening ear" },
-      { name: "twitter:description", content: "Anonymous live text chat with warm listeners. No names, no judgment. First 3 messages free." },
+      { name: "twitter:title", content: "Anontalk - 100% Private & Anonymous Chat Platform." },
+      { name: "twitter:description", content: "Anontalk - 100% Private & Anonymous Chat Platform" },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a2394223-0946-404c-a57f-b2764dcc03b5/id-preview-e7f6bd87--4ade52c4-7d06-41dc-9617-883591d786a0.lovable.app-1785918908183.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a2394223-0946-404c-a57f-b2764dcc03b5/id-preview-e7f6bd87--4ade52c4-7d06-41dc-9617-883591d786a0.lovable.app-1785918908183.png" },
     ],
