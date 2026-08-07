@@ -180,7 +180,8 @@ export const sendChatMessage = createServerFn({ method: "POST" })
           : null;
     if (!role) return { ok: false as const, reason: "forbidden" };
 
-    if (role === "client") {
+    // Nothing is charged until a chat partner has actually joined the chat.
+    if (role === "client" && session.status === "active") {
       const { data: spent } = await supabaseAdmin.rpc("spend_chat_credit", {
         _user_id: context.userId,
         _session_id: data.sessionId,
