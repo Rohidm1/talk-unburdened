@@ -230,6 +230,7 @@ export function UnavailableDialog({
   onPick,
   waiting,
   onJoinWaitlist,
+  waitingAhead = 0,
 }: {
   listener: Listener | null;
   available: Listener[];
@@ -238,6 +239,8 @@ export function UnavailableDialog({
   /** True when the caller already asked to be alerted. */
   waiting?: boolean;
   onJoinWaitlist?: () => void;
+  /** How many conversations are ahead of this caller. */
+  waitingAhead?: number;
 }) {
   const { t } = useTranslation();
   const busyTitle = listener
@@ -251,6 +254,12 @@ export function UnavailableDialog({
           <DialogTitle className="font-display">{busyTitle}</DialogTitle>
           <DialogDescription>{t("call.unavailableBody")}</DialogDescription>
         </DialogHeader>
+        {waitingAhead > 0 ? (
+          <p className="rounded-2xl border border-border bg-secondary/30 p-3 text-sm">
+            Alle medewerkers zijn nu in gesprek — <strong>{waitingAhead}</strong> gesprek
+            {waitingAhead === 1 ? "" : "ken"} voor je.
+          </p>
+        ) : null}
         {available.length > 0 ? (
           <>
             <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">

@@ -21,8 +21,8 @@ export const prepareDial = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ listenerId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    const notReady = (reason: "unconfigured" | "busy") =>
-      ({ ready: false as const, reason, toIdentity: null, dialAuth: null }) as const;
+    const notReady = (reason: "unconfigured" | "busy", waitingAhead = 0) =>
+      ({ ready: false as const, reason, toIdentity: null, dialAuth: null, waitingAhead }) as const;
 
     if (!twilioConfig()) return notReady("unconfigured");
 
@@ -50,16 +50,34 @@ export const prepareDial = createServerFn({ method: "POST" })
     );
     if (agentIds.length === 0) return notReady("busy");
 
-    const { data: presence } = await supabaseAdmin
-      .from("agent_presence")
-      .select("user_id, status")
-      .in("user_id", agentIds);
+    // Everyone who is signed in and available right now, plus everyone who is
+    // already occupied by a live call or chat (through ANY profile).
+    const [{ data: presence }, { data: liveCalls }, { data: liveChats }] = await Promise.all([
+      supabaseAdmin.from("agent_presence").select("user_id, status, active_chat_count"),
+      supabaseAdmin.from("calls").select("agent_user_id").is("ended_at", null),
+      supabaseAdmin.from("chat_sessions").select("agent_user_id").is("ended_at", null),
+    ]);
 
-    const online = (presence ?? []).filter((p) => p.status === "online").map((p) => p.user_id);
-    if (online.length === 0) return notReady("busy");
+    const busy = new Set<string>();
+    for (const c of liveCalls ?? []) if (c.agent_user_id) busy.add(c.agent_user_id);
+    for (const c of liveChats ?? []) if (c.agent_user_id) busy.add(c.agent_user_id);
+
+    const onlineAll = (presence ?? [])
+      .filter((p) => p.status === "online")
+      .map((p) => p.user_id);
+
+    // 1) agents of this profile, 2) any other free agent (smart hand-off).
+    const own = onlineAll.filter((id) => agentIds.includes(id) && !busy.has(id));
+    const others = onlineAll.filter((id) => !agentIds.includes(id) && !busy.has(id));
+    const pool = own.length > 0 ? own : others;
+
+    if (pool.length === 0) {
+      const waitingAhead = onlineAll.filter((id) => busy.has(id)).length;
+      return notReady("busy", waitingAhead);
+    }
 
     const preferred = sticky?.agent_user_id;
-    const toIdentity = preferred && online.includes(preferred) ? preferred : online[0]!;
+    const toIdentity = preferred && pool.includes(preferred) ? preferred : pool[0]!;
 
     await supabaseAdmin
       .from("client_agent_routes")
@@ -70,5 +88,5 @@ export const prepareDial = createServerFn({ method: "POST" })
 
     const expiresAt = Math.floor(Date.now() / 1000) + 300;
     const dialAuth = await signDialAuth(context.userId, toIdentity, expiresAt);
-    return { ready: true as const, reason: null, toIdentity, dialAuth };
+    return { ready: true as const, reason: null, toIdentity, dialAuth, waitingAhead: 0 };
   });
