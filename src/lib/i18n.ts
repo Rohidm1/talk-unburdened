@@ -230,9 +230,9 @@ const nl: typeof en = {
     cancel: "Nu even niet",
   },
   footer: {
-    brand: "Anontalk — een luisterend oor wanneer je het nodig hebt.",
+    brand: "Anontalk — anoniem chatten wanneer jij dat wilt.",
     note: "Anonieme live chat. Geen zorgaanbieder, geen professioneel advies.",
-    tagline: "Een luisterend oor wanneer je het nodig hebt.",
+    tagline: "Anoniem chatten wanneer jij dat wilt.",
     disclaimer:
       "Anontalk biedt informele chatgesprekken met andere gebruikers. Wij zijn geen zorgaanbieder en geven geen professioneel advies. Bel in een noodgeval het alarmnummer.",
     rights: "Alle rechten voorbehouden.",
