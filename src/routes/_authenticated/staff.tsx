@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
   BellRing,
+  ClipboardCheck,
   Headphones,
   History,
   Mic,
@@ -68,6 +69,17 @@ function clock(seconds: number) {
 
 type CallContext = Awaited<ReturnType<typeof getCallContext>>;
 
+type WrapUp = {
+  callId: string;
+  profileName: string;
+  callerAlias: string;
+  endedAt: string;
+  seconds: number;
+  draft: string;
+};
+
+const WRAPUP_KEY = "anontalk.call-wrapups";
+
 function StaffPage() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -109,6 +121,9 @@ function StaffPage() {
   const [muted, setMuted] = useState(false);
   const [noteDraft, setNoteDraft] = useState("");
   const [incomingCallId, setIncomingCallId] = useState<string | null>(null);
+  // Ended calls stay on the desk as a task until the agent logs and closes them.
+  const [wrapUps, setWrapUps] = useState<WrapUp[]>([]);
+  const [savingWrapUp, setSavingWrapUp] = useState<string | null>(null);
   const noteRef = useRef("");
   const alerts = useIncomingCallAlert(!!incomingCallId);
   const online = account.data?.agentStatus === "online";
@@ -116,6 +131,25 @@ function StaffPage() {
   useEffect(() => {
     noteRef.current = noteDraft;
   }, [noteDraft]);
+
+  // Survive a reload: an unfinished logbook task must never disappear.
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(WRAPUP_KEY);
+      if (raw) setWrapUps(JSON.parse(raw) as WrapUp[]);
+    } catch {
+      /* ignore corrupt cache */
+    }
+  }, []);
+
+  const persistWrapUps = (next: WrapUp[]) => {
+    setWrapUps(next);
+    try {
+      window.localStorage.setItem(WRAPUP_KEY, JSON.stringify(next));
+    } catch {
+      /* storage full or blocked */
+    }
+  };
 
   // Keeps presence fresh while the desk is open, so profiles stay reachable.
   useEffect(() => {
@@ -167,19 +201,26 @@ function StaffPage() {
 
   const finishCall = async (call: Call | null, ctx: CallContext | null) => {
     call?.disconnect();
+    const seconds = elapsed;
     setActive(null);
     setActiveCallId(null);
     setAudioState("idle");
     setMuted(false);
     const body = noteRef.current.trim();
     const callId = ctx?.callId ?? null;
-    if (callId && body) {
-      try {
-        await storeNote({ data: { callId, body } });
-        toast.success("Gespreksnotitie opgeslagen.");
-      } catch {
-        toast.error("Notitie kon niet worden opgeslagen.");
-      }
+    if (callId) {
+      persistWrapUps([
+        {
+          callId,
+          profileName: ctx?.profileName ?? "Profiel",
+          callerAlias: ctx?.callerAlias ?? "Anoniem",
+          endedAt: new Date().toISOString(),
+          seconds,
+          draft: body,
+        },
+        ...wrapUps.filter((w) => w.callId !== callId),
+      ]);
+      toast.message("Gesprek beëindigd — leg je logboeknotitie vast om de taak af te sluiten.");
     }
     setNoteDraft("");
     noteRef.current = "";
@@ -191,6 +232,28 @@ function StaffPage() {
     }
     void queryClient.invalidateQueries({ queryKey: ["notes"] });
     void queryClient.invalidateQueries({ queryKey: ["account"] });
+  };
+
+  const closeWrapUp = async (callId: string) => {
+    const item = wrapUps.find((w) => w.callId === callId);
+    if (!item) return;
+    const body = item.draft.trim();
+    if (!body) {
+      toast.error("Schrijf eerst een logboeknotitie voor dit gesprek.");
+      return;
+    }
+    setSavingWrapUp(callId);
+    try {
+      const res = await storeNote({ data: { callId, body } });
+      if (!res?.noteId) throw new Error("not-saved");
+      persistWrapUps(wrapUps.filter((w) => w.callId !== callId));
+      toast.success("Logboeknotitie opgeslagen — taak afgesloten.");
+      void queryClient.invalidateQueries({ queryKey: ["notes"] });
+    } catch {
+      toast.error("Notitie kon niet worden opgeslagen. De taak blijft openstaan.");
+    } finally {
+      setSavingWrapUp(null);
+    }
   };
 
   const acceptCall = async () => {
