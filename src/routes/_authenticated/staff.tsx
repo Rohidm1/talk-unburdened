@@ -146,8 +146,13 @@ function StaffPage() {
 
   const acceptMutation = useMutation({
     mutationFn: (id: string) => accept({ data: { sessionId: id } }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["my-chats"] });
+    onSuccess: async (result, id) => {
+      if (!result.ok) {
+        toast.error("This request is no longer available.");
+        return;
+      }
+      await queryClient.invalidateQueries({ queryKey: ["my-chats"] });
+      setSelectedChatId(id);
       toast.success("Chat accepted");
     },
     onError: (error: Error) => toast.error(error.message),

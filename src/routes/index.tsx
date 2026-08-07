@@ -159,21 +159,26 @@ function HomePage() {
       return;
     }
     setActiveListener(listener);
-    const result = await start({ data: { listenerId: listener.id } });
-    if (!result.ok) {
-      setActiveListener(null);
-      if (result.reason === "blocked") {
-        toast.error("Your account is on hold.");
-      } else if (result.reason === "free_used" || result.reason === "no_credit") {
-        setTopUpReason(result.reason);
-      } else {
-        toast.error("No chat partner is available right now. Please try again in a moment.");
+    try {
+      const result = await start({ data: { listenerId: listener.id } });
+      if (!result.ok) {
+        setActiveListener(null);
+        if (result.reason === "blocked") {
+          toast.error("Your account is on hold.");
+        } else if (result.reason === "free_used" || result.reason === "no_credit") {
+          setTopUpReason(result.reason);
+        } else {
+          toast.error("No chat partner is available right now. Please try again in a moment.");
+        }
+        return;
       }
-      return;
+      setSessionId(result.sessionId);
+      setSessionMode(result.mode);
+      setAllowance(result.allowance);
+    } catch {
+      setActiveListener(null);
+      toast.error("The chat could not be started. Please refresh and try again.");
     }
-    setSessionId(result.sessionId);
-    setSessionMode(result.mode);
-    setAllowance(result.allowance);
   }
 
   async function handleChatEnd(reason: "user" | "out_of_credit" | "closed") {
