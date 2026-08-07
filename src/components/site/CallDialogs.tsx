@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, Mic, MicOff, PhoneOff } from "lucide-react";
+import { AlertTriangle, BellRing, Mic, MicOff, PhoneOff } from "lucide-react";
 import type { Call } from "@twilio/voice-sdk";
 import {
   Dialog,
@@ -134,7 +134,9 @@ export function ActiveCallDialog({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-2xl border border-border bg-secondary/40 p-3 text-center">
-                <p className="text-xs text-muted-foreground">{t("call.freeLeft")}</p>
+                <p className="text-xs text-muted-foreground">
+                  {mode === "free" ? "Free minutes left" : "Talk time left"}
+                </p>
                 <p className="font-display text-lg text-primary tabular-nums">{format(left)}</p>
               </div>
               <div className="rounded-2xl border border-border bg-secondary/40 p-3 text-center">
@@ -165,11 +167,16 @@ export function UnavailableDialog({
   available,
   onClose,
   onPick,
+  waiting,
+  onJoinWaitlist,
 }: {
   listener: Listener | null;
   available: Listener[];
   onClose: () => void;
   onPick: (l: Listener) => void;
+  /** True when the caller already asked to be alerted. */
+  waiting?: boolean;
+  onJoinWaitlist?: () => void;
 }) {
   const { t } = useTranslation();
 
@@ -180,11 +187,13 @@ export function UnavailableDialog({
           <DialogTitle className="font-display">{t("call.unavailableTitle")}</DialogTitle>
           <DialogDescription>{t("call.unavailableBody")}</DialogDescription>
         </DialogHeader>
-        <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-          {t("call.quickConnect")}
-        </p>
-        <ul className="flex flex-col gap-2">
-          {available.map((l) => (
+        {available.length > 0 ? (
+          <>
+            <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+              {t("call.quickConnect")}
+            </p>
+            <ul className="flex flex-col gap-2">
+              {available.map((l) => (
             <li key={l.id}>
               <button
                 onClick={() => onPick(l)}
@@ -206,8 +215,25 @@ export function UnavailableDialog({
                 <span className="text-xs font-medium text-success">{t("listeners.online")}</span>
               </button>
             </li>
-          ))}
-        </ul>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <div className="rounded-2xl border border-border bg-secondary/30 p-4 text-sm">
+            <p className="text-muted-foreground">
+              Everyone is in a conversation right now. Join the waiting line and we'll alert you
+              here the moment a listener is free.
+            </p>
+            <Button
+              className="mt-3 w-full"
+              disabled={waiting}
+              onClick={() => onJoinWaitlist?.()}
+            >
+              <BellRing className="size-4" />
+              {waiting ? "You're in the waiting line" : "Notify me when someone is free"}
+            </Button>
+          </div>
+        )}
         <Button variant="ghost" onClick={onClose}>
           {t("call.cancel")}
         </Button>

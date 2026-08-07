@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -9,6 +9,7 @@ import { Header } from "@/components/site/Header";
 import { Hero } from "@/components/site/Hero";
 import { ListenerCard } from "@/components/site/ListenerCard";
 import { ActiveCallDialog, UnavailableDialog } from "@/components/site/CallDialogs";
+import { TopUpDialog } from "@/components/site/TopUpDialog";
 import { ContactSection, Faq, Footer, HowItWorks, Pricing } from "@/components/site/Sections";
 import { listeners as fallbackListeners, type Listener } from "@/data/listeners";
 import { listPublicListeners } from "@/lib/listeners.functions";
@@ -55,6 +56,9 @@ function Index() {
   const [allowance, setAllowance] = useState(0);
   const [callMode, setCallMode] = useState<"paid" | "free">("paid");
   const [voiceCall, setVoiceCall] = useState<Call | null>(null);
+  const [waitingForListener, setWaitingForListener] = useState(false);
+  const [topUp, setTopUp] = useState<"free_used" | "no_credit" | null>(null);
+  const notifiedRef = useRef(false);
 
   const listenersQuery = useQuery({
     queryKey: ["listeners"],
@@ -84,6 +88,26 @@ function Index() {
     }));
   }, [listenersQuery.data]);
 
+  const onlineList = useMemo(() => list.filter((l) => l.status === "online"), [list]);
+
+  // Waiting line: alert the caller as soon as a listener frees up.
+  useEffect(() => {
+    if (!waitingForListener) {
+      notifiedRef.current = false;
+      return;
+    }
+    const next = onlineList[0];
+    if (!next || notifiedRef.current) return;
+    notifiedRef.current = true;
+    setWaitingForListener(false);
+    setUnavailable(null);
+    toast.success(`${next.displayName} is free now`, {
+      duration: 15000,
+      action: { label: "Call now", onClick: () => void handleCall(next, "paid") },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [waitingForListener, onlineList]);
+
   const handleCall = async (l: Listener, mode: "paid" | "free" = "paid") => {
     if (!session) {
       void navigate({ to: "/auth" });
@@ -99,12 +123,7 @@ function Index() {
         toast.error("Your account is on hold because of a refund or chargeback. Contact support.");
         return;
       }
-      if (result.reason === "no_free_time") {
-        toast.error("Your free check-in time is used up. Top up to keep talking.");
-      } else {
-        toast.error("You're out of talk credit. Top up on your account page.");
-      }
-      void navigate({ to: "/account" });
+      setTopUp(result.reason === "no_free_time" ? "free_used" : "no_credit");
       return;
     }
     setAllowance(result.allowanceSeconds);
@@ -156,11 +175,18 @@ function Index() {
     toast.success(
       `Call ended · ${Math.floor(result.billed / 60)}m ${result.billed % 60}s · € ${(result.cost / 100).toFixed(2)}`,
     );
+    if (result.freeLeft <= 0 && result.paidLeft <= 0) {
+      setTopUp(callMode === "free" ? "free_used" : "no_credit");
+    }
   };
 
   const startFirstAvailable = () => {
-    const first = list.find((l) => l.status === "online");
-    if (first) void handleCall(first, "paid");
+    const first = onlineList[0];
+    if (first) {
+      void handleCall(first, "paid");
+      return;
+    }
+    setUnavailable(list[0] ?? null);
   };
 
   const freeSecondsLeft = account.data?.profile?.free_seconds_remaining;
@@ -206,10 +232,17 @@ function Index() {
       />
       <UnavailableDialog
         listener={unavailable}
-        available={list.filter((l) => l.status === "online")}
+        available={onlineList}
+        waiting={waitingForListener}
+        onJoinWaitlist={() => {
+          setWaitingForListener(true);
+          void listenersQuery.refetch();
+          toast.success("You're in the waiting line — keep this tab open.");
+        }}
         onClose={() => setUnavailable(null)}
         onPick={(l) => void handleCall(l, "paid")}
       />
+      <TopUpDialog open={!!topUp} reason={topUp ?? "no_credit"} onClose={() => setTopUp(null)} />
     </div>
   );
 }

@@ -30,6 +30,8 @@ export function ListenerCard({
   const languageLabel = listener.language === "NL" ? "Nederlands" : "English";
   const nl = listener.language === "NL";
   const freeExhausted = freeSecondsLeft !== undefined && freeSecondsLeft <= 0;
+  const freeMinutes =
+    freeSecondsLeft !== undefined && freeSecondsLeft > 0 ? Math.ceil(freeSecondsLeft / 60) : null;
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)] transition-colors hover:border-primary/40">
@@ -91,6 +93,10 @@ export function ListenerCard({
               ? nl
                 ? "Gratis tijd gebruikt"
                 : "Free time used"
+              : freeMinutes
+                ? nl
+                  ? `Gratis check-in · ${freeMinutes} min over`
+                  : `Free check-in · ${freeMinutes} min left`
               : nl
                 ? "Gratis check-in"
                 : "Free check-in"}
