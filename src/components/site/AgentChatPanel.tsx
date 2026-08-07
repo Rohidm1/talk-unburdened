@@ -12,6 +12,7 @@ import {
   MessageCircle,
   SendHorizonal,
   UserRound,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,8 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
   const [draft, setDraft] = useState("");
   const [showAudit, setShowAudit] = useState(false);
   const [showStats, setShowStats] = useState(true);
+  const [closingId, setClosingId] = useState<string | null>(null);
+  const [closedIds, setClosedIds] = useState<string[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const chats = useQuery({
@@ -91,7 +94,7 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
     refetchInterval: 30000,
   });
 
-  const rows = chats.data ?? [];
+  const rows = (chats.data ?? []).filter((c) => !closedIds.includes(c.id));
   const pending = rows.filter((c) => c.status !== "active");
   const activeChats = rows.filter((c) => c.status === "active");
   const current = activeChats.find((c) => c.id === openId) ?? null;
@@ -106,6 +109,26 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
   }, [messages.data?.length]);
 
   const refresh = () => void queryClient.invalidateQueries({ queryKey: ["agent-chats"] });
+
+  /** Ends the conversation and releases the fictional profile straight away. */
+  const closeSession = async (sessionId: string) => {
+    if (closingId) return;
+    setClosingId(sessionId);
+    // Free the slot in the UI immediately; the server call confirms right after.
+    setClosedIds((ids) => [...ids, sessionId]);
+    if (openId === sessionId) setOpenId(null);
+    try {
+      await close({ data: { sessionId } });
+      toast.success("Chat afgesloten — je profiel is weer beschikbaar.");
+    } catch {
+      setClosedIds((ids) => ids.filter((id) => id !== sessionId));
+      toast.error("Afsluiten mislukt. Probeer het opnieuw.");
+    } finally {
+      setClosingId(null);
+      refresh();
+      void queryClient.invalidateQueries({ queryKey: ["agent-listeners"] });
+    }
+  };
 
   const submit = async () => {
     const body = draft.trim();
@@ -234,25 +257,24 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                   onClick={() => setOpenId(c.id)}
                 >
                   <span className="font-semibold">{c.clientAlias}</span>
-                  <span className="block text-xs text-muted-foreground">
-                    als {c.profileName} · {c.clientAway ? "klant offline" : "actief"}
+                  <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <span
+                      className={`size-2 rounded-full ${
+                        c.clientAway ? "bg-muted-foreground" : "animate-pulse bg-emerald-500"
+                      }`}
+                    />
+                    als {c.profileName} · {c.clientAway ? "klant offline" : "verbonden"}
                   </span>
                 </button>
-                {c.clientAway ? (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="mt-2 w-full"
-                    onClick={async () => {
-                      await close({ data: { sessionId: c.id } });
-                      if (openId === c.id) setOpenId(null);
-                      refresh();
-                      toast.success("Chat afgesloten, je bent weer beschikbaar.");
-                    }}
-                  >
-                    Chat afsluiten
-                  </Button>
-                ) : null}
+                <Button
+                  size="sm"
+                  variant={c.clientAway ? "destructive" : "outline"}
+                  className="mt-2 w-full"
+                  disabled={closingId === c.id}
+                  onClick={() => void closeSession(c.id)}
+                >
+                  <X className="size-4" /> Chat afsluiten
+                </Button>
               </li>
             ))
           )}
@@ -267,23 +289,24 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                   <span className="ml-2 font-normal text-muted-foreground">
                     als {current.profileName}
                   </span>
-                  {current.clientAway ? (
-                    <span className="ml-2 text-xs text-muted-foreground">
-                      · klant heeft de chat verlaten
-                    </span>
-                  ) : null}
+                  <span className="ml-2 inline-flex items-center gap-1.5 text-xs font-normal text-muted-foreground">
+                    <span
+                      className={`size-2 rounded-full ${
+                        current.clientAway
+                          ? "bg-muted-foreground"
+                          : "animate-pulse bg-emerald-500"
+                      }`}
+                    />
+                    {current.clientAway ? "klant heeft de chat verlaten" : "live verbonden"}
+                  </span>
                 </span>
                 <Button
                   size="sm"
                   variant="destructive"
-                  onClick={async () => {
-                    await close({ data: { sessionId: current.id } });
-                    setOpenId(null);
-                    refresh();
-                    toast.success("Chat afgerond, je bent weer beschikbaar.");
-                  }}
+                  disabled={closingId === current.id}
+                  onClick={() => void closeSession(current.id)}
                 >
-                  Afronden
+                  <X className="size-4" /> Chat afsluiten
                 </Button>
               </div>
               <div className="flex-1 space-y-2 overflow-y-auto p-4">
