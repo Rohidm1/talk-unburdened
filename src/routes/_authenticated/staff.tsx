@@ -31,9 +31,11 @@ import {
   answerCall,
   declineCall,
   getCallContext,
+  pollIncomingCall,
   releaseAgent,
   saveCallNote,
 } from "@/lib/agent.functions";
+import { AgentChatPanel } from "@/components/site/AgentChatPanel";
 import { useTwilioDevice } from "@/hooks/useTwilioDevice";
 import { useIncomingCallAlert } from "@/hooks/useIncomingCallAlert";
 import { useAuth } from "@/hooks/useAuth";
@@ -75,6 +77,7 @@ function StaffPage() {
   const decline = useServerFn(declineCall);
   const release = useServerFn(releaseAgent);
   const storeNote = useServerFn(saveCallNote);
+  const pollCall = useServerFn(pollIncomingCall);
 
   const account = useQuery({ queryKey: ["account"], queryFn: () => fetchAccount() });
   const notes = useQuery({ queryKey: ["notes"], queryFn: () => fetchNotes() });
@@ -99,25 +102,37 @@ function StaffPage() {
   const [elapsed, setElapsed] = useState(0);
   const [muted, setMuted] = useState(false);
   const [noteDraft, setNoteDraft] = useState("");
+  const [incomingCallId, setIncomingCallId] = useState<string | null>(null);
   const noteRef = useRef("");
-  const alerts = useIncomingCallAlert(!!voice.incoming);
+  const alerts = useIncomingCallAlert(!!incomingCallId);
   const online = account.data?.agentStatus === "online";
 
   useEffect(() => {
     noteRef.current = noteDraft;
   }, [noteDraft]);
 
+  // Calls are bridged through a conference, so the database — not a Twilio
+  // "incoming" event — tells the agent that a caller is waiting.
+  const ringing = useQuery({
+    queryKey: ["incoming-call"],
+    queryFn: () => pollCall(),
+    enabled: !!isStaff && online && !active,
+    refetchInterval: 3000,
+  });
+
+  useEffect(() => {
+    if (active) return;
+    setIncomingCallId(ringing.data?.callId ?? null);
+  }, [ringing.data?.callId, active]);
+
   // Pull the caller dossier as soon as the line rings.
   useEffect(() => {
-    const call = voice.incoming;
-    if (!call) {
+    if (!incomingCallId) {
       setIncomingContext(null);
       return;
     }
-    const callId = call.customParameters?.get("CallRecordId");
-    if (!callId) return;
     let cancelled = false;
-    void fetchContext({ data: { callId } })
+    void fetchContext({ data: { callId: incomingCallId } })
       .then((ctx) => {
         if (!cancelled) setIncomingContext(ctx);
       })
@@ -125,7 +140,7 @@ function StaffPage() {
     return () => {
       cancelled = true;
     };
-  }, [voice.incoming, fetchContext]);
+  }, [incomingCallId, fetchContext]);
 
   // Live stopwatch for the active conversation.
   useEffect(() => {
@@ -161,34 +176,53 @@ function StaffPage() {
   };
 
   const acceptCall = async () => {
-    const call = voice.incoming;
-    if (!call) return;
+    const callId = incomingCallId;
+    if (!callId) return;
     const ctx = incomingContext;
-    if (ctx) {
-      try {
-        await accept({ data: { callId: ctx.callId } });
-      } catch {
-        toast.error("Kon het gesprek niet aannemen.");
+    let conferenceAuth: string | null = null;
+    try {
+      const res = await accept({ data: { callId } });
+      if (!res.ok || !res.conferenceAuth) {
+        toast.error("Dit gesprek is niet meer beschikbaar.");
+        setIncomingCallId(null);
         return;
       }
+      conferenceAuth = res.conferenceAuth;
+    } catch {
+      toast.error("Kon het gesprek niet aannemen.");
+      return;
     }
-    call.accept();
-    call.on("disconnect", () => void finishCall(null, ctx));
-    setActive(call);
+
+    try {
+      const call = await voice.connect({
+        Mode: "agent",
+        Identity: voice.identity ?? "",
+        CallRecordId: callId,
+        ConferenceAuth: conferenceAuth,
+      });
+      if (call) {
+        call.on("disconnect", () => void finishCall(null, ctx));
+        setActive(call);
+      }
+    } catch {
+      toast.error("Kon de audio niet starten. Controleer je microfoon.");
+      return;
+    }
     setActiveContext(ctx);
-    voice.setIncoming(null);
+    setIncomingCallId(null);
+    setIncomingContext(null);
   };
 
   const rejectCall = async () => {
-    if (incomingContext) {
+    const callId = incomingCallId;
+    if (callId) {
       try {
-        await decline({ data: { callId: incomingContext.callId } });
+        await decline({ data: { callId } });
       } catch {
-        /* the caller side will time out anyway */
+        /* the caller side times out anyway */
       }
     }
-    voice.incoming?.reject();
-    voice.setIncoming(null);
+    setIncomingCallId(null);
     setIncomingContext(null);
   };
 
@@ -379,6 +413,10 @@ function StaffPage() {
             </section>
           ) : null}
 
+          <div className="lg:col-span-3">
+            <AgentChatPanel enabled={!!isStaff} />
+          </div>
+
           <section className="rounded-3xl border border-border bg-card p-6 lg:col-span-3">
             <div className="flex items-center gap-2">
               <NotebookPen className="size-5 text-primary" />
@@ -403,7 +441,7 @@ function StaffPage() {
         </div>
       )}
 
-      <Dialog open={!!voice.incoming} onOpenChange={(o) => !o && void rejectCall()}>
+      <Dialog open={!!incomingCallId} onOpenChange={(o) => !o && void rejectCall()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader className="items-center text-center">
             <Phone className="size-10 animate-bounce text-success" />
