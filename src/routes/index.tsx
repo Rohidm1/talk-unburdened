@@ -30,6 +30,24 @@ import { avatarFor } from "@/lib/avatars";
 import { useAuth } from "@/hooks/useAuth";
 
 const title = "Anontalk — Anonymous voice calls with a listening ear";
+
+/** Turns an internal failure code into something the caller can act on. */
+function voiceErrorMessage(reason: string) {
+  if (reason === "microphone-denied")
+    return "Geef toegang tot je microfoon om te kunnen bellen.";
+  if (reason === "microphone-missing")
+    return "We vinden geen microfoon. Sluit er een aan en probeer opnieuw.";
+  if (reason === "voice-unconfigured")
+    return "Bellen is tijdelijk niet beschikbaar. Probeer het straks opnieuw.";
+  if (reason === "token-request-failed")
+    return "We konden geen verbinding maken met de belservice. Probeer het opnieuw.";
+  if (reason === "voice-no-answer-from-provider")
+    return "De belverbinding kwam niet tot stand. Controleer je internetverbinding en probeer opnieuw.";
+  if (reason.startsWith("voice-call-error") || reason.startsWith("voice-connect-failed"))
+    return `De audioverbinding kon niet worden gestart (${reason.split(":")[1] ?? "onbekend"}). Probeer het opnieuw.`;
+  return "De audioverbinding kon niet worden gestart. Probeer het opnieuw.";
+}
+
 const description =
   "Talk it out anonymously. Anontalk connects men in Belgium, the Netherlands and the US with warm listeners over a safe browser call. First 3 minutes free.";
 
