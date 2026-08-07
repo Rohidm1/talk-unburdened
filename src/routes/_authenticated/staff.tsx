@@ -39,6 +39,7 @@ import {
 } from "@/lib/agent.functions";
 import { AgentChatPanel } from "@/components/site/AgentChatPanel";
 import { AudioDiagnostics } from "@/components/site/AudioDiagnostics";
+import { VoiceSelfTest } from "@/components/site/VoiceSelfTest";
 import { supabase } from "@/integrations/supabase/client";
 import { useTwilioDevice } from "@/hooks/useTwilioDevice";
 import { useIncomingCallAlert } from "@/hooks/useIncomingCallAlert";
