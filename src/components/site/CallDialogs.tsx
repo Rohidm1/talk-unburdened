@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, BellRing, Mic, MicOff, PhoneOff } from "lucide-react";
+import { AlertTriangle, BellRing, Mic, MicOff, PhoneCall, PhoneOff } from "lucide-react";
 import type { Call } from "@twilio/voice-sdk";
 import {
   Dialog,
@@ -19,40 +19,68 @@ function format(seconds: number) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+const RING_TIMEOUT_SECONDS = 45;
+
 export function ActiveCallDialog({
   listener,
   allowanceSeconds,
   mode,
   onTick,
   onEnd,
+  onNoAnswer,
   call,
-  audioLive,
 }: {
   listener: Listener | null;
   allowanceSeconds: number;
   mode: "paid" | "free";
   /** Server heartbeat. Returns the authoritative remaining seconds. */
-  onTick: () => Promise<{ remaining: number; shouldEnd: boolean } | null>;
+  onTick: () => Promise<{
+    remaining: number;
+    shouldEnd: boolean;
+    answered: boolean;
+    status: string;
+  } | null>;
   onEnd: () => void;
+  /** Nobody picked up, the agent declined, or the ringing timed out. */
+  onNoAnswer: () => void;
   call?: Call | null;
-  audioLive?: boolean;
 }) {
   const { t } = useTranslation();
   const [elapsed, setElapsed] = useState(0);
+  const [ringing, setRinging] = useState(0);
+  const [answered, setAnswered] = useState(false);
   const [muted, setMuted] = useState(false);
   const [remaining, setRemaining] = useState(allowanceSeconds);
   const endedRef = useRef(false);
+  const answeredRef = useRef(false);
 
   useEffect(() => {
     if (!listener) return;
     setElapsed(0);
+    setRinging(0);
+    setAnswered(false);
     setMuted(false);
     setRemaining(allowanceSeconds);
     endedRef.current = false;
-    const id = setInterval(() => setElapsed((e) => e + 1), 1000);
+    answeredRef.current = false;
+    const id = setInterval(() => {
+      if (answeredRef.current) setElapsed((e) => e + 1);
+      else setRinging((r) => r + 1);
+    }, 1000);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listener]);
+
+  // Nobody picked up in time.
+  useEffect(() => {
+    if (!listener || answered) return;
+    if (ringing < RING_TIMEOUT_SECONDS) return;
+    if (endedRef.current) return;
+    endedRef.current = true;
+    call?.disconnect();
+    onNoAnswer();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ringing, answered, listener]);
 
   // The server decides when time is up; the local ticker is display only.
   useEffect(() => {
@@ -62,15 +90,27 @@ export function ActiveCallDialog({
     const beat = async () => {
       const status = await onTick();
       if (cancelled || !status) return;
+      if (status.answered && !answeredRef.current) {
+        answeredRef.current = true;
+        setAnswered(true);
+        setElapsed(0);
+      }
+      if (!status.answered && (status.status === "declined" || status.status === "missing")) {
+        if (endedRef.current) return;
+        endedRef.current = true;
+        call?.disconnect();
+        onNoAnswer();
+        return;
+      }
       setRemaining(status.remaining);
-      if (status.shouldEnd && !endedRef.current) {
+      if (status.answered && status.shouldEnd && !endedRef.current) {
         endedRef.current = true;
         onEnd();
       }
     };
 
     void beat();
-    const id = setInterval(() => void beat(), 10000);
+    const id = setInterval(() => void beat(), 3000);
     return () => {
       cancelled = true;
       clearInterval(id);
@@ -95,7 +135,8 @@ export function ActiveCallDialog({
     if (endedRef.current) return;
     endedRef.current = true;
     call?.disconnect();
-    onEnd();
+    if (answeredRef.current) onEnd();
+    else onNoAnswer();
   };
 
   return (
@@ -109,19 +150,23 @@ export function ActiveCallDialog({
                 alt={listener.displayName}
                 width={512}
                 height={512}
-                className="size-24 rounded-full object-cover ring-2 ring-primary/50"
+                className={`size-24 rounded-full object-cover ring-2 ring-primary/50 ${answered ? "" : "animate-pulse"}`}
               />
               <DialogTitle className="mt-3 font-display text-xl">
-                {t("call.inCall")} {listener.displayName}
+                {answered ? `${t("call.inCall")} ${listener.displayName}` : listener.displayName}
               </DialogTitle>
               <DialogDescription>
-                {audioLive ? t("call.liveAudio") : "Connecting your line…"}
+                {answered ? t("call.liveAudio") : "De lijn gaat over… wacht tot er wordt opgenomen."}
               </DialogDescription>
             </DialogHeader>
 
-            <div className="text-center font-display text-5xl tabular-nums">{format(elapsed)}</div>
+            {answered ? (
+              <>
+                <div className="text-center font-display text-5xl tabular-nums">
+                  {format(elapsed)}
+                </div>
 
-            {lowOnTime ? (
+                {lowOnTime ? (
               <div className="flex items-center justify-center gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-center text-sm text-destructive">
                 <AlertTriangle className="size-4 shrink-0" />
                 <span>
@@ -148,15 +193,27 @@ export function ActiveCallDialog({
                 </div>
               )}
             </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center gap-2 py-2">
+                <PhoneCall className="size-8 animate-bounce text-primary" />
+                <p className="font-display text-lg">Overgaan… {format(ringing)}</p>
+                <p className="text-center text-xs text-muted-foreground">
+                  Je betaalt niets zolang de lijn overgaat.
+                </p>
+              </div>
+            )}
 
             <div className="flex justify-center gap-3">
-              <Button variant="outline" size="lg" onClick={toggleMute}>
-                {muted ? <MicOff className="size-4" /> : <Mic className="size-4" />}
-                {muted ? t("call.unmute") : t("call.mute")}
-              </Button>
+              {answered ? (
+                <Button variant="outline" size="lg" onClick={toggleMute}>
+                  {muted ? <MicOff className="size-4" /> : <Mic className="size-4" />}
+                  {muted ? t("call.unmute") : t("call.mute")}
+                </Button>
+              ) : null}
               <Button variant="destructive" size="lg" onClick={hangUp}>
                 <PhoneOff className="size-4" />
-                {t("call.hangUp")}
+                {answered ? t("call.hangUp") : t("call.cancel")}
               </Button>
             </div>
           </>

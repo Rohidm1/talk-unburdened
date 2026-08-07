@@ -15,14 +15,17 @@ export const Route = createFileRoute("/api/public/twilio/voice")({
         const caller = String(form.get("CallerIdentity") ?? "");
         const target = String(form.get("TargetIdentity") ?? "");
         const dialAuth = String(form.get("DialAuth") ?? "");
+        const callId = String(form.get("CallRecordId") ?? "");
 
         if (!caller || !target || !dialAuth || !(await verifyDialAuth(caller, target, dialAuth))) {
           return twiml("<Say>This call could not be authorised.</Say><Hangup/>");
         }
 
         return twiml(
-          `<Dial answerOnBridge="true" timeout="30" callerId="${escapeXml(caller)}">` +
-            `<Client><Identity>${escapeXml(target)}</Identity></Client></Dial>`,
+          `<Dial answerOnBridge="true" timeout="45" callerId="${escapeXml(caller)}">` +
+            `<Client><Identity>${escapeXml(target)}</Identity>` +
+            `<Parameter name="CallRecordId" value="${escapeXml(callId)}"/>` +
+            `</Client></Dial>`,
         );
       },
     },
