@@ -84,7 +84,7 @@ export const listeners: Listener[] = [
       { en: "Quick vent", nl: "Quick vent" },
       { en: "Safe space", nl: "Safe space" },
     ],
-    status: "busy",
+    status: "online",
     years: 4,
   },
   {
