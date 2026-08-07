@@ -40,6 +40,16 @@ export const Route = createFileRoute("/api/public/twilio/voice")({
         const identity = String(form.get("Identity") ?? "");
         const confAuth = String(form.get("ConferenceAuth") ?? "");
 
+        // Self-test: the agent dials a short diagnostic that only plays a
+        // sentence back. No conference, no agent, nothing billed.
+        if (mode === "selftest") {
+          if (!identity || !dialAuth) return rejected();
+          if (!(await verifyDialAuth(identity, "selftest", dialAuth))) return rejected();
+          return twiml(
+            '<Say language="nl-NL">De testverbinding werkt. Je hoort dit bericht, dus je audio is in orde.</Say><Pause length="1"/><Hangup/>',
+          );
+        }
+
         // Agent joining the room after accepting, or admin listening in silently.
         if (mode === "agent" || mode === "monitor") {
           if (!callId || !identity || !confAuth) return rejected();
