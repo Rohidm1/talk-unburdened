@@ -155,7 +155,7 @@ function AccountPage() {
                 disabled={isBlocked}
                 onClick={() => setCheckoutKey(p.key)}
               >
-                +{p.credits} credits · € {p.priceEur.toFixed(2)}
+                +{p.credits} credits · ${p.priceEur.toFixed(2)}
               </Button>
             ))}
           </div>

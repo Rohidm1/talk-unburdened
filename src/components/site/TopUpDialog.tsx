@@ -56,11 +56,11 @@ export function TopUpDialog({
                         {p.credits} berichten
                       </span>
                       <span className="block text-xs text-muted-foreground">
-                        € {perCredit.toFixed(2).replace(".", ",")} per bericht
+                        ${perCredit.toFixed(2)} per bericht
                       </span>
                     </span>
                     <span className="font-display text-xl font-semibold">
-                      € {(p.cents / 100).toFixed(0)}
+                      ${(p.cents / 100).toFixed(0)}
                     </span>
                     {p.popular ? (
                       <Sparkles className="size-4 shrink-0 text-primary" />

@@ -115,7 +115,7 @@ export function Pricing() {
               ) : null}
               <h3 className="font-display text-lg font-semibold">{t(`pricing.packages.${p.key}`)}</h3>
               <p className="mt-4 font-display text-4xl font-semibold">
-                € {p.priceEur.toFixed(2).replace(".", ",")}
+                ${p.priceEur.toFixed(2)}
               </p>
               <p className="text-sm text-muted-foreground">
                 {p.credits} {t("pricing.credits")}
@@ -123,7 +123,7 @@ export function Pricing() {
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-center gap-2">
                   <Check className="size-4 text-primary" />
-                  € {perCredit.toFixed(2).replace(".", ",")} {t("pricing.perCredit")}
+                  ${perCredit.toFixed(2)} {t("pricing.perCredit")}
                 </li>
               </ul>
               <Button

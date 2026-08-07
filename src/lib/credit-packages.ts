@@ -23,26 +23,26 @@ export type CreditPackageDef = {
 export const CREDIT_PACKAGES: Record<CreditPackageKey, CreditPackageDef> = {
   starter: {
     key: "starter",
-    priceId: "chat_starter_eur",
+    priceId: "chat_starter_usd",
     credits: 30,
     cents: 999,
   },
   popular: {
     key: "popular",
-    priceId: "chat_popular_eur",
+    priceId: "chat_popular_usd",
     credits: 85,
     cents: 2499,
     popular: true,
   },
   pro_value: {
     key: "pro_value",
-    priceId: "chat_pro_value_eur",
+    priceId: "chat_pro_value_usd",
     credits: 180,
     cents: 4999,
   },
   vip_club: {
     key: "vip_club",
-    priceId: "chat_vip_club_eur",
+    priceId: "chat_vip_club_usd",
     credits: 400,
     cents: 9999,
   },
