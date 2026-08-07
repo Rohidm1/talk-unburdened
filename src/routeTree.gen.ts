@@ -21,6 +21,7 @@ import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/
 import { Route as CheckoutReturnRouteImport } from './routes/checkout/return'
 import { Route as CrmIndexRouteImport } from './routes/crm/index'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
+import { Route as ApiPublicTwilioHealthRouteImport } from './routes/api/public/twilio/health'
 import { Route as ApiPublicTwilioVoiceRouteImport } from './routes/api/public/twilio/voice'
 
 const IndexRoute = IndexRouteImport.update({
@@ -83,6 +84,11 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicTwilioHealthRoute = ApiPublicTwilioHealthRouteImport.update({
+  id: '/api/public/twilio/health',
+  path: '/api/public/twilio/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTwilioVoiceRoute = ApiPublicTwilioVoiceRouteImport.update({
   id: '/api/public/twilio/voice',
   path: '/api/public/twilio/voice',
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/checkout/return': typeof CheckoutReturnRoute
   '/crm/': typeof CrmIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/twilio/health': typeof ApiPublicTwilioHealthRoute
   '/api/public/twilio/voice': typeof ApiPublicTwilioVoiceRoute
 }
 export interface FileRoutesByTo {
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/checkout/return': typeof CheckoutReturnRoute
   '/crm': typeof CrmIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/twilio/health': typeof ApiPublicTwilioHealthRoute
   '/api/public/twilio/voice': typeof ApiPublicTwilioVoiceRoute
 }
 export interface FileRoutesById {
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/checkout/return': typeof CheckoutReturnRoute
   '/crm/': typeof CrmIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/twilio/health': typeof ApiPublicTwilioHealthRoute
   '/api/public/twilio/voice': typeof ApiPublicTwilioVoiceRoute
 }
 export interface FileRouteTypes {
@@ -146,6 +155,7 @@ export interface FileRouteTypes {
     | '/checkout/return'
     | '/crm/'
     | '/api/public/payments/webhook'
+    | '/api/public/twilio/health'
     | '/api/public/twilio/voice'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/checkout/return'
     | '/crm'
     | '/api/public/payments/webhook'
+    | '/api/public/twilio/health'
     | '/api/public/twilio/voice'
   id:
     | '__root__'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/checkout/return'
     | '/crm/'
     | '/api/public/payments/webhook'
+    | '/api/public/twilio/health'
     | '/api/public/twilio/voice'
   fileRoutesById: FileRoutesById
 }
@@ -186,6 +198,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
+  ApiPublicTwilioHealthRoute: typeof ApiPublicTwilioHealthRoute
   ApiPublicTwilioVoiceRoute: typeof ApiPublicTwilioVoiceRoute
 }
 
@@ -275,6 +288,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/twilio/health': {
+      id: '/api/public/twilio/health'
+      path: '/api/public/twilio/health'
+      fullPath: '/api/public/twilio/health'
+      preLoaderRoute: typeof ApiPublicTwilioHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/twilio/voice': {
       id: '/api/public/twilio/voice'
       path: '/api/public/twilio/voice'
@@ -321,18 +341,9 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
+  ApiPublicTwilioHealthRoute: ApiPublicTwilioHealthRoute,
   ApiPublicTwilioVoiceRoute: ApiPublicTwilioVoiceRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

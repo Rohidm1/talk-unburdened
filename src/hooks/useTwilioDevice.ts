@@ -38,7 +38,13 @@ export function useTwilioDevice(enabled: boolean) {
   }, []);
 
   const createDevice = useCallback(async (): Promise<Device | null> => {
-    const res = await fetchTokenRef.current();
+    let res: Awaited<ReturnType<typeof fetchToken>> | null = null;
+    try {
+      res = await fetchTokenRef.current();
+    } catch (err) {
+      console.error("[voice] token request failed", err);
+      throw new Error("token-request-failed");
+    }
     if (!res?.token) throw new Error("voice-unconfigured");
     const { Device: TwilioDevice } = await import("@twilio/voice-sdk");
     const device = new TwilioDevice(res.token, {
@@ -53,7 +59,8 @@ export function useTwilioDevice(enabled: boolean) {
       call.on("reject", () => setIncoming(null));
     });
     device.on("error", (err: { code?: number; message?: string }) => {
-      console.error("[voice] device error", err);
+      console.error(`[voice] device error ${err?.code ?? "?"}: ${err?.message ?? ""}`, err);
+      lastCodeRef.current = err?.code ?? null;
       // Token problems (200xx) are recoverable: drop the device so the next
       // dial rebuilds it with a fresh token.
       if (err?.code && err.code >= 20100 && err.code <= 20200) teardown();
@@ -125,8 +132,13 @@ export function useTwilioDevice(enabled: boolean) {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         stream.getTracks().forEach((t) => t.stop());
-      } catch {
-        throw new Error("microphone-denied");
+      } catch (err) {
+        console.error("[voice] microphone unavailable", err);
+        throw new Error(
+          (err as { name?: string })?.name === "NotFoundError"
+            ? "microphone-missing"
+            : "microphone-denied",
+        );
       }
 
       const device = await ensureDevice();
@@ -156,11 +168,17 @@ export function useTwilioDevice(enabled: boolean) {
             connectionParams["Identity"] = freshIdentity;
           }
         }
-        return await fresh.connect({ params: connectionParams });
+        try {
+          return await fresh.connect({ params: connectionParams });
+        } catch (retryErr) {
+          const code = (retryErr as { code?: number })?.code ?? lastCodeRef.current;
+          console.error(`[voice] connect failed again (code ${code ?? "?"})`, retryErr);
+          throw new Error(code ? `voice-connect-failed:${code}` : "voice-connect-failed");
+        }
       }
     },
     [ensureDevice, teardown],
   );
 
-  return { ready, identity, incoming, setIncoming, connect, error };
+  return { ready, identity, incoming, setIncoming, connect, error, lastErrorCode: lastCodeRef };
 }
