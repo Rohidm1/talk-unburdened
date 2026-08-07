@@ -85,17 +85,30 @@ export const startCall = createServerFn({ method: "POST" })
 
     if (allowance <= 0) return deny(mode === "free" ? "free_used" : "no_credit");
 
-    // Only an agent that actually staffs this profile may be pinned to the call.
+    // prepareDial may hand the caller to another free colleague when the
+    // profile's usual agent is occupied. Accept only a real, online staff
+    // account, rather than requiring a direct profile link here.
     let agentUserId: string | null = null;
     if (data.agentUserId) {
-      const { data: link } = await supabaseAdmin
-        .from("listener_agents")
-        .select("agent_user_id")
-        .eq("listener_id", data.listenerId)
-        .eq("agent_user_id", data.agentUserId)
-        .maybeSingle();
-      if (link) agentUserId = data.agentUserId;
+      const [{ data: role }, { data: presence }] = await Promise.all([
+        supabaseAdmin
+          .from("user_roles")
+          .select("user_id")
+          .eq("user_id", data.agentUserId)
+          .eq("role", "staff")
+          .maybeSingle(),
+        supabaseAdmin
+          .from("agent_presence")
+          .select("user_id")
+          .eq("user_id", data.agentUserId)
+          .eq("status", "online")
+          .gt("last_seen_at", new Date(Date.now() - 90_000).toISOString())
+          .maybeSingle(),
+      ]);
+      if (role && presence) agentUserId = data.agentUserId;
     }
+
+    if (!agentUserId) throw new Error("De gekozen medewerker is niet meer beschikbaar");
 
     const { data: call, error } = await supabaseAdmin
       .from("calls")
