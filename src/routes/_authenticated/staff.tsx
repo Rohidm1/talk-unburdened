@@ -105,8 +105,20 @@ function StaffPage() {
     }
   }, [account.data?.agentAvailability]);
 
+  useEffect(() => {
+    if (availability !== "available") return;
+    const refreshPresence = () => {
+      void saveStatus({ data: { availability: "available" } });
+    };
+    refreshPresence();
+    const id = window.setInterval(refreshPresence, 30000);
+    return () => window.clearInterval(id);
+  }, [availability, saveStatus]);
+
   useInboxAlert(
-    availability === "available" ? (chats.data?.filter((c) => c.status === "ringing").length ?? 0) : 0,
+    availability === "available"
+      ? (chats.data?.filter((c) => c.status === "ringing" || c.status === "queued").length ?? 0)
+      : 0,
   );
 
   const statusMutation = useMutation({
@@ -134,8 +146,13 @@ function StaffPage() {
 
   const acceptMutation = useMutation({
     mutationFn: (id: string) => accept({ data: { sessionId: id } }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["my-chats"] });
+    onSuccess: async (result, id) => {
+      if (!result.ok) {
+        toast.error("This request is no longer available.");
+        return;
+      }
+      await queryClient.invalidateQueries({ queryKey: ["my-chats"] });
+      setSelectedChatId(id);
       toast.success("Chat accepted");
     },
     onError: (error: Error) => toast.error(error.message),
@@ -169,7 +186,7 @@ function StaffPage() {
   };
 
   const activeChat = (chats.data ?? []).find((c) => c.id === selectedChatId && !c.endedAt) ?? null;
-  const ringing = (chats.data ?? []).filter((c) => c.status === "ringing");
+  const ringing = (chats.data ?? []).filter((c) => c.status === "ringing" || c.status === "queued");
   const open = (chats.data ?? []).filter((c) => c.status === "active" && !c.endedAt);
 
   const roles = account.data?.roles ?? [];

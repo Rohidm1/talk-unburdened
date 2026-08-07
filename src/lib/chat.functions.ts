@@ -39,27 +39,27 @@ export const startChat = createServerFn({ method: "POST" })
       _listener_id: data.listenerId,
       _client_id: userId,
     });
-    if (!agentId) return deny("busy");
-
     const { data: session, error } = await supabaseAdmin
       .from("chat_sessions")
       .insert({
         client_id: userId,
         listener_id: data.listenerId,
-        agent_user_id: agentId,
+        agent_user_id: agentId ?? null,
         mode,
-        status: "ringing",
+        status: agentId ? "ringing" : "queued",
       })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
 
-    await supabaseAdmin
-      .from("client_agent_routes")
-      .upsert(
-        { client_id: userId, listener_id: data.listenerId, agent_user_id: agentId },
-        { onConflict: "client_id,listener_id" },
-      );
+    if (agentId) {
+      await supabaseAdmin
+        .from("client_agent_routes")
+        .upsert(
+          { client_id: userId, listener_id: data.listenerId, agent_user_id: agentId },
+          { onConflict: "client_id,listener_id" },
+        );
+    }
 
     const { logChatEvent } = await import("@/lib/chat.server");
     await logChatEvent(session.id, "request_received", "client", "Nieuwe aanvraag ontvangen");
@@ -222,6 +222,12 @@ export const listMyChats = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    const [{ data: isStaff }, { data: isAdmin }] = await Promise.all([
+      context.supabase.rpc("has_role", { _user_id: context.userId, _role: "staff" }),
+      context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" }),
+    ]);
+    if (!isStaff && !isAdmin) throw new Error("Forbidden");
+
     await supabaseAdmin.rpc("expire_stale_chats");
 
     const { data: sessions } = await supabaseAdmin
@@ -229,7 +235,7 @@ export const listMyChats = createServerFn({ method: "GET" })
       .select(
         "id, client_id, listener_id, status, mode, started_at, answered_at, ended_at, last_heartbeat_at",
       )
-      .eq("agent_user_id", context.userId)
+      .or(`agent_user_id.eq.${context.userId},agent_user_id.is.null`)
       .order("started_at", { ascending: false })
       .limit(50);
 
@@ -313,7 +319,24 @@ export const acceptChat = createServerFn({ method: "POST" })
   .inputValidator(sessionInput)
   .handler(async ({ data, context }) => {
     const { loadAgentChat, logChatEvent, supabaseAdmin } = await import("@/lib/chat.server");
-    const session = await loadAgentChat(data.sessionId, context.userId);
+    const [{ data: isStaff }, { data: isAdmin }] = await Promise.all([
+      context.supabase.rpc("has_role", { _user_id: context.userId, _role: "staff" }),
+      context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" }),
+    ]);
+    if (!isStaff && !isAdmin) throw new Error("Forbidden");
+
+    let session = await loadAgentChat(data.sessionId, context.userId);
+    if (!session) {
+      const { data: claimed } = await supabaseAdmin
+        .from("chat_sessions")
+        .update({ agent_user_id: context.userId })
+        .eq("id", data.sessionId)
+        .is("agent_user_id", null)
+        .is("ended_at", null)
+        .select("id")
+        .maybeSingle();
+      if (claimed) session = await loadAgentChat(data.sessionId, context.userId);
+    }
     if (!session) throw new Error("Forbidden");
     if (session.ended_at) return { ok: false as const };
 

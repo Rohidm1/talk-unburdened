@@ -21,6 +21,7 @@ import {
 import { listeners as fallbackListeners, type Listener } from "@/data/listeners";
 import { getMyAccount } from "@/lib/account.functions";
 import { endChat, startChat } from "@/lib/chat.functions";
+import { listPublicListeners } from "@/lib/listeners.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { CreditCheckoutDialog } from "@/components/site/CreditCheckoutDialog";
 import type { CreditPackageKey } from "@/lib/credit-packages";
@@ -114,6 +115,7 @@ function HomePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const fetchAccount = useServerFn(getMyAccount);
+  const fetchListeners = useServerFn(listPublicListeners);
   const start = useServerFn(startChat);
   const stop = useServerFn(endChat);
 
@@ -125,11 +127,19 @@ function HomePage() {
   const [checkoutKey, setCheckoutKey] = useState<CreditPackageKey | null>(null);
 
   const account = useQuery({ queryKey: ["account"], queryFn: () => fetchAccount(), enabled: !!user });
+  const publicListeners = useQuery({ queryKey: ["public-listeners"], queryFn: () => fetchListeners() });
 
   const profile = account.data?.profile;
   const totalCredits = (profile?.chat_credits ?? 0) + (profile?.free_credits ?? 0);
 
-  const listenersOnline = fallbackListeners.map((l) => ({ ...l, status: "online" as const }));
+  const listenersOnline = useMemo(() => {
+    const rowsByName = new Map((publicListeners.data ?? []).map((row) => [row.display_name, row]));
+    return fallbackListeners.flatMap((listener) => {
+      const row = rowsByName.get(listener.displayName);
+      if (!row) return [];
+      return [{ ...listener, id: row.id, status: row.status }];
+    });
+  }, [publicListeners.data]);
 
   useEffect(() => {
     // low-balance nudge only when not already in a chat
@@ -149,21 +159,26 @@ function HomePage() {
       return;
     }
     setActiveListener(listener);
-    const result = await start({ data: { listenerId: listener.id } });
-    if (!result.ok) {
-      setActiveListener(null);
-      if (result.reason === "blocked") {
-        toast.error("Your account is on hold.");
-      } else if (result.reason === "free_used" || result.reason === "no_credit") {
-        setTopUpReason(result.reason);
-      } else {
-        toast.error("No chat partner is available right now. Please try again in a moment.");
+    try {
+      const result = await start({ data: { listenerId: listener.id } });
+      if (!result.ok) {
+        setActiveListener(null);
+        if (result.reason === "blocked") {
+          toast.error("Your account is on hold.");
+        } else if (result.reason === "free_used" || result.reason === "no_credit") {
+          setTopUpReason(result.reason);
+        } else {
+          toast.error("No chat partner is available right now. Please try again in a moment.");
+        }
+        return;
       }
-      return;
+      setSessionId(result.sessionId);
+      setSessionMode(result.mode);
+      setAllowance(result.allowance);
+    } catch {
+      setActiveListener(null);
+      toast.error("The chat could not be started. Please refresh and try again.");
     }
-    setSessionId(result.sessionId);
-    setSessionMode(result.mode);
-    setAllowance(result.allowance);
   }
 
   async function handleChatEnd(reason: "user" | "out_of_credit" | "closed") {
