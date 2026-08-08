@@ -173,18 +173,32 @@ export function Pricing() {
 
   return (
     <section id="pricing" className="mx-auto w-full max-w-6xl px-5 py-20">
-      <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
-        {t("pricing.title")}
-      </h2>
-      <p className="mt-3 max-w-xl text-muted-foreground">{t("pricing.subtitle")}</p>
+      <Reveal>
+        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
+          {t("pricing.title")}
+        </h2>
+        <p className="mt-3 max-w-xl text-muted-foreground">{t("pricing.subtitle")}</p>
+        <ul className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+          <li className="flex items-center gap-2">
+            <BadgeCheck className="size-4 text-primary" /> {t("pricing.never")}
+          </li>
+          <li className="flex items-center gap-2">
+            <Sparkles className="size-4 text-primary" /> {t("pricing.instant")}
+          </li>
+        </ul>
+      </Reveal>
 
       <div className="mt-10 grid gap-5 lg:grid-cols-4">
         {creditPackages.map((p) => {
           const perCredit = p.priceEur / p.credits;
+          const base = creditPackages[0];
+          const savePct = base
+            ? Math.round((1 - perCredit / (base.priceEur / base.credits)) * 100)
+            : 0;
           return (
+            <Reveal key={p.id}>
             <div
-              key={p.id}
-              className={`relative rounded-3xl border bg-card p-6 ${
+              className={`card-lift relative h-full rounded-3xl border bg-card p-6 ${
                 p.popular ? "border-primary shadow-[var(--shadow-glow)]" : "border-border"
               }`}
             >
@@ -205,20 +219,28 @@ export function Pricing() {
                   <Check className="size-4 text-primary" />
                   ${perCredit.toFixed(2)} {t("pricing.perCredit")}
                 </li>
+                {savePct > 0 ? (
+                  <li className="flex items-center gap-2 text-primary">
+                    <Check className="size-4" />
+                    {t("pricing.save")} {savePct}%
+                  </li>
+                ) : null}
               </ul>
               <Button
-                className="mt-6 w-full"
+                className={`mt-6 w-full ${p.popular ? "glow-cta" : ""}`}
                 variant={p.popular ? "default" : "outline"}
                 onClick={() => startCheckout(p.key)}
               >
                 {t("pricing.buy")}
               </Button>
             </div>
+            </Reveal>
           );
         })}
       </div>
 
       <CreditCheckoutDialog packageKey={checkoutKey} onClose={() => setCheckoutKey(null)} />
+      <p className="mt-6 text-center text-xs text-muted-foreground">{t("pricing.secure")}</p>
       <BillingDescriptorNotice className="mx-auto mt-6 max-w-xl justify-center text-center" />
     </section>
   );
@@ -230,12 +252,15 @@ export function Faq() {
 
   return (
     <section id="faq" className="mx-auto w-full max-w-3xl px-5 py-20">
-      <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
-        {t("faq.title")}
-      </h2>
+      <Reveal>
+        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
+          {t("faq.title")}
+        </h2>
+        <p className="mt-3 text-muted-foreground">{t("faq.subtitle")}</p>
+      </Reveal>
       <Accordion type="single" collapsible className="mt-8">
         {items.map((i) => (
-          <AccordionItem key={i} value={`q${i}`}>
+          <AccordionItem key={i} value={`q${i}`} className="border-border">
             <AccordionTrigger className="text-left font-display text-base">
               {t(`faq.q${i}`)}
             </AccordionTrigger>
@@ -311,9 +336,33 @@ export function Footer() {
   const { t } = useTranslation();
   return (
     <footer className="border-t border-border py-12">
-      <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 px-5 text-sm text-muted-foreground md:flex-row">
-        <p>{t("footer.brand")}</p>
-        <p>{t("footer.note")}</p>
+      <div className="mx-auto grid w-full max-w-6xl gap-8 px-5 text-sm text-muted-foreground md:grid-cols-[1.4fr_1fr]">
+        <div>
+          <p className="font-display text-base font-semibold text-foreground">
+            {t("footer.brand")}
+          </p>
+          <p className="mt-2 max-w-md">{t("footer.disclaimer")}</p>
+        </div>
+        <nav className="flex flex-wrap gap-x-6 gap-y-2 md:justify-end">
+          <a href="/#listeners" className="transition-colors hover:text-foreground">
+            {t("nav.profiles")}
+          </a>
+          <a href="/#pricing" className="transition-colors hover:text-foreground">
+            {t("nav.pricing")}
+          </a>
+          <Link to="/blog" className="transition-colors hover:text-foreground">
+            {t("nav.blog")}
+          </Link>
+          <a href="/#faq" className="transition-colors hover:text-foreground">
+            {t("nav.faq")}
+          </a>
+          <a href="/#contact" className="transition-colors hover:text-foreground">
+            {t("nav.contact")}
+          </a>
+        </nav>
+      </div>
+      <div className="mx-auto mt-8 w-full max-w-6xl px-5 text-xs text-muted-foreground">
+        © {new Date().getFullYear()} Anontalk. {t("footer.rights")}
       </div>
     </footer>
   );
