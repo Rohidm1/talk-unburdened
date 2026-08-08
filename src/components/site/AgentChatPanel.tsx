@@ -330,7 +330,7 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
           )}
         </ul>
 
-        <div className="flex min-h-64 flex-col rounded-2xl border border-border bg-secondary/20">
+        <div className="flex h-[clamp(24rem,55vh,40rem)] flex-col rounded-2xl border border-border bg-secondary/20">
           {current ? (
             <>
               <div className="flex items-center justify-between border-b border-border px-4 py-2 text-sm">
