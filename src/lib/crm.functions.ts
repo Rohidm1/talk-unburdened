@@ -315,3 +315,156 @@ export const setAgentListener = createServerFn({ method: "POST" })
     await admin.rpc("sync_listener_status", { _listener_id: data.listenerId });
     return { ok: true };
   });
+
+/** Permanently remove an agent login. The fictional profile stays, unlinked. */
+export const deleteAgentAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ userId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    if (data.userId === context.userId) throw new Error("You cannot delete your own account.");
+
+    const { data: isAdmin } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    const { requireAdminClient } = await import("@/lib/crm.server");
+    const admin = requireAdminClient(Boolean(isAdmin));
+
+    const { data: targetRoles } = await admin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", data.userId);
+    if ((targetRoles ?? []).some((r) => r.role === "admin"))
+      throw new Error("Admin accounts cannot be deleted here.");
+
+    const { data: links } = await admin
+      .from("listener_agents")
+      .select("listener_id")
+      .eq("agent_user_id", data.userId);
+
+    await admin.from("listener_agents").delete().eq("agent_user_id", data.userId);
+    await admin.from("listeners").update({ user_id: null }).eq("user_id", data.userId);
+
+    const { error } = await admin.auth.admin.deleteUser(data.userId);
+    if (error) throw new Error(error.message);
+
+    for (const link of links ?? []) {
+      await admin.rpc("sync_listener_status", { _listener_id: link.listener_id });
+    }
+
+    return { ok: true };
+  });
+
+/** Per-day working hours for one month, derived from the availability log. */
+export const getAgentMonthlyStats = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        month: z.string().regex(/^\d{4}-\d{2}$/),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    const { requireAdminClient } = await import("@/lib/crm.server");
+    const admin = requireAdminClient(Boolean(isAdmin));
+
+    const parts = data.month.split("-");
+    const year = Number(parts[0]);
+    const monthIndex = Number(parts[1]) - 1;
+    const from = new Date(Date.UTC(year, monthIndex, 1));
+    const to = new Date(Date.UTC(year, monthIndex + 1, 1));
+
+    const [{ data: events }, { data: roles }, usersRes] = await Promise.all([
+      admin
+        .from("agent_shift_events")
+        .select("agent_user_id, availability, created_at")
+        .gte("created_at", from.toISOString())
+        .lt("created_at", to.toISOString())
+        .order("created_at", { ascending: true }),
+      admin.from("user_roles").select("user_id, role"),
+      admin.auth.admin.listUsers({ page: 1, perPage: 200 }),
+    ]);
+
+    const usernameById = new Map<string, string>();
+    for (const u of usersRes.data?.users ?? []) {
+      usernameById.set(u.id, (u.email ?? "").split("@")[0] || u.id.slice(0, 8));
+    }
+    const staffIds = (roles ?? [])
+      .filter((r) => r.role === "staff")
+      .map((r) => r.user_id);
+
+    type Day = {
+      date: string;
+      firstOnline: string | null;
+      lastSeen: string | null;
+      onlineSeconds: number;
+      breakSeconds: number;
+    };
+
+    const byAgent = new Map<string, Map<string, Day>>();
+    const state = new Map<string, { availability: string; since: number }>();
+
+    const dayOf = (iso: string) => iso.slice(0, 10);
+    const ensureDay = (agent: string, date: string): Day => {
+      let days = byAgent.get(agent);
+      if (!days) {
+        days = new Map();
+        byAgent.set(agent, days);
+      }
+      let day = days.get(date);
+      if (!day) {
+        day = { date, firstOnline: null, lastSeen: null, onlineSeconds: 0, breakSeconds: 0 };
+        days.set(date, day);
+      }
+      return day;
+    };
+
+    const closeSegment = (agent: string, endMs: number) => {
+      const open = state.get(agent);
+      if (!open) return;
+      const startMs = open.since;
+      if (endMs <= startMs) return;
+      const day = ensureDay(agent, dayOf(new Date(startMs).toISOString()));
+      const seconds = Math.min(Math.round((endMs - startMs) / 1000), 24 * 3600);
+      if (open.availability === "available") day.onlineSeconds += seconds;
+      if (open.availability === "break") day.breakSeconds += seconds;
+      day.lastSeen = new Date(endMs).toISOString();
+    };
+
+    for (const ev of events ?? []) {
+      const ms = new Date(ev.created_at).getTime();
+      closeSegment(ev.agent_user_id, ms);
+      const day = ensureDay(ev.agent_user_id, dayOf(ev.created_at));
+      if (ev.availability !== "offline") {
+        if (!day.firstOnline) day.firstOnline = ev.created_at;
+        state.set(ev.agent_user_id, { availability: ev.availability, since: ms });
+      } else {
+        day.lastSeen = ev.created_at;
+        state.delete(ev.agent_user_id);
+      }
+    }
+
+    const cutoff = Math.min(Date.now(), to.getTime());
+    for (const agent of Array.from(state.keys())) closeSegment(agent, cutoff);
+
+    const agents = staffIds.map((id) => {
+      const days = Array.from(byAgent.get(id)?.values() ?? []).sort((a, b) =>
+        a.date.localeCompare(b.date),
+      );
+      return {
+        userId: id,
+        username: usernameById.get(id) ?? id.slice(0, 8),
+        days,
+        totalOnlineSeconds: days.reduce((sum, d) => sum + d.onlineSeconds, 0),
+        totalBreakSeconds: days.reduce((sum, d) => sum + d.breakSeconds, 0),
+      };
+    });
+
+    agents.sort((a, b) => b.totalOnlineSeconds - a.totalOnlineSeconds);
+    return { month: data.month, agents };
+  });
