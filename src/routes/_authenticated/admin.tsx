@@ -389,3 +389,89 @@ function NewAgentForm({ onCreate }: { onCreate: (values: NewAgentValues) => Prom
     </section>
   );
 }
+
+function MonthlyHours() {
+  const [month, setMonth] = useState(currentMonth());
+  const fetchHours = useServerFn(getAgentMonthlyStats);
+  const stats = useQuery({
+    queryKey: ["admin-hours", month],
+    queryFn: () => fetchHours({ data: { month } }),
+    retry: false,
+  });
+
+  return (
+    <section className="rounded-3xl border border-border bg-card p-6">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+        <div className="flex min-w-0 items-center gap-2">
+          <CalendarClock className="size-5 shrink-0 text-primary" />
+          <h2 className="truncate font-display text-lg font-semibold">Maandstatistieken</h2>
+        </div>
+        <Input
+          type="month"
+          value={month}
+          className="w-44 shrink-0"
+          onChange={(e) => setMonth(e.target.value || currentMonth())}
+        />
+      </div>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Per agent: eerste login, laatste activiteit, pauzeduur en gewerkte uren per dag.
+      </p>
+
+      {stats.isLoading ? (
+        <p className="mt-6 text-sm text-muted-foreground">Laden…</p>
+      ) : (stats.data?.agents ?? []).length === 0 ? (
+        <p className="mt-6 text-sm text-muted-foreground">Geen agents gevonden.</p>
+      ) : (
+        <div className="mt-6 space-y-6">
+          {(stats.data?.agents ?? []).map((a) => (
+            <div key={a.userId} className="rounded-2xl border border-border p-4">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+                <p className="truncate font-semibold">{a.username}</p>
+                <p className="shrink-0 text-sm tabular-nums text-muted-foreground">
+                  {hours(a.totalOnlineSeconds)} gewerkt · {hours(a.totalBreakSeconds)} pauze
+                </p>
+              </div>
+              {a.days.length === 0 ? (
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Deze maand nog niet ingelogd.
+                </p>
+              ) : (
+                <div className="mt-3 overflow-x-auto">
+                  <table className="w-full min-w-[560px] text-left text-sm">
+                    <thead className="text-xs tracking-wide text-muted-foreground uppercase">
+                      <tr>
+                        <th className="py-2">Dag</th>
+                        <th className="py-2">Eerste login</th>
+                        <th className="py-2">Laatst actief</th>
+                        <th className="py-2">Pauze</th>
+                        <th className="py-2">Gewerkt</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {a.days.map((d) => (
+                        <tr key={d.date}>
+                          <td className="py-2">
+                            {new Date(`${d.date}T00:00:00Z`).toLocaleDateString([], {
+                              day: "2-digit",
+                              month: "short",
+                            })}
+                          </td>
+                          <td className="py-2 tabular-nums">{timeOf(d.firstOnline)}</td>
+                          <td className="py-2 tabular-nums">{timeOf(d.lastSeen)}</td>
+                          <td className="py-2 tabular-nums">{hours(d.breakSeconds)}</td>
+                          <td className="py-2 font-medium tabular-nums">
+                            {hours(d.onlineSeconds)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
