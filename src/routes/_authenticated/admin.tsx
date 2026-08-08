@@ -3,7 +3,7 @@ import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { MessageCircle, UserPlus, Users } from "lucide-react";
+import { CalendarClock, MessageCircle, Trash2, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,11 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAdminStats } from "@/lib/staff.functions";
 import { listAgentsLive, listClientStats, listLiveConversations } from "@/lib/admin.functions";
-import { createAgentAccount } from "@/lib/crm.functions";
+import {
+  createAgentAccount,
+  deleteAgentAccount,
+  getAgentMonthlyStats,
+} from "@/lib/crm.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
@@ -45,6 +49,22 @@ function clock(seconds: number) {
   return `${m}m ${s.toString().padStart(2, "0")}s`;
 }
 
+function hours(seconds: number) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  return `${h}h ${m.toString().padStart(2, "0")}m`;
+}
+
+function timeOf(iso: string | null) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function currentMonth() {
+  const now = new Date();
+  return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
+}
+
 function elapsedSince(iso: string | null) {
   if (!iso) return 0;
   return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
@@ -64,6 +84,7 @@ function AdminPage() {
   const fetchLive = useServerFn(listLiveConversations);
   const fetchClients = useServerFn(listClientStats);
   const addAgent = useServerFn(createAgentAccount);
+  const removeAgent = useServerFn(deleteAgentAccount);
 
   const stats = useQuery({ queryKey: ["admin-stats"], queryFn: () => fetchStats(), retry: false });
   const agents = useQuery({
@@ -120,6 +141,7 @@ function AdminPage() {
             <TabsList>
               <TabsTrigger value="live">Live</TabsTrigger>
               <TabsTrigger value="agents">Agents</TabsTrigger>
+              <TabsTrigger value="hours">Werkuren</TabsTrigger>
               <TabsTrigger value="clients">Klanten</TabsTrigger>
             </TabsList>
 
@@ -178,6 +200,25 @@ function AdminPage() {
                         <span className="text-xs text-muted-foreground">
                           {a.activeChats} chat(s) actief
                         </span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          aria-label={`Verwijder ${a.username}`}
+                          onClick={async () => {
+                            if (!window.confirm(`Account "${a.username}" definitief verwijderen?`))
+                              return;
+                            try {
+                              await removeAgent({ data: { userId: a.userId } });
+                              toast.success("Agent verwijderd.");
+                              void queryClient.invalidateQueries({ queryKey: ["admin-agents"] });
+                              void queryClient.invalidateQueries({ queryKey: ["admin-hours"] });
+                            } catch (e) {
+                              toast.error((e as Error).message || "Verwijderen mislukt.");
+                            }
+                          }}
+                        >
+                          <Trash2 className="size-4 text-destructive" />
+                        </Button>
                       </div>
                       {a.handling.length > 0 ? (
                         <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
@@ -207,6 +248,10 @@ function AdminPage() {
                   void queryClient.invalidateQueries({ queryKey: ["admin-agents"] });
                 }}
               />
+            </TabsContent>
+
+            <TabsContent value="hours" className="mt-6">
+              <MonthlyHours />
             </TabsContent>
 
             <TabsContent value="clients" className="mt-6">
