@@ -11,7 +11,11 @@ export const getMyAccount = createServerFn({ method: "GET" })
       supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", userId),
       supabase.from("listeners").select("*").eq("user_id", userId).maybeSingle(),
-      supabase.from("agent_presence").select("availability, status").eq("user_id", userId).maybeSingle(),
+      supabase
+        .from("agent_presence")
+        .select("availability, status")
+        .eq("user_id", userId)
+        .maybeSingle(),
     ]);
 
     return {

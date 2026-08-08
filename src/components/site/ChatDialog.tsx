@@ -152,7 +152,11 @@ export function ChatDialog({
               }
             }}
           />
-          <Button size="icon" disabled={sending || !draft.trim() || remaining <= 0} onClick={() => void submit()}>
+          <Button
+            size="icon"
+            disabled={sending || !draft.trim() || remaining <= 0}
+            onClick={() => void submit()}
+          >
             <SendHorizonal className="size-4" />
           </Button>
           <Button variant="outline" onClick={() => onEnd("user")}>

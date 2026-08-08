@@ -82,7 +82,11 @@ export function useInboxAlert(pendingCount: number) {
     if (before === null || pendingCount <= before) return;
 
     if (soundOn) chime();
-    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+    if (
+      typeof window !== "undefined" &&
+      "Notification" in window &&
+      Notification.permission === "granted"
+    ) {
       try {
         const n = new Notification("Nieuw berichtverzoek — Anontalk", {
           body: "Er wacht iemand op een gesprek in je CRM-inbox.",

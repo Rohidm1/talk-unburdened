@@ -279,7 +279,9 @@ export const listMyChats = createServerFn({ method: "GET" })
         .select("id, display_name")
         .in(
           "id",
-          Array.from(new Set(rows.map((r) => r.listener_id).filter((id): id is string => Boolean(id)))),
+          Array.from(
+            new Set(rows.map((r) => r.listener_id).filter((id): id is string => Boolean(id))),
+          ),
         ),
     ]);
 
@@ -413,7 +415,11 @@ export const listChatNotes = createServerFn({ method: "POST" })
       id: r.id,
       body: r.body,
       createdAt: r.created_at,
-      source: r.chat_session_id ? ("chat" as const) : r.call_id ? ("call" as const) : ("other" as const),
+      source: r.chat_session_id
+        ? ("chat" as const)
+        : r.call_id
+          ? ("call" as const)
+          : ("other" as const),
       thisConversation: r.chat_session_id === data.sessionId,
     }));
   });

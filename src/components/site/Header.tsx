@@ -1,16 +1,17 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Menu, Phone, X } from "lucide-react";
+import { MessageCircle, Menu, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 
 const links = [
-  { href: "#listeners", key: "nav.profiles" },
-  { href: "#how", key: "nav.how" },
-  { href: "#pricing", key: "nav.pricing" },
-  { href: "#faq", key: "nav.faq" },
-  { href: "#contact", key: "nav.contact" },
+  { href: "/#listeners", key: "nav.profiles" },
+  { href: "/#how", key: "nav.how" },
+  { href: "/#pricing", key: "nav.pricing" },
+  { href: "/blog", key: "nav.blog" },
+  { href: "/#faq", key: "nav.faq" },
+  { href: "/#contact", key: "nav.contact" },
 ];
 
 export function Header() {
@@ -21,9 +22,9 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5">
-        <a href="#top" className="flex items-center gap-2">
+        <a href="/#top" className="flex items-center gap-2">
           <span className="flex size-8 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Phone className="size-4" />
+            <MessageCircle className="size-4" />
           </span>
           <span className="font-display text-lg font-semibold tracking-tight">Anontalk</span>
         </a>
@@ -55,11 +56,7 @@ export function Header() {
               </Button>
             </>
           )}
-          <button
-            className="md:hidden"
-            onClick={() => setOpen((v) => !v)}
-            aria-label="Menu"
-          >
+          <button className="md:hidden" onClick={() => setOpen((v) => !v)} aria-label="Menu">
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
         </div>
