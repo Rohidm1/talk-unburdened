@@ -31,9 +31,7 @@ export function TopUpDialog({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 font-display">
               <MessageCircle className="size-5 text-primary" />
-              {reason === "free_used"
-                ? "Je gratis berichten zijn op"
-                : "Je hebt geen credits meer"}
+              {reason === "free_used" ? "Je gratis berichten zijn op" : "Je hebt geen credits meer"}
             </DialogTitle>
             <DialogDescription>
               Kies een bundel om anoniem verder te chatten. Credits verlopen niet.
@@ -48,7 +46,9 @@ export function TopUpDialog({
                   <button
                     onClick={() => setCheckoutKey(p.key)}
                     className={`flex w-full items-center gap-3 rounded-2xl border p-4 text-left transition-colors hover:border-primary/60 ${
-                      p.popular ? "border-primary/50 bg-secondary/40" : "border-border bg-secondary/20"
+                      p.popular
+                        ? "border-primary/50 bg-secondary/40"
+                        : "border-border bg-secondary/20"
                     }`}
                   >
                     <span className="flex-1">
@@ -62,9 +62,7 @@ export function TopUpDialog({
                     <span className="font-display text-xl font-semibold">
                       ${(p.cents / 100).toFixed(0)}
                     </span>
-                    {p.popular ? (
-                      <Sparkles className="size-4 shrink-0 text-primary" />
-                    ) : null}
+                    {p.popular ? <Sparkles className="size-4 shrink-0 text-primary" /> : null}
                   </button>
                 </li>
               );

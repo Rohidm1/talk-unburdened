@@ -129,7 +129,9 @@ function AccountPage() {
             <h2 className="font-display text-lg font-semibold">Chat balance</h2>
           </div>
           <p className="mt-4 font-display text-4xl tabular-nums">{totalCredits}</p>
-          <p className="mt-1 text-sm text-muted-foreground">credits remaining (1 credit = 1 message)</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            credits remaining (1 credit = 1 message)
+          </p>
 
           {freeCredits > 0 ? (
             <p className="mt-2 text-sm text-primary">

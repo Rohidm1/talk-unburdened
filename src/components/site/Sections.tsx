@@ -114,16 +114,16 @@ export function HowItWorks() {
       <div className="mt-10 grid gap-5 md:grid-cols-3">
         {steps.map((s, i) => (
           <Reveal key={s.title} delay={0.07 * i}>
-          <div className="card-lift h-full rounded-3xl border border-border bg-card p-6">
-            <div className="flex size-11 items-center justify-center rounded-2xl bg-primary/15 text-primary">
-              <s.icon className="size-5" />
+            <div className="card-lift h-full rounded-3xl border border-border bg-card p-6">
+              <div className="flex size-11 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+                <s.icon className="size-5" />
+              </div>
+              <p className="mt-5 text-xs font-semibold tracking-widest text-muted-foreground">
+                0{i + 1}
+              </p>
+              <h3 className="mt-1 font-display text-lg font-semibold">{s.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{s.body}</p>
             </div>
-            <p className="mt-5 text-xs font-semibold tracking-widest text-muted-foreground">
-              0{i + 1}
-            </p>
-            <h3 className="mt-1 font-display text-lg font-semibold">{s.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{s.body}</p>
-          </div>
           </Reveal>
         ))}
       </div>
@@ -197,43 +197,43 @@ export function Pricing() {
             : 0;
           return (
             <Reveal key={p.id}>
-            <div
-              className={`card-lift relative h-full rounded-3xl border bg-card p-6 ${
-                p.popular ? "border-primary shadow-[var(--shadow-glow)]" : "border-border"
-              }`}
-            >
-              {p.popular ? (
-                <span className="absolute -top-3 left-6 rounded-full bg-primary px-3 py-1 text-[11px] font-semibold text-primary-foreground">
-                  {t("pricing.popular")}
-                </span>
-              ) : null}
-              <h3 className="font-display text-lg font-semibold">{t(`pricing.packages.${p.key}`)}</h3>
-              <p className="mt-4 font-display text-4xl font-semibold">
-                ${p.priceEur.toFixed(2)}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {p.credits} {t("pricing.credits")}
-              </p>
-              <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2">
-                  <Check className="size-4 text-primary" />
-                  ${perCredit.toFixed(2)} {t("pricing.perCredit")}
-                </li>
-                {savePct > 0 ? (
-                  <li className="flex items-center gap-2 text-primary">
-                    <Check className="size-4" />
-                    {t("pricing.save")} {savePct}%
-                  </li>
-                ) : null}
-              </ul>
-              <Button
-                className={`mt-6 w-full ${p.popular ? "glow-cta" : ""}`}
-                variant={p.popular ? "default" : "outline"}
-                onClick={() => startCheckout(p.key)}
+              <div
+                className={`card-lift relative h-full rounded-3xl border bg-card p-6 ${
+                  p.popular ? "border-primary shadow-[var(--shadow-glow)]" : "border-border"
+                }`}
               >
-                {t("pricing.buy")}
-              </Button>
-            </div>
+                {p.popular ? (
+                  <span className="absolute -top-3 left-6 rounded-full bg-primary px-3 py-1 text-[11px] font-semibold text-primary-foreground">
+                    {t("pricing.popular")}
+                  </span>
+                ) : null}
+                <h3 className="font-display text-lg font-semibold">
+                  {t(`pricing.packages.${p.key}`)}
+                </h3>
+                <p className="mt-4 font-display text-4xl font-semibold">${p.priceEur.toFixed(2)}</p>
+                <p className="text-sm text-muted-foreground">
+                  {p.credits} {t("pricing.credits")}
+                </p>
+                <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+                  <li className="flex items-center gap-2">
+                    <Check className="size-4 text-primary" />${perCredit.toFixed(2)}{" "}
+                    {t("pricing.perCredit")}
+                  </li>
+                  {savePct > 0 ? (
+                    <li className="flex items-center gap-2 text-primary">
+                      <Check className="size-4" />
+                      {t("pricing.save")} {savePct}%
+                    </li>
+                  ) : null}
+                </ul>
+                <Button
+                  className={`mt-6 w-full ${p.popular ? "glow-cta" : ""}`}
+                  variant={p.popular ? "default" : "outline"}
+                  onClick={() => startCheckout(p.key)}
+                >
+                  {t("pricing.buy")}
+                </Button>
+              </div>
             </Reveal>
           );
         })}

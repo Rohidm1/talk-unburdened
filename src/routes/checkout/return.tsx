@@ -71,9 +71,7 @@ function CheckoutReturn() {
         </>
       ) : (
         <>
-          <h1 className="font-display text-3xl font-semibold tracking-tight">
-            No payment found
-          </h1>
+          <h1 className="font-display text-3xl font-semibold tracking-tight">No payment found</h1>
           <p className="mt-3 text-muted-foreground">
             We couldn't find a checkout session for this page.
           </p>

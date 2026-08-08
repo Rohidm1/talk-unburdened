@@ -129,8 +129,15 @@ function HomePage() {
   const [topUpReason, setTopUpReason] = useState<"free_used" | "no_credit" | null>(null);
   const [checkoutKey, setCheckoutKey] = useState<CreditPackageKey | null>(null);
 
-  const account = useQuery({ queryKey: ["account"], queryFn: () => fetchAccount(), enabled: !!user });
-  const publicListeners = useQuery({ queryKey: ["public-listeners"], queryFn: () => fetchListeners() });
+  const account = useQuery({
+    queryKey: ["account"],
+    queryFn: () => fetchAccount(),
+    enabled: !!user,
+  });
+  const publicListeners = useQuery({
+    queryKey: ["public-listeners"],
+    queryFn: () => fetchListeners(),
+  });
 
   const profile = account.data?.profile;
   const totalCredits = (profile?.chat_credits ?? 0) + (profile?.free_credits ?? 0);
@@ -203,7 +210,11 @@ function HomePage() {
     <div className="min-h-screen bg-background font-body text-foreground">
       <Header />
       <main>
-        <Hero onStart={() => document.getElementById("listeners")?.scrollIntoView({ behavior: "smooth" })} />
+        <Hero
+          onStart={() =>
+            document.getElementById("listeners")?.scrollIntoView({ behavior: "smooth" })
+          }
+        />
 
         <section id="listeners" className="mx-auto max-w-6xl px-5 py-16">
           <div className="mb-8 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">

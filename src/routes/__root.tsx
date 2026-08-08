@@ -100,8 +100,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Anontalk - 100% Private & Anonymous Chat Platform." },
       { name: "twitter:description", content: "Anontalk - 100% Private & Anonymous Chat Platform" },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a2394223-0946-404c-a57f-b2764dcc03b5/id-preview-e7f6bd87--4ade52c4-7d06-41dc-9617-883591d786a0.lovable.app-1785918908183.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a2394223-0946-404c-a57f-b2764dcc03b5/id-preview-e7f6bd87--4ade52c4-7d06-41dc-9617-883591d786a0.lovable.app-1785918908183.png" },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a2394223-0946-404c-a57f-b2764dcc03b5/id-preview-e7f6bd87--4ade52c4-7d06-41dc-9617-883591d786a0.lovable.app-1785918908183.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a2394223-0946-404c-a57f-b2764dcc03b5/id-preview-e7f6bd87--4ade52c4-7d06-41dc-9617-883591d786a0.lovable.app-1785918908183.png",
+      },
     ],
     links: [
       {

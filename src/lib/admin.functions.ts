@@ -23,7 +23,9 @@ export const listAgentsLive = createServerFn({ method: "GET" })
     const [{ data: roles }, usersRes, { data: presence }] = await Promise.all([
       admin.from("user_roles").select("user_id, role"),
       admin.auth.admin.listUsers({ page: 1, perPage: 200 }),
-      admin.from("agent_presence").select("user_id, status, availability, last_seen_at, online_since, active_chat_count"),
+      admin
+        .from("agent_presence")
+        .select("user_id, status, availability, last_seen_at, online_since, active_chat_count"),
     ]);
 
     const emailByUser = new Map<string, string>();
@@ -34,7 +36,9 @@ export const listAgentsLive = createServerFn({ method: "GET" })
       .filter((r) => r.role === "staff")
       .map((r) => {
         const p = presenceByUser.get(r.user_id);
-        const fresh = p ? Date.now() - new Date(p.last_seen_at).getTime() < ONLINE_WINDOW_MS : false;
+        const fresh = p
+          ? Date.now() - new Date(p.last_seen_at).getTime() < ONLINE_WINDOW_MS
+          : false;
         const availability = !p || !fresh ? "offline" : p.availability;
         const inChat = (p?.active_chat_count ?? 0) > 0;
         return {
@@ -111,7 +115,9 @@ export const listClientStats = createServerFn({ method: "GET" })
         .select("id, alias, chat_credits, free_credits, is_blocked, created_at")
         .order("created_at", { ascending: false })
         .limit(500),
-      admin.from("chat_sessions").select("client_id, billed_seconds, duration_seconds, cost_cents, ended_at"),
+      admin
+        .from("chat_sessions")
+        .select("client_id, billed_seconds, duration_seconds, cost_cents, ended_at"),
       admin.from("credit_transactions").select("user_id, amount_cents, credits_delta, kind"),
     ]);
 

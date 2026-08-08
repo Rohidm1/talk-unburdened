@@ -71,8 +71,7 @@ const en = {
   },
   chatIntro: {
     title: "Live text chat — and nothing else",
-    body:
-      "No video, no voice, no recordings. You write, your chat partner writes back, and that's the whole product. One credit per message you send — replies are always free.",
+    body: "No video, no voice, no recordings. You write, your chat partner writes back, and that's the whole product. One credit per message you send — replies are always free.",
     point1: "1 credit per message you send — replies are free",
     point2: "Your alias is the only thing your chat partner ever sees",
     point3: "Your 3 free messages start right after sign-up",

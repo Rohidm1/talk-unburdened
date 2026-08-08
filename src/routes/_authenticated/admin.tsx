@@ -11,11 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAdminStats } from "@/lib/staff.functions";
 import { listAgentsLive, listClientStats, listLiveConversations } from "@/lib/admin.functions";
-import {
-  createAgentAccount,
-  deleteAgentAccount,
-  getAgentMonthlyStats,
-} from "@/lib/crm.functions";
+import { createAgentAccount, deleteAgentAccount, getAgentMonthlyStats } from "@/lib/crm.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
@@ -32,7 +28,8 @@ export const Route = createFileRoute("/_authenticated/admin")({
       { title: "Admin panel — Anontalk platform analytics" },
       {
         name: "description",
-        content: "Anontalk admin overview: agent availability, live chats, customer messages and revenue.",
+        content:
+          "Anontalk admin overview: agent availability, live chats, customer messages and revenue.",
       },
       { property: "og:title", content: "Admin panel — Anontalk" },
       { property: "og:description", content: "Platform analytics for Anontalk operators." },
@@ -432,9 +429,7 @@ function MonthlyHours() {
                 </p>
               </div>
               {a.days.length === 0 ? (
-                <p className="mt-3 text-sm text-muted-foreground">
-                  Deze maand nog niet ingelogd.
-                </p>
+                <p className="mt-3 text-sm text-muted-foreground">Deze maand nog niet ingelogd.</p>
               ) : (
                 <div className="mt-3 overflow-x-auto">
                   <table className="w-full min-w-[560px] text-left text-sm">

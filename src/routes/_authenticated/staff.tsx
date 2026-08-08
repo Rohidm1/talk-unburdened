@@ -92,7 +92,11 @@ function StaffPage() {
   const close = useServerFn(closeChatAsAgent);
 
   const account = useQuery({ queryKey: ["account"], queryFn: () => fetchAccount() });
-  const chats = useQuery({ queryKey: ["my-chats"], queryFn: () => fetchChats(), refetchInterval: 3000 });
+  const chats = useQuery({
+    queryKey: ["my-chats"],
+    queryFn: () => fetchChats(),
+    refetchInterval: 3000,
+  });
 
   const [availability, setAvailability] = useState<Availability>("offline");
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);

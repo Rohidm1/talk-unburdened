@@ -394,9 +394,7 @@ export const getAgentMonthlyStats = createServerFn({ method: "GET" })
     for (const u of usersRes.data?.users ?? []) {
       usernameById.set(u.id, (u.email ?? "").split("@")[0] || u.id.slice(0, 8));
     }
-    const staffIds = (roles ?? [])
-      .filter((r) => r.role === "staff")
-      .map((r) => r.user_id);
+    const staffIds = (roles ?? []).filter((r) => r.role === "staff").map((r) => r.user_id);
 
     type Day = {
       date: string;
