@@ -1,6 +1,18 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Check, MessageCircle, MessageSquareHeart, UserRound } from "lucide-react";
+import {
+  BadgeCheck,
+  Check,
+  EyeOff,
+  Heart,
+  LogOut,
+  MessageCircle,
+  MessageSquareHeart,
+  Quote,
+  Receipt,
+  Sparkles,
+  UserRound,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,9 +27,73 @@ import { toast } from "sonner";
 import { creditPackages } from "@/data/listeners";
 import { BillingDescriptorNotice } from "@/components/site/BillingDescriptorNotice";
 import { useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import type { CreditPackageKey } from "@/lib/credit-packages";
 import { CreditCheckoutDialog } from "@/components/site/CreditCheckoutDialog";
+import { Reveal } from "@/components/site/Reveal";
+
+export function TrustStrip() {
+  const { t } = useTranslation();
+  const items = [
+    { icon: EyeOff, title: t("trust.p1t"), body: t("trust.p1d") },
+    { icon: Receipt, title: t("trust.p2t"), body: t("trust.p2d") },
+    { icon: Heart, title: t("trust.p3t"), body: t("trust.p3d") },
+    { icon: LogOut, title: t("trust.p4t"), body: t("trust.p4d") },
+  ];
+
+  return (
+    <section className="mx-auto w-full max-w-6xl px-5 py-16">
+      <Reveal>
+        <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
+          {t("trust.title")}
+        </h2>
+      </Reveal>
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {items.map((item, i) => (
+          <Reveal key={item.title} delay={0.05 * i}>
+            <div className="card-lift h-full rounded-3xl border border-border bg-card p-6">
+              <item.icon className="size-5 text-primary" />
+              <h3 className="mt-4 font-display text-base font-semibold">{item.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.body}</p>
+            </div>
+          </Reveal>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export function Voices() {
+  const { t } = useTranslation();
+  const quotes = [
+    { quote: t("voices.q1"), author: t("voices.a1") },
+    { quote: t("voices.q2"), author: t("voices.a2") },
+    { quote: t("voices.q3"), author: t("voices.a3") },
+  ];
+
+  return (
+    <section className="mx-auto w-full max-w-6xl px-5 py-16">
+      <Reveal>
+        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
+          {t("voices.title")}
+        </h2>
+        <p className="mt-3 text-muted-foreground">{t("voices.subtitle")}</p>
+      </Reveal>
+      <div className="mt-10 grid gap-5 md:grid-cols-3">
+        {quotes.map((q, i) => (
+          <Reveal key={q.author} delay={0.06 * i}>
+            <figure className="card-lift h-full rounded-3xl border border-border bg-card p-6">
+              <Quote className="size-5 text-primary" />
+              <blockquote className="mt-4 text-sm leading-relaxed">“{q.quote}”</blockquote>
+              <figcaption className="mt-4 text-xs text-muted-foreground">{q.author}</figcaption>
+            </figure>
+          </Reveal>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export function HowItWorks() {
   const { t } = useTranslation();
@@ -29,13 +105,16 @@ export function HowItWorks() {
 
   return (
     <section id="how" className="mx-auto w-full max-w-6xl px-5 py-20">
-      <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
-        {t("how.title")}
-      </h2>
-      <p className="mt-3 max-w-xl text-muted-foreground">{t("how.subtitle")}</p>
+      <Reveal>
+        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
+          {t("how.title")}
+        </h2>
+        <p className="mt-3 max-w-xl text-muted-foreground">{t("how.subtitle")}</p>
+      </Reveal>
       <div className="mt-10 grid gap-5 md:grid-cols-3">
         {steps.map((s, i) => (
-          <div key={s.title} className="rounded-3xl border border-border bg-card p-6">
+          <Reveal key={s.title} delay={0.07 * i}>
+          <div className="card-lift h-full rounded-3xl border border-border bg-card p-6">
             <div className="flex size-11 items-center justify-center rounded-2xl bg-primary/15 text-primary">
               <s.icon className="size-5" />
             </div>
@@ -45,6 +124,7 @@ export function HowItWorks() {
             <h3 className="mt-1 font-display text-lg font-semibold">{s.title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{s.body}</p>
           </div>
+          </Reveal>
         ))}
       </div>
     </section>
