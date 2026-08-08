@@ -109,7 +109,7 @@ function BlogIndex() {
               Reading about it helps. Saying it out loud helps more.
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">
-              Your first three messages are free, and nobody ever learns your name.
+              Your first 5 messages are free, and nobody ever learns your name.
             </p>
             <Link
               to="/"

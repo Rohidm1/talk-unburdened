@@ -7,8 +7,8 @@ export const RATE_PER_MESSAGE = 0;
 /** How many chats one agent may run at the same time. */
 export const MAX_CHATS_PER_AGENT = 2;
 
-/** Free credits granted at signup (3 messages). */
-export const FREE_TRIAL_MESSAGES = 3;
+/** Free credits granted at signup (5 messages). */
+export const FREE_TRIAL_MESSAGES = 5;
 /** Warn the customer when this little credit is left. */
 export const LOW_BALANCE_WARNING_CREDITS = 2;
 

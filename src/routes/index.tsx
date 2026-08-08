@@ -67,10 +67,10 @@ export const Route = createFileRoute("/")({
             },
             {
               "@type": "Question",
-              name: "How do the 3 free messages work?",
+              name: "How do the 5 free messages work?",
               acceptedAnswer: {
                 "@type": "Answer",
-                text: "Every new account gets 3 free messages on the very first chat. No credit card needed. When they run out you can top up or simply close the chat.",
+                text: "Every new account gets 5 free messages on the very first chat. No credit card needed. When they run out you can top up or simply close the chat.",
               },
             },
             {
