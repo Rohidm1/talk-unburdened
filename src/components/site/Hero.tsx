@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
-import { CreditCard, Lock, ShieldCheck } from "lucide-react";
+import { ArrowRight, CreditCard, Lock, MessageCircle, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import heroBg from "@/assets/hero-bg.jpg";
 
@@ -11,6 +11,12 @@ export function Hero({ onStart }: { onStart: () => void }) {
     { icon: Lock, label: t("hero.badgeAnon") },
     { icon: CreditCard, label: t("hero.badgeCard") },
     { icon: ShieldCheck, label: t("hero.badgeCall") },
+  ];
+
+  const stats = [
+    { value: "12,400+", label: t("hero.statPeople") },
+    { value: "< 60 sec", label: t("hero.statWait") },
+    { value: "100%", label: t("hero.statPrivate") },
   ];
 
   return (
@@ -24,7 +30,11 @@ export function Hero({ onStart }: { onStart: () => void }) {
         className="absolute inset-0 size-full object-cover opacity-60"
       />
       <div className="absolute inset-0 bg-[var(--gradient-night)] opacity-80" />
-      <div className="relative mx-auto w-full max-w-6xl px-5 py-24 md:py-36">
+      <div
+        aria-hidden="true"
+        className="float-slow absolute -top-24 -right-24 size-72 rounded-full bg-primary/20 blur-3xl"
+      />
+      <div className="relative mx-auto grid w-full max-w-6xl gap-14 px-5 py-24 md:py-32 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
@@ -41,8 +51,9 @@ export function Hero({ onStart }: { onStart: () => void }) {
             {t("hero.subtitle")}
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button size="lg" onClick={onStart} className="shadow-[var(--shadow-glow)]">
+            <Button size="lg" onClick={onStart} className="glow-cta group">
               {t("hero.cta")}
+              <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
             </Button>
             <Button size="lg" variant="outline" asChild>
               <a href="#how">{t("hero.secondary")}</a>
@@ -56,6 +67,48 @@ export function Hero({ onStart }: { onStart: () => void }) {
               </li>
             ))}
           </ul>
+          <dl className="mt-10 grid max-w-lg grid-cols-3 gap-4">
+            {stats.map((s) => (
+              <div key={s.label} className="rounded-2xl border border-border/70 bg-card/60 p-4">
+                <dt className="font-display text-xl font-semibold tabular-nums">{s.value}</dt>
+                <dd className="mt-1 text-xs leading-snug text-muted-foreground">{s.label}</dd>
+              </div>
+            ))}
+          </dl>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.15, ease: "easeOut" }}
+          className="hidden rounded-3xl border border-border/70 bg-card/80 p-5 backdrop-blur-xl lg:block"
+        >
+          <div className="flex items-center gap-2 border-b border-border pb-3">
+            <span className="flex size-8 items-center justify-center rounded-xl bg-primary/15 text-primary">
+              <MessageCircle className="size-4" />
+            </span>
+            <span className="text-sm font-semibold">Anonymous chat</span>
+            <span className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="size-2 animate-pulse rounded-full bg-emerald-500" /> live
+            </span>
+          </div>
+          <div className="space-y-3 pt-4 text-sm">
+            <p className="max-w-[85%] rounded-2xl bg-secondary/60 px-3 py-2">
+              Rough week. I don't really know where to start.
+            </p>
+            <p className="ml-auto max-w-[85%] rounded-2xl bg-primary px-3 py-2 text-primary-foreground">
+              Start anywhere. I've got time, and nobody here knows who you are.
+            </p>
+            <p className="max-w-[85%] rounded-2xl bg-secondary/60 px-3 py-2">
+              Okay. It's about work, mostly…
+            </p>
+            <p className="flex items-center gap-1 pt-1 text-xs text-muted-foreground">
+              <span className="size-1.5 animate-bounce rounded-full bg-primary" />
+              <span className="size-1.5 animate-bounce rounded-full bg-primary [animation-delay:120ms]" />
+              <span className="size-1.5 animate-bounce rounded-full bg-primary [animation-delay:240ms]" />
+              typing…
+            </p>
+          </div>
         </motion.div>
       </div>
     </section>
