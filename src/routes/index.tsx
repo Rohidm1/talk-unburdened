@@ -17,7 +17,10 @@ import {
   Footer,
   HowItWorks,
   Pricing,
+  TrustStrip,
+  Voices,
 } from "@/components/site/Sections";
+import { Reveal } from "@/components/site/Reveal";
 import { listeners as fallbackListeners, type Listener } from "@/data/listeners";
 import { getMyAccount } from "@/lib/account.functions";
 import { endChat, startChat } from "@/lib/chat.functions";
@@ -203,7 +206,7 @@ function HomePage() {
         <Hero onStart={() => document.getElementById("listeners")?.scrollIntoView({ behavior: "smooth" })} />
 
         <section id="listeners" className="mx-auto max-w-6xl px-5 py-16">
-          <div className="mb-8 flex items-end justify-between gap-4">
+          <div className="mb-8 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
             <div>
               <h2 className="font-display text-2xl font-semibold sm:text-3xl">
                 {t("listeners.title")}
@@ -211,21 +214,25 @@ function HomePage() {
               <p className="mt-1 text-sm text-muted-foreground">{t("listeners.subtitle")}</p>
             </div>
             {user && totalCredits > 0 ? (
-              <span className="rounded-full border border-border bg-card px-3 py-1 text-sm tabular-nums">
+              <span className="shrink-0 rounded-full border border-border bg-card px-3 py-1 text-sm tabular-nums">
                 {totalCredits} credits
               </span>
             ) : null}
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {listenersOnline.map((l: Listener) => (
-              <ListenerCard key={l.id} listener={l} onChat={() => handleChat(l)} />
+            {listenersOnline.map((l: Listener, i: number) => (
+              <Reveal key={l.id} delay={0.05 * (i % 3)}>
+                <ListenerCard listener={l} onChat={() => handleChat(l)} />
+              </Reveal>
             ))}
           </div>
         </section>
 
         <ChatIntro />
         <HowItWorks />
+        <TrustStrip />
+        <Voices />
         <Pricing />
         <Faq />
         <ContactSection />
