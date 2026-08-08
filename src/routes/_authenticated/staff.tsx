@@ -190,6 +190,11 @@ function StaffPage() {
   const open = (chats.data ?? []).filter((c) => c.status === "active" && !c.endedAt);
 
   const roles = account.data?.roles ?? [];
+  const agentUsername =
+    account.data?.listener?.display_name ??
+    (user?.email ? user.email.split("@")[0] : null) ??
+    account.data?.profile?.alias ??
+    "Agent";
   if (account.isLoading) {
     return (
       <main className="flex h-screen items-center justify-center">
@@ -200,12 +205,24 @@ function StaffPage() {
 
   return (
     <main className="flex h-screen flex-col overflow-hidden bg-background font-body">
-      <header className="flex items-center justify-between border-b border-border px-5 py-3">
-        <div className="flex items-center gap-2">
-          <MessageCircle className="size-5 text-primary" />
-          <h1 className="font-display text-lg font-semibold">Agent desk</h1>
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border px-5 py-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+            <MessageCircle className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <h1 className="truncate font-display text-lg font-semibold leading-tight">
+              Agent desk
+            </h1>
+            <p className="truncate text-xs text-muted-foreground">
+              Signed in as <span className="font-medium text-foreground">{agentUsername}</span>
+              {account.data?.listener?.display_name
+                ? ` · chatting as ${account.data.listener.display_name}`
+                : ""}
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           <div className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-sm">
             {statusIcon(availability)}
             <span className="hidden sm:inline">{statusLabel(availability)}</span>
@@ -355,7 +372,7 @@ function StaffPage() {
                   Chat afsluiten
                 </Button>
               </div>
-              <div className="flex-1 overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-4">
                 <AgentChatPanel enabled={!!selectedChatId} />
               </div>
             </>
