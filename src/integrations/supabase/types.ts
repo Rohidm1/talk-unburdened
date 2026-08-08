@@ -47,6 +47,27 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_shift_events: {
+        Row: {
+          agent_user_id: string
+          availability: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          agent_user_id: string
+          availability: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          agent_user_id?: string
+          availability?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
       call_monitor_sessions: {
         Row: {
           admin_user_id: string
