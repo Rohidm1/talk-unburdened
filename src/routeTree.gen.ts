@@ -14,7 +14,6 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CrmRouteRouteImport } from './routes/crm/route'
 import { Route as CrmLoginRouteImport } from './routes/crm-login'
-import { Route as HandbookRouteImport } from './routes/handbook'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -48,11 +47,6 @@ const CrmRouteRoute = CrmRouteRouteImport.update({
 const CrmLoginRoute = CrmLoginRouteImport.update({
   id: '/crm-login',
   path: '/crm-login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HandbookRoute = HandbookRouteImport.update({
-  id: '/handbook',
-  path: '/handbook',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -112,7 +106,6 @@ export interface FileRoutesByFullPath {
   '/crm': typeof CrmRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/crm-login': typeof CrmLoginRoute
-  '/handbook': typeof HandbookRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
@@ -128,7 +121,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/crm-login': typeof CrmLoginRoute
-  '/handbook': typeof HandbookRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
@@ -147,7 +139,6 @@ export interface FileRoutesById {
   '/crm': typeof CrmRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/crm-login': typeof CrmLoginRoute
-  '/handbook': typeof HandbookRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
@@ -166,7 +157,6 @@ export interface FileRouteTypes {
     | '/crm'
     | '/auth'
     | '/crm-login'
-    | '/handbook'
     | '/sitemap.xml'
     | '/account'
     | '/admin'
@@ -182,7 +172,6 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/crm-login'
-    | '/handbook'
     | '/sitemap.xml'
     | '/account'
     | '/admin'
@@ -200,7 +189,6 @@ export interface FileRouteTypes {
     | '/crm'
     | '/auth'
     | '/crm-login'
-    | '/handbook'
     | '/sitemap.xml'
     | '/_authenticated/account'
     | '/_authenticated/admin'
@@ -219,7 +207,6 @@ export interface RootRouteChildren {
   CrmRouteRoute: typeof CrmRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   CrmLoginRoute: typeof CrmLoginRoute
-  HandbookRoute: typeof HandbookRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
@@ -263,13 +250,6 @@ declare module '@tanstack/react-router' {
       path: '/crm-login'
       fullPath: '/crm-login'
       preLoaderRoute: typeof CrmLoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/handbook': {
-      id: '/handbook'
-      path: '/handbook'
-      fullPath: '/handbook'
-      preLoaderRoute: typeof HandbookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -378,7 +358,6 @@ const rootRouteChildren: RootRouteChildren = {
   CrmRouteRoute: CrmRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   CrmLoginRoute: CrmLoginRoute,
-  HandbookRoute: HandbookRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   BlogSlugRoute: BlogSlugRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
