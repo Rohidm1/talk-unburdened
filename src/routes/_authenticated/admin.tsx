@@ -10,7 +10,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAdminStats } from "@/lib/staff.functions";
-import { listAgentsLive, listClientStats, listLiveConversations } from "@/lib/admin.functions";
+import {
+  getTrafficStats,
+  listAgentsLive,
+  listClientStats,
+  listLiveConversations,
+} from "@/lib/admin.functions";
 import { createAgentAccount, deleteAgentAccount, getAgentMonthlyStats } from "@/lib/crm.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -140,6 +145,7 @@ function AdminPage() {
               <TabsTrigger value="agents">Agents</TabsTrigger>
               <TabsTrigger value="hours">Werkuren</TabsTrigger>
               <TabsTrigger value="clients">Klanten</TabsTrigger>
+              <TabsTrigger value="traffic">Bezoekers</TabsTrigger>
             </TabsList>
 
             <TabsContent value="live" className="mt-6">
