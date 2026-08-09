@@ -14,6 +14,7 @@ import i18n from "@/lib/i18n";
 import { I18nextProvider } from "react-i18next";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
+import { VisitTracker } from "@/components/site/VisitTracker";
 
 function NotFoundComponent() {
   return (
@@ -167,6 +168,7 @@ function RootComponent() {
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
         <Toaster />
+        <VisitTracker />
       </I18nextProvider>
     </QueryClientProvider>
   );

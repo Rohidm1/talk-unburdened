@@ -104,6 +104,89 @@ export const listLiveConversations = createServerFn({ method: "GET" })
   });
 
 /** Cumulative chat activity per customer. */
+export const getTrafficStats = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { days?: number } | undefined) =>
+    z.object({ days: z.number().int().min(1).max(365).default(30) }).parse(input ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const admin = await assertAdmin(context);
+    const since = new Date(Date.now() - data.days * 86_400_000).toISOString();
+
+    const [{ data: visits }, { data: profiles }] = await Promise.all([
+      admin
+        .from("site_visits")
+        .select("visitor_id, country, path, created_at, user_id")
+        .gte("created_at", since)
+        .order("created_at", { ascending: false })
+        .limit(20000),
+      admin
+        .from("profiles")
+        .select("id, signup_country, created_at")
+        .gte("created_at", since),
+    ]);
+
+    const rows = visits ?? [];
+    const uniques = new Set(rows.map((v) => v.visitor_id));
+
+    const byCountry = new Map<string, { visits: number; visitors: Set<string>; signups: number }>();
+    const bucket = (code: string | null) => {
+      const key = code ?? "Unknown";
+      let b = byCountry.get(key);
+      if (!b) {
+        b = { visits: 0, visitors: new Set<string>(), signups: 0 };
+        byCountry.set(key, b);
+      }
+      return b;
+    };
+    for (const v of rows) {
+      const b = bucket(v.country);
+      b.visits += 1;
+      b.visitors.add(v.visitor_id);
+    }
+    for (const p of profiles ?? []) bucket(p.signup_country).signups += 1;
+
+    const byDay = new Map<string, { visitors: Set<string>; signups: number }>();
+    const day = (iso: string) => {
+      const key = iso.slice(0, 10);
+      let d = byDay.get(key);
+      if (!d) {
+        d = { visitors: new Set<string>(), signups: 0 };
+        byDay.set(key, d);
+      }
+      return d;
+    };
+    for (const v of rows) day(v.created_at).visitors.add(v.visitor_id);
+    for (const p of profiles ?? []) day(p.created_at).signups += 1;
+
+    const byPage = new Map<string, number>();
+    for (const v of rows) byPage.set(v.path, (byPage.get(v.path) ?? 0) + 1);
+
+    return {
+      days: data.days,
+      pageViews: rows.length,
+      uniqueVisitors: uniques.size,
+      signups: (profiles ?? []).length,
+      countries: Array.from(byCountry.entries())
+        .map(([country, b]) => ({
+          country,
+          visits: b.visits,
+          visitors: b.visitors.size,
+          signups: b.signups,
+        }))
+        .sort((a, b) => b.visitors - a.visitors || b.signups - a.signups),
+      daily: Array.from(byDay.entries())
+        .map(([date, d]) => ({ date, visitors: d.visitors.size, signups: d.signups }))
+        .sort((a, b) => (a.date < b.date ? 1 : -1))
+        .slice(0, 30),
+      topPages: Array.from(byPage.entries())
+        .map(([path, views]) => ({ path, views }))
+        .sort((a, b) => b.views - a.views)
+        .slice(0, 10),
+    };
+  });
+
+/** Cumulative chat activity per customer. */
 export const listClientStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {

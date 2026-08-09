@@ -519,6 +519,7 @@ export type Database = {
           id: string
           is_blocked: boolean
           locale: string
+          signup_country: string | null
           updated_at: string
         }
         Insert: {
@@ -531,6 +532,7 @@ export type Database = {
           id: string
           is_blocked?: boolean
           locale?: string
+          signup_country?: string | null
           updated_at?: string
         }
         Update: {
@@ -543,7 +545,38 @@ export type Database = {
           id?: string
           is_blocked?: boolean
           locale?: string
+          signup_country?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      site_visits: {
+        Row: {
+          country: string | null
+          created_at: string
+          id: string
+          path: string
+          referrer: string | null
+          user_id: string | null
+          visitor_id: string
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          id?: string
+          path?: string
+          referrer?: string | null
+          user_id?: string | null
+          visitor_id: string
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          id?: string
+          path?: string
+          referrer?: string | null
+          user_id?: string | null
+          visitor_id?: string
         }
         Relationships: []
       }

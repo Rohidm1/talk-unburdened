@@ -3,14 +3,19 @@ import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { CalendarClock, MessageCircle, Trash2, UserPlus } from "lucide-react";
+import { CalendarClock, Globe, MessageCircle, Trash2, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAdminStats } from "@/lib/staff.functions";
-import { listAgentsLive, listClientStats, listLiveConversations } from "@/lib/admin.functions";
+import {
+  getTrafficStats,
+  listAgentsLive,
+  listClientStats,
+  listLiveConversations,
+} from "@/lib/admin.functions";
 import { createAgentAccount, deleteAgentAccount, getAgentMonthlyStats } from "@/lib/crm.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -140,6 +145,7 @@ function AdminPage() {
               <TabsTrigger value="agents">Agents</TabsTrigger>
               <TabsTrigger value="hours">Werkuren</TabsTrigger>
               <TabsTrigger value="clients">Klanten</TabsTrigger>
+              <TabsTrigger value="traffic">Bezoekers</TabsTrigger>
             </TabsList>
 
             <TabsContent value="live" className="mt-6">
@@ -296,6 +302,10 @@ function AdminPage() {
                 </div>
               </section>
             </TabsContent>
+
+            <TabsContent value="traffic" className="mt-6">
+              <TrafficPanel />
+            </TabsContent>
           </Tabs>
         </>
       )}
@@ -308,6 +318,155 @@ type NewAgentValues = {
   password: string;
   displayName: string;
 };
+
+const countryNames =
+  typeof Intl !== "undefined" && "DisplayNames" in Intl
+    ? new Intl.DisplayNames(["en"], { type: "region" })
+    : null;
+
+function countryLabel(code: string) {
+  if (code === "Unknown") return "Onbekend";
+  try {
+    return countryNames?.of(code) ?? code;
+  } catch {
+    return code;
+  }
+}
+
+function TrafficPanel() {
+  const fetchTraffic = useServerFn(getTrafficStats);
+  const [days, setDays] = useState(30);
+  const traffic = useQuery({
+    queryKey: ["admin-traffic", days],
+    queryFn: () => fetchTraffic({ data: { days } }),
+    refetchInterval: 60000,
+    retry: false,
+  });
+  const d = traffic.data;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center gap-2">
+        {[7, 30, 90].map((n) => (
+          <Button
+            key={n}
+            size="sm"
+            variant={days === n ? "default" : "outline"}
+            onClick={() => setDays(n)}
+          >
+            Laatste {n} dagen
+          </Button>
+        ))}
+      </div>
+
+      <section className="grid gap-4 sm:grid-cols-3">
+        {[
+          { label: "Unieke bezoekers", value: d?.uniqueVisitors ?? 0 },
+          { label: "Paginaweergaven", value: d?.pageViews ?? 0 },
+          { label: "Nieuwe accounts", value: d?.signups ?? 0 },
+        ].map((k) => (
+          <div key={k.label} className="rounded-3xl border border-border bg-card p-6">
+            <p className="text-xs tracking-widest text-muted-foreground uppercase">{k.label}</p>
+            <p className="mt-2 font-display text-3xl tabular-nums">{k.value}</p>
+          </div>
+        ))}
+      </section>
+
+      <section className="rounded-3xl border border-border bg-card p-6">
+        <div className="flex items-center gap-2">
+          <Globe className="size-5 text-primary" />
+          <h2 className="font-display text-lg font-semibold">Landen</h2>
+        </div>
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full min-w-[520px] text-left text-sm">
+            <thead className="text-xs tracking-wide text-muted-foreground uppercase">
+              <tr>
+                <th className="py-2">Land</th>
+                <th className="py-2">Bezoekers</th>
+                <th className="py-2">Weergaven</th>
+                <th className="py-2">Aanmeldingen</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {(d?.countries ?? []).map((c) => (
+                <tr key={c.country}>
+                  <td className="py-2 font-medium">{countryLabel(c.country)}</td>
+                  <td className="py-2 tabular-nums">{c.visitors}</td>
+                  <td className="py-2 tabular-nums">{c.visits}</td>
+                  <td className="py-2 tabular-nums">{c.signups}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {(d?.countries ?? []).length === 0 ? (
+            <p className="mt-4 text-sm text-muted-foreground">
+              Nog geen bezoekersdata in deze periode.
+            </p>
+          ) : null}
+        </div>
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <section className="rounded-3xl border border-border bg-card p-6">
+          <h2 className="font-display text-lg font-semibold">Per dag</h2>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="text-xs tracking-wide text-muted-foreground uppercase">
+                <tr>
+                  <th className="py-2">Datum</th>
+                  <th className="py-2">Bezoekers</th>
+                  <th className="py-2">Aanmeldingen</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {(d?.daily ?? []).map((row) => (
+                  <tr key={row.date}>
+                    <td className="py-2">{row.date}</td>
+                    <td className="py-2 tabular-nums">{row.visitors}</td>
+                    <td className="py-2 tabular-nums">{row.signups}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {(d?.daily ?? []).length === 0 ? (
+              <p className="mt-4 text-sm text-muted-foreground">Nog geen data.</p>
+            ) : null}
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-border bg-card p-6">
+          <h2 className="font-display text-lg font-semibold">Populairste pagina's</h2>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="text-xs tracking-wide text-muted-foreground uppercase">
+                <tr>
+                  <th className="py-2">Pagina</th>
+                  <th className="py-2">Weergaven</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {(d?.topPages ?? []).map((row) => (
+                  <tr key={row.path}>
+                    <td className="py-2">{row.path}</td>
+                    <td className="py-2 tabular-nums">{row.views}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {(d?.topPages ?? []).length === 0 ? (
+              <p className="mt-4 text-sm text-muted-foreground">Nog geen data.</p>
+            ) : null}
+          </div>
+        </section>
+      </div>
+
+      <p className="text-xs text-muted-foreground">
+        Landen worden bepaald via het netwerk van de bezoeker. Aanmeldingen krijgen het land van hun
+        eerste bezoek na registratie.
+      </p>
+    </div>
+  );
+}
 
 function NewAgentForm({ onCreate }: { onCreate: (values: NewAgentValues) => Promise<void> }) {
   const [username, setUsername] = useState("");
