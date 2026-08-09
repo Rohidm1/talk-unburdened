@@ -92,7 +92,7 @@ function matches(section: Section, q: string) {
 
 function HandbookPage() {
   const [query, setQuery] = useState("");
-  const [active, setActive] = useState(handbook[0].id);
+  const [active, setActive] = useState(handbook[0]?.id ?? "");
 
   const results = useMemo(
     () => handbook.map((s) => matches(s, query.trim())).filter(Boolean) as Section[],
