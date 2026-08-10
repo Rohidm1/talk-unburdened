@@ -342,6 +342,12 @@ export const acceptChat = createServerFn({ method: "POST" })
     if (!session) throw new Error("Forbidden");
     if (session.ended_at) return { ok: false as const };
 
+    // A human took over: silence the stand-in immediately.
+    await supabaseAdmin
+      .from("chat_sessions")
+      .update({ ai_muted: true, ai_active: false })
+      .eq("id", data.sessionId);
+
     if (!session.answered_at) {
       const now = new Date().toISOString();
       await supabaseAdmin
