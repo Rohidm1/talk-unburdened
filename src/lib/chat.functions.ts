@@ -207,7 +207,7 @@ export const listChatMessages = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase
       .from("chat_messages")
-      .select("id, sender_role, body, created_at")
+      .select("id, sender_role, body, created_at, is_ai")
       .eq("session_id", data.sessionId)
       .order("created_at", { ascending: true })
       .limit(500);
@@ -341,6 +341,40 @@ export const acceptChat = createServerFn({ method: "POST" })
     }
     if (!session) throw new Error("Forbidden");
     if (session.ended_at) return { ok: false as const };
+
+    // Freeze what the customer discussed with the stand-in, so the human agent
+    // can read the handover context even after the AI goes silent.
+    const { data: recent } = await supabaseAdmin
+      .from("chat_messages")
+      .select("sender_role, body, created_at, is_ai")
+      .eq("session_id", data.sessionId)
+      .order("created_at", { ascending: false })
+      .limit(10);
+    const history = (recent ?? []).slice().reverse();
+    if (history.length > 0) {
+      const { data: existing } = await supabaseAdmin
+        .from("chat_events")
+        .select("id")
+        .eq("session_id", data.sessionId)
+        .eq("event", "ai_handoff")
+        .limit(1);
+      if ((existing ?? []).length === 0) {
+        await logChatEvent(
+          data.sessionId,
+          "ai_handoff",
+          "system",
+          JSON.stringify({
+            capturedAt: new Date().toISOString(),
+            aiUsed: history.some((m) => m.is_ai),
+            transcript: history.map((m) => ({
+              role: m.is_ai ? "ai" : m.sender_role,
+              body: m.body,
+              at: m.created_at,
+            })),
+          }),
+        );
+      }
+    }
 
     // A human took over: silence the stand-in immediately.
     await supabaseAdmin
