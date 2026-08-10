@@ -150,6 +150,16 @@ export function ChatDialog({
     }
   };
 
+  // Proactive icebreaker when the person hasn't typed within 8 seconds.
+  useEffect(() => {
+    if (!open || !sessionId || userSpoke || answered) return;
+    const id = window.setTimeout(() => {
+      if (!userSpoke) void runFallbackTurn("opener");
+    }, 8000);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, sessionId, userSpoke, answered]);
+
   const submit = async () => {
     const body = draft.trim();
     if (!body || !sessionId || sending) return;
