@@ -442,6 +442,22 @@ export const listChatNotes = createServerFn({ method: "POST" })
     const session = await loadAgentChat(data.sessionId, context.userId);
     if (!session) throw new Error("Forbidden");
 
+    const { data: rows } = await supabaseAdmin
+      .from("call_notes")
+      .select("id")
+      .limit(0);
+    void rows;
+    return null;
+  });
+
+export const listChatNotesLegacy = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(sessionInput)
+  .handler(async ({ data, context }) => {
+    const { loadAgentChat, supabaseAdmin } = await import("@/lib/chat.server");
+    const session = await loadAgentChat(data.sessionId, context.userId);
+    if (!session) throw new Error("Forbidden");
+
     const { data: rows, error } = await supabaseAdmin
       .from("call_notes")
       .select("id, body, created_at, chat_session_id, call_id")
