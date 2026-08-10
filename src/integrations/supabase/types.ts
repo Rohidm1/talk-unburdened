@@ -68,6 +68,106 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_interactions: {
+        Row: {
+          ai_response: string
+          created_at: string
+          credit_purchased: boolean
+          engagement_score: number
+          id: string
+          persona_id: string | null
+          persona_name: string
+          promoted: boolean
+          replied_at: string | null
+          session_duration_seconds: number
+          session_id: string
+          user_prompt: string
+          user_replied: boolean
+        }
+        Insert: {
+          ai_response: string
+          created_at?: string
+          credit_purchased?: boolean
+          engagement_score?: number
+          id?: string
+          persona_id?: string | null
+          persona_name?: string
+          promoted?: boolean
+          replied_at?: string | null
+          session_duration_seconds?: number
+          session_id: string
+          user_prompt?: string
+          user_replied?: boolean
+        }
+        Update: {
+          ai_response?: string
+          created_at?: string
+          credit_purchased?: boolean
+          engagement_score?: number
+          id?: string
+          persona_id?: string | null
+          persona_name?: string
+          promoted?: boolean
+          replied_at?: string | null
+          session_duration_seconds?: number
+          session_id?: string
+          user_prompt?: string
+          user_replied?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_interactions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_playbook: {
+        Row: {
+          ai_response: string
+          created_at: string
+          embedding: string | null
+          engagement_score: number
+          id: string
+          interaction_id: string | null
+          model_version: string
+          persona_name: string
+          user_prompt: string
+        }
+        Insert: {
+          ai_response: string
+          created_at?: string
+          embedding?: string | null
+          engagement_score?: number
+          id?: string
+          interaction_id?: string | null
+          model_version?: string
+          persona_name?: string
+          user_prompt: string
+        }
+        Update: {
+          ai_response?: string
+          created_at?: string
+          embedding?: string | null
+          engagement_score?: number
+          id?: string
+          interaction_id?: string | null
+          model_version?: string
+          persona_name?: string
+          user_prompt?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_playbook_interaction_id_fkey"
+            columns: ["interaction_id"]
+            isOneToOne: false
+            referencedRelation: "ai_interactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       call_monitor_sessions: {
         Row: {
           admin_user_id: string
@@ -645,6 +745,14 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      match_ai_playbook: {
+        Args: { match_count?: number; query_embedding: string }
+        Returns: {
+          ai_response: string
+          similarity: number
+          user_prompt: string
+        }[]
       }
       revoke_chat_credits: {
         Args: {
