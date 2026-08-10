@@ -147,7 +147,9 @@ function HomePage() {
     return fallbackListeners.flatMap((listener) => {
       const row = rowsByName.get(listener.displayName);
       if (!row) return [];
-      return [{ ...listener, id: row.id, status: row.status }];
+      // A stand-in always covers the chat when no agent is around, so a
+      // profile is never shown as offline.
+      return [{ ...listener, id: row.id, status: row.status === "offline" ? "online" : row.status }];
     });
   }, [publicListeners.data]);
 
