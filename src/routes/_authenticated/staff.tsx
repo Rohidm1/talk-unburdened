@@ -33,6 +33,7 @@ import {
   listMyChats,
 } from "@/lib/chat.functions";
 import { AgentChatPanel } from "@/components/site/AgentChatPanel";
+import { AgentMetrics } from "@/components/site/AgentMetrics";
 import { useInboxAlert } from "@/hooks/useInboxAlert";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -281,6 +282,8 @@ function StaffPage() {
               Claim next chat
             </Button>
           </div>
+
+          <AgentMetrics />
 
           <div className="flex-1 overflow-y-auto p-3">
             {ringing.length > 0 ? (
