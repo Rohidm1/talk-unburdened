@@ -200,6 +200,21 @@ export function ChatDialog({
               {m.body}
             </div>
           ))}
+
+          {partnerTyping ? (
+            <div className="flex w-fit items-center gap-1 rounded-2xl bg-secondary px-4 py-3">
+              <span className="size-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.2s]" />
+              <span className="size-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.1s]" />
+              <span className="size-2 animate-bounce rounded-full bg-muted-foreground" />
+              <span className="ml-2 text-xs text-muted-foreground">is typing…</span>
+            </div>
+          ) : null}
+
+          {notice ? (
+            <p className="rounded-2xl bg-secondary/40 px-4 py-2 text-xs text-muted-foreground">
+              {notice}
+            </p>
+          ) : null}
           <div ref={bottomRef} />
         </div>
 
