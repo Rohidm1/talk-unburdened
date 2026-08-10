@@ -1,0 +1,45 @@
+# Anontalk
+
+> Anonymous live chat with real people. Private, discreet, no subscription. New accounts get 5 free messages; after that each message you send costs 1 credit and replies are always free.
+
+Anontalk.online is a 100% private and anonymous chat platform. Visitors pick a chat partner profile, start a conversation in the browser and stay anonymous throughout: only an alias is shown. Chat partners are warm, everyday people, not therapists or medical professionals.
+
+## Core Content
+
+- [Homepage](https://anontalk.online/)
+- [How it works](https://anontalk.online/#how)
+- [Pricing and credit bundles](https://anontalk.online/#pricing)
+- [Voices from users](https://anontalk.online/#voices)
+- [Frequently asked questions](https://anontalk.online/#faq)
+- [Blog](https://anontalk.online/blog)
+- [Contact](https://anontalk.online/#contact)
+
+## Site Features and User Interaction
+
+- Anonymous live text chat, no identifying information required
+- Sign-up needs only an email and an alias
+- 5 free messages on the first chat, no credit card required
+- You pay per message you send; chat partner replies are free
+- Choose your chat partner from public profiles; real people, not therapists
+- Chats run in the browser and are never shared with third parties
+- No subscriptions and no long-term commitments
+
+## Payments and Credits
+
+- Credits are sold in bundles; the price per message drops with larger bundles
+- Prices are shown in US dollars and paid through Stripe
+- Payments appear as "HELP & SUPPORT DESK" on bank and card statements
+- Credits never expire
+
+## Frequently Asked Questions
+
+- Is it really anonymous? Yes: only your alias is visible to your chat partner.
+- Are chat partners professionals? No, they offer everyday perspective, not professional advice.
+- How do the 5 free messages work? Every new account gets them on the first chat.
+- How am I billed? 1 credit per message you send; replies are free.
+- Who can see that I chatted? Nobody; the billing descriptor is neutral.
+- Do credits expire? No.
+
+## Optional
+
+- [Terms and privacy details](https://anontalk.online/#faq)
