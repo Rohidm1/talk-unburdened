@@ -23,8 +23,7 @@ export function Hero({ onStart }: { onStart: () => void }) {
     <section id="top" className="relative overflow-hidden">
       <img
         src={heroBg}
-        alt=""
-        aria-hidden="true"
+        alt="Calm midnight-blue night sky backdrop for Anontalk's anonymous live chat platform"
         width={1920}
         height={1080}
         className="absolute inset-0 size-full object-cover opacity-60"
