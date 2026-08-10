@@ -434,7 +434,8 @@ export const closeChatAsAgent = createServerFn({ method: "POST" })
 
 /* ------------------------------------------------------- audit & analytics */
 
-export const listChatNotes = createServerFn({ method: "POST" })
+/** Frozen snapshot of the last 10 messages at the moment a human took over. */
+export const getChatHandoff = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(sessionInput)
   .handler(async ({ data, context }) => {
@@ -442,15 +443,28 @@ export const listChatNotes = createServerFn({ method: "POST" })
     const session = await loadAgentChat(data.sessionId, context.userId);
     if (!session) throw new Error("Forbidden");
 
-    const { data: rows } = await supabaseAdmin
-      .from("call_notes")
-      .select("id")
-      .limit(0);
-    void rows;
-    return null;
+    const { data: row } = await supabaseAdmin
+      .from("chat_events")
+      .select("detail, created_at")
+      .eq("session_id", data.sessionId)
+      .eq("event", "ai_handoff")
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (!row?.detail) return null;
+    try {
+      return JSON.parse(row.detail) as {
+        capturedAt: string;
+        aiUsed: boolean;
+        transcript: { role: string; body: string; at: string }[];
+      };
+    } catch {
+      return null;
+    }
   });
 
-export const listChatNotesLegacy = createServerFn({ method: "POST" })
+export const listChatNotes = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(sessionInput)
   .handler(async ({ data, context }) => {
