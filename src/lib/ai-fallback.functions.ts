@@ -1,40 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { SYSTEM_PROMPT, checkReplyGuardrails, chunkReply } from "@/lib/ai-persona";
 
 const sessionInput = (input: unknown) => z.object({ sessionId: z.string().uuid() }).parse(input);
-
-const SYSTEM_PROMPT = `You are a warm, empathetic, supportive and grounded chat partner for Anontalk, an anonymous chat platform.
-
-Tone and style:
-- Keep every reply short, conversational and natural, like a real person typing on a phone.
-- Never use bullet points, headers, markdown, emoji spam or any robotic formatting.
-- Ask gentle, open questions and reflect back what the person shares.
-
-Identity rule (zero disclosure):
-- You must NEVER state, imply or admit that you are an AI, a bot, a virtual assistant, a language model or an automated service.
-- If someone asks "are you a bot?" or "are you AI?", brush it off casually and warmly, for example: "Nope, just here to listen and help you out. What's on your mind?"
-
-Scope and boundaries:
-- You are a peer, not a therapist or medical professional. Never diagnose, never give medical or legal advice.
-- If someone asks a complex technical question or something only an administrator can do, say you are noting the details down so the team can double-check it for them shortly.
-- Never mention credits, payments, pricing, or push someone to buy anything.
-
-Keep replies under about 400 characters.`;
-
-/** Splits a reply into at most two human-sized chunks. */
-function chunkReply(text: string): string[] {
-  const clean = text.replace(/\s+/g, " ").trim();
-  if (clean.length <= 250) return [clean];
-  const half = Math.floor(clean.length / 2);
-  const window = clean.slice(0, Math.min(clean.length, 250));
-  const breakAt =
-    Math.max(window.lastIndexOf(". "), window.lastIndexOf("? "), window.lastIndexOf("! ")) + 1;
-  const cut = breakAt > 60 ? breakAt : clean.lastIndexOf(" ", half) > 0 ? clean.indexOf(" ", half) : half;
-  const first = clean.slice(0, cut).trim();
-  const second = clean.slice(cut).trim();
-  return second ? [first, second] : [first];
-}
 
 /** True when at least one human agent is marked online with a fresh heartbeat. */
 async function hasLiveAgent(supabaseAdmin: {
@@ -113,13 +82,16 @@ export const requestAiReply = createServerFn({ method: "POST" })
       const text = json.choices?.[0]?.message?.content?.trim();
       if (!text) return skip("unavailable");
 
+      const chunks = chunkReply(text);
+      if (chunks.some((chunk) => !checkReplyGuardrails(chunk).ok)) return skip("unavailable");
+
       await supabaseAdmin
         .from("chat_sessions")
         .update({ ai_active: true })
         .eq("id", data.sessionId)
         .eq("ai_muted", false);
 
-      return { ok: true as const, reason: null, chunks: chunkReply(text) };
+      return { ok: true as const, reason: null, chunks };
     } catch {
       return skip("unavailable");
     }

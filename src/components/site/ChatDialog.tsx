@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import { chatHeartbeat, listChatMessages, sendChatMessage } from "@/lib/chat.functions";
 import { persistAiMessage, requestAiReply } from "@/lib/ai-fallback.functions";
+import { typingDelayMs } from "@/lib/ai-persona";
 import type { Listener } from "@/data/listeners";
 
 export function ChatDialog({
@@ -115,7 +116,7 @@ export function ChatDialog({
         const chunk = result.chunks[i]!;
         if (i > 0) setPartnerTyping(true);
         // longer messages visibly take longer to "type"
-        await wait(Math.min(4000, Math.max(1500, chunk.length * 40)));
+        await wait(typingDelayMs(chunk));
         if (!stillMine()) return;
         const saved = await saveAi({ data: { sessionId, body: chunk } });
         if (!stillMine()) return;
