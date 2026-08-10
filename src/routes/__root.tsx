@@ -143,6 +143,38 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
             "Anonymous live text chat with warm chat partners. No names, no judgment. First 5 messages free.",
         }),
       },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "Anontalk",
+          url: "https://anontalk.online",
+          inLanguage: "en",
+          description:
+            "Anontalk: 100% private, anonymous live chat. Sign up to receive 5 free messages and chat instantly with real people.",
+          publisher: { "@type": "Organization", name: "Anontalk", url: "https://anontalk.online" },
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: "Anontalk",
+          url: "https://anontalk.online",
+          applicationCategory: "CommunicationApplication",
+          operatingSystem: "Web browser",
+          description:
+            "Anonymous 1-on-1 live chat platform. No forms, no waiting room, no subscription. New accounts get 5 free messages and pay per message afterwards.",
+          offers: {
+            "@type": "Offer",
+            price: "0",
+            priceCurrency: "USD",
+            description: "5 free messages for every new account, then pay-per-message credits.",
+          },
+        }),
+      },
     ],
   }),
   shellComponent: RootShell,
