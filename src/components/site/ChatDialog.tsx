@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, SendHorizonal } from "lucide-react";
+import { SendHorizonal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -31,6 +31,8 @@ export function ChatDialog({
   const saveAi = useServerFn(persistAiMessage);
 
   const [answered, setAnswered] = useState(false);
+  const [connected, setConnected] = useState(false);
+  const [userSpoke, setUserSpoke] = useState(false);
   const [remaining, setRemaining] = useState(allowance);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -39,6 +41,7 @@ export function ChatDialog({
   const turnRef = useRef(0);
   const bottomRef = useRef<HTMLDivElement>(null);
   const open = !!listener && !!sessionId;
+  const partnerName = listener?.displayName ?? "your chat partner";
 
   const messages = useQuery({
     queryKey: ["chat-messages", sessionId],
@@ -53,8 +56,18 @@ export function ChatDialog({
     setRemaining(allowance);
     setPartnerTyping(false);
     setNotice(null);
+    setConnected(false);
+    setUserSpoke(false);
     turnRef.current += 1;
   }, [sessionId, open, allowance]);
+
+  // Phase 1 → Phase 2: a short, natural connecting beat before the chat opens up.
+  useEffect(() => {
+    if (!open) return;
+    const delay = 1500 + Math.random() * 1500;
+    const id = window.setTimeout(() => setConnected(true), delay);
+    return () => window.clearTimeout(id);
+  }, [open, sessionId]);
 
   useEffect(() => {
     if (!open || !sessionId) return;
@@ -91,7 +104,7 @@ export function ChatDialog({
     }
   }, [answered]);
 
-  const runFallbackTurn = async () => {
+  const runFallbackTurn = async (kind: "reply" | "opener" = "reply") => {
     if (!sessionId) return;
     turnRef.current += 1;
     const turn = turnRef.current;
@@ -100,7 +113,7 @@ export function ChatDialog({
 
     setPartnerTyping(true);
     try {
-      const result = await askAi({ data: { sessionId } });
+      const result = await askAi({ data: { sessionId, kind } });
       if (!stillMine()) return;
       if (!result.ok) {
         setPartnerTyping(false);
@@ -142,6 +155,7 @@ export function ChatDialog({
     if (!body || !sessionId || sending) return;
     setSending(true);
     setDraft("");
+    setUserSpoke(true);
     try {
       const result = await send({ data: { sessionId, body } });
       if (!result.ok) {
@@ -159,7 +173,7 @@ export function ChatDialog({
       }
       await messages.refetch();
       setNotice(null);
-      if (!answered) void runFallbackTurn();
+      if (!answered) void runFallbackTurn("reply");
     } catch {
       setDraft(body);
       toast.error("Your message could not be sent. Please try again.");
@@ -173,7 +187,22 @@ export function ChatDialog({
       <DialogContent className="flex max-h-[85vh] flex-col gap-0 p-0 sm:max-w-lg">
         <DialogHeader className="border-b border-border p-5">
           <DialogTitle className="flex items-center justify-between gap-3 font-display">
-            <span>{listener?.displayName ?? "Chat"}</span>
+            <span className="flex items-center gap-2">
+              <span
+                aria-hidden="true"
+                className={`size-2.5 rounded-full ${
+                  connected ? "bg-emerald-500" : "animate-pulse bg-amber-400"
+                }`}
+              />
+              <span className="flex flex-col">
+                <span>{partnerName}</span>
+                <span className="text-xs font-normal text-muted-foreground">
+                  {connected
+                    ? `Connected with ${partnerName}`
+                    : `Connecting with ${partnerName}...`}
+                </span>
+              </span>
+            </span>
             <span className="text-sm font-normal tabular-nums text-muted-foreground">
               {mode === "free" ? "Gratis berichten" : "Resterende credits"}: {remaining}
             </span>
@@ -181,14 +210,6 @@ export function ChatDialog({
         </DialogHeader>
 
         <div className="flex-1 space-y-3 overflow-y-auto p-5">
-          {!answered ? (
-            <div className="flex items-center gap-2 rounded-2xl bg-secondary/40 p-4 text-sm text-muted-foreground">
-              <Loader2 className="size-4 animate-spin" />
-              {listener?.displayName} hasn't joined yet — you can already send your message and it
-              will be waiting for them.
-            </div>
-          ) : null}
-
           {(messages.data ?? []).map((m) => (
             <div
               key={m.id}
@@ -207,7 +228,7 @@ export function ChatDialog({
               <span className="size-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.2s]" />
               <span className="size-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.1s]" />
               <span className="size-2 animate-bounce rounded-full bg-muted-foreground" />
-              <span className="ml-2 text-xs text-muted-foreground">is typing…</span>
+              <span className="ml-2 text-xs text-muted-foreground">{partnerName} is typing…</span>
             </div>
           ) : null}
 
