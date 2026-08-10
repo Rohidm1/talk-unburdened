@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { ArrowRight, CreditCard, Lock, MessageCircle, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import heroBg from "@/assets/hero-bg.jpg";
+import heroBgWebp from "@/assets/hero-bg.webp";
 
 export function Hero({ onStart }: { onStart: () => void }) {
   const { t } = useTranslation();
@@ -21,13 +22,18 @@ export function Hero({ onStart }: { onStart: () => void }) {
 
   return (
     <section id="top" className="relative overflow-hidden">
-      <img
-        src={heroBg}
-        alt="Calm midnight-blue night sky backdrop for Anontalk's anonymous live chat platform"
-        width={1920}
-        height={1080}
-        className="absolute inset-0 size-full object-cover opacity-60"
-      />
+      <picture>
+        <source srcSet={heroBgWebp} type="image/webp" />
+        <img
+          src={heroBg}
+          alt="Calm midnight-blue night sky backdrop for Anontalk's anonymous live chat platform"
+          width={1920}
+          height={1080}
+          fetchPriority="high"
+          decoding="async"
+          className="absolute inset-0 size-full object-cover opacity-60"
+        />
+      </picture>
       <div className="absolute inset-0 bg-[var(--gradient-night)] opacity-80" />
       <div
         aria-hidden="true"
