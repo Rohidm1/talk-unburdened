@@ -262,24 +262,27 @@ export type Database = {
           body: string
           created_at: string
           id: string
+          is_ai: boolean
           sender_role: string
-          sender_user_id: string
+          sender_user_id: string | null
           session_id: string
         }
         Insert: {
           body: string
           created_at?: string
           id?: string
+          is_ai?: boolean
           sender_role: string
-          sender_user_id: string
+          sender_user_id?: string | null
           session_id: string
         }
         Update: {
           body?: string
           created_at?: string
           id?: string
+          is_ai?: boolean
           sender_role?: string
-          sender_user_id?: string
+          sender_user_id?: string | null
           session_id?: string
         }
         Relationships: [
@@ -295,6 +298,8 @@ export type Database = {
       chat_sessions: {
         Row: {
           agent_user_id: string | null
+          ai_active: boolean
+          ai_muted: boolean
           answered_at: string | null
           billed_seconds: number
           client_id: string
@@ -313,6 +318,8 @@ export type Database = {
         }
         Insert: {
           agent_user_id?: string | null
+          ai_active?: boolean
+          ai_muted?: boolean
           answered_at?: string | null
           billed_seconds?: number
           client_id: string
@@ -331,6 +338,8 @@ export type Database = {
         }
         Update: {
           agent_user_id?: string | null
+          ai_active?: boolean
+          ai_muted?: boolean
           answered_at?: string | null
           billed_seconds?: number
           client_id?: string

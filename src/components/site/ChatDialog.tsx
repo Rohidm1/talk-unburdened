@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { chatHeartbeat, listChatMessages, sendChatMessage } from "@/lib/chat.functions";
+import { persistAiMessage, requestAiReply } from "@/lib/ai-fallback.functions";
 import type { Listener } from "@/data/listeners";
 
 export function ChatDialog({
@@ -25,11 +26,16 @@ export function ChatDialog({
   const beat = useServerFn(chatHeartbeat);
   const send = useServerFn(sendChatMessage);
   const fetchMessages = useServerFn(listChatMessages);
+  const askAi = useServerFn(requestAiReply);
+  const saveAi = useServerFn(persistAiMessage);
 
   const [answered, setAnswered] = useState(false);
   const [remaining, setRemaining] = useState(allowance);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [partnerTyping, setPartnerTyping] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const turnRef = useRef(0);
   const bottomRef = useRef<HTMLDivElement>(null);
   const open = !!listener && !!sessionId;
 
@@ -44,6 +50,9 @@ export function ChatDialog({
     if (!open) return;
     setAnswered(false);
     setRemaining(allowance);
+    setPartnerTyping(false);
+    setNotice(null);
+    turnRef.current += 1;
   }, [sessionId, open, allowance]);
 
   useEffect(() => {
@@ -71,7 +80,61 @@ export function ChatDialog({
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.data?.length]);
+  }, [messages.data?.length, partnerTyping]);
+
+  // A human agent joining cancels any pending stand-in reply.
+  useEffect(() => {
+    if (answered) {
+      turnRef.current += 1;
+      setPartnerTyping(false);
+    }
+  }, [answered]);
+
+  const runFallbackTurn = async () => {
+    if (!sessionId) return;
+    turnRef.current += 1;
+    const turn = turnRef.current;
+    const stillMine = () => turn === turnRef.current;
+    const wait = (ms: number) => new Promise((r) => window.setTimeout(r, ms));
+
+    setPartnerTyping(true);
+    try {
+      const result = await askAi({ data: { sessionId } });
+      if (!stillMine()) return;
+      if (!result.ok) {
+        setPartnerTyping(false);
+        if (result.reason === "unavailable" || result.reason === "rate_limited") {
+          setNotice(
+            "Thanks for your patience! We're reviewing your message and will reply in a moment.",
+          );
+        }
+        return;
+      }
+
+      for (let i = 0; i < result.chunks.length; i += 1) {
+        const chunk = result.chunks[i]!;
+        if (i > 0) setPartnerTyping(true);
+        // longer messages visibly take longer to "type"
+        await wait(Math.min(4000, Math.max(1500, chunk.length * 40)));
+        if (!stillMine()) return;
+        const saved = await saveAi({ data: { sessionId, body: chunk } });
+        if (!stillMine()) return;
+        if (!saved.ok) break;
+        setPartnerTyping(false);
+        await messages.refetch();
+        if (i < result.chunks.length - 1) await wait(600);
+        if (!stillMine()) return;
+      }
+    } catch {
+      if (stillMine()) {
+        setNotice(
+          "Thanks for your patience! We're reviewing your message and will reply in a moment.",
+        );
+      }
+    } finally {
+      if (stillMine()) setPartnerTyping(false);
+    }
+  };
 
   const submit = async () => {
     const body = draft.trim();
@@ -94,6 +157,8 @@ export function ChatDialog({
         return;
       }
       await messages.refetch();
+      setNotice(null);
+      if (!answered) void runFallbackTurn();
     } catch {
       setDraft(body);
       toast.error("Your message could not be sent. Please try again.");
@@ -135,6 +200,21 @@ export function ChatDialog({
               {m.body}
             </div>
           ))}
+
+          {partnerTyping ? (
+            <div className="flex w-fit items-center gap-1 rounded-2xl bg-secondary px-4 py-3">
+              <span className="size-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.2s]" />
+              <span className="size-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.1s]" />
+              <span className="size-2 animate-bounce rounded-full bg-muted-foreground" />
+              <span className="ml-2 text-xs text-muted-foreground">is typing…</span>
+            </div>
+          ) : null}
+
+          {notice ? (
+            <p className="rounded-2xl bg-secondary/40 px-4 py-2 text-xs text-muted-foreground">
+              {notice}
+            </p>
+          ) : null}
           <div ref={bottomRef} />
         </div>
 
