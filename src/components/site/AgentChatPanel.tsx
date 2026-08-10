@@ -24,6 +24,7 @@ import {
   acceptChat,
   closeChatAsAgent,
   declineChat,
+  getChatHandoff,
   getChatClientStats,
   listChatEvents,
   listChatMessages,
@@ -58,6 +59,7 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
   const fetchMessages = useServerFn(listChatMessages);
   const fetchEvents = useServerFn(listChatEvents);
   const fetchStats = useServerFn(getChatClientStats);
+  const fetchHandoff = useServerFn(getChatHandoff);
   const fetchNotes = useServerFn(listChatNotes);
   const addNote = useServerFn(saveChatNote);
   const send = useServerFn(sendChatMessage);
@@ -70,6 +72,7 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
   const [showAudit, setShowAudit] = useState(false);
   const [showStats, setShowStats] = useState(true);
   const [showNotes, setShowNotes] = useState(true);
+  const [showHandoff, setShowHandoff] = useState(false);
   const [noteDraft, setNoteDraft] = useState("");
   const [savingNote, setSavingNote] = useState(false);
   const [closingId, setClosingId] = useState<string | null>(null);
@@ -107,6 +110,12 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
     queryKey: ["chat-notes", openId],
     queryFn: () => fetchNotes({ data: { sessionId: openId! } }),
     enabled: !!openId && showNotes,
+  });
+
+  const handoff = useQuery({
+    queryKey: ["chat-handoff", openId],
+    queryFn: () => fetchHandoff({ data: { sessionId: openId! } }),
+    enabled: !!openId,
   });
 
   const rows = chats.data ?? [];
@@ -378,6 +387,11 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                           : "bg-card"
                       }`}
                     >
+                      {m.is_ai ? (
+                        <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide opacity-70">
+                          Stand-in
+                        </span>
+                      ) : null}
                       {m.body}
                     </div>
                   ))}
