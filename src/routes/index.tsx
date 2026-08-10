@@ -30,7 +30,8 @@ import { CreditCheckoutDialog } from "@/components/site/CreditCheckoutDialog";
 import type { CreditPackageKey } from "@/lib/credit-packages";
 
 const title = "Anontalk - 100% Private & Anonymous Chat Platform.";
-const description = "Anontalk - 100% Private & Anonymous Chat Platform";
+const description =
+  "Anontalk: 100% private, anonymous live chat. Sign up to receive 5 free messages and chat instantly with real people, no forms, no waiting room.";
 
 export const Route = createFileRoute("/")({
   head: () => ({

@@ -84,7 +84,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Anontalk - 100% Private & Anonymous Chat Platform." },
       {
         name: "description",
-        content: "Anontalk - 100% Private & Anonymous Chat Platform",
+        content:
+          "Anontalk: 100% private, anonymous live chat. Sign up to receive 5 free messages and chat instantly with real people, no forms, no waiting room.",
       },
       { name: "author", content: "Anontalk" },
       {
@@ -94,13 +95,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "Anontalk - 100% Private & Anonymous Chat Platform." },
       {
         property: "og:description",
-        content: "Anontalk - 100% Private & Anonymous Chat Platform",
+        content:
+          "Anontalk: 100% private, anonymous live chat. Sign up to receive 5 free messages and chat instantly with real people, no forms, no waiting room.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Anontalk - 100% Private & Anonymous Chat Platform." },
-      { name: "twitter:description", content: "Anontalk - 100% Private & Anonymous Chat Platform" },
+      {
+        name: "twitter:description",
+        content:
+          "Anontalk: 100% private, anonymous live chat. Sign up to receive 5 free messages and chat instantly with real people, no forms, no waiting room.",
+      },
       {
         property: "og:image",
         content:
