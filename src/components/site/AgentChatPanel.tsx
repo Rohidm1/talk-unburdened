@@ -434,6 +434,12 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                       <ChevronRight className="size-4" />
                     )}
                     <NotebookPen className="size-4 text-primary" /> Logboek
+                    {showNotes ? (
+                      <ChevronDown className="size-4" />
+                    ) : (
+                      <ChevronRight className="size-4" />
+                    )}
+                    <NotebookPen className="size-4 text-primary" /> Logboek
                     {(notes.data ?? []).length > 0 ? (
                       <span className="ml-1 rounded-full bg-secondary px-2 py-0.5 text-xs text-muted-foreground">
                         {(notes.data ?? []).length}
