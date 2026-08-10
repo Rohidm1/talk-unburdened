@@ -198,6 +198,12 @@ export const sendChatMessage = createServerFn({ method: "POST" })
     });
     if (error) throw new Error(error.message);
 
+    // A customer reply is the strongest retention signal for the previous turn.
+    if (role === "client") {
+      const { markUserReplied } = await import("@/lib/ai-learning.server");
+      await markUserReplied(data.sessionId, context.userId);
+    }
+
     return { ok: true as const, reason: null };
   });
 

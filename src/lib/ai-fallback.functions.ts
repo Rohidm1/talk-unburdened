@@ -5,6 +5,14 @@ import { SYSTEM_PROMPT, checkReplyGuardrails, chunkReply } from "@/lib/ai-person
 
 const sessionInput = (input: unknown) => z.object({ sessionId: z.string().uuid() }).parse(input);
 
+const replyInput = (input: unknown) =>
+  z
+    .object({
+      sessionId: z.string().uuid(),
+      kind: z.enum(["reply", "opener"]).default("reply"),
+    })
+    .parse(input);
+
 /** True when at least one human agent is marked online with a fresh heartbeat. */
 async function hasLiveAgent(supabaseAdmin: {
   from: (t: string) => {
@@ -27,15 +35,16 @@ async function hasLiveAgent(supabaseAdmin: {
 
 export const requestAiReply = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(sessionInput)
+  .inputValidator(replyInput)
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { retrieveExamples, logInteraction } = await import("@/lib/ai-learning.server");
 
     const skip = (reason: string) => ({ ok: false as const, reason, chunks: [] as string[] });
 
     const { data: session } = await supabaseAdmin
       .from("chat_sessions")
-      .select("id, client_id, status, ended_at, answered_at, ai_muted")
+      .select("id, client_id, listener_id, status, ended_at, answered_at, ai_muted")
       .eq("id", data.sessionId)
       .maybeSingle();
 
@@ -44,6 +53,15 @@ export const requestAiReply = createServerFn({ method: "POST" })
     if (session.ai_muted || session.answered_at) return skip("muted");
     if (await hasLiveAgent(supabaseAdmin as never)) return skip("agent_online");
 
+    const { data: listener } = session.listener_id
+      ? await supabaseAdmin
+          .from("listeners")
+          .select("display_name")
+          .eq("id", session.listener_id)
+          .maybeSingle()
+      : { data: null };
+    const personaName = listener?.display_name ?? "your chat partner";
+
     const { data: history } = await supabaseAdmin
       .from("chat_messages")
       .select("sender_role, body, created_at")
@@ -51,16 +69,37 @@ export const requestAiReply = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false })
       .limit(10);
 
+    const ordered = (history ?? []).slice().reverse();
+    const lastUserMessage = [...ordered].reverse().find((m) => m.sender_role === "client")?.body;
+
+    if (data.kind === "opener" && ordered.some((m) => m.sender_role === "client")) {
+      return skip("not_needed");
+    }
+
+    // Retrieval-augmented: reuse the phrasing that historically kept people talking.
+    const examples = lastUserMessage ? await retrieveExamples(lastUserMessage) : [];
+    const examplesBlock = examples.length
+      ? `\n\nExamples of replies that worked well before (match the style, never copy verbatim):\n${examples
+          .map((e) => `- When someone said "${e.user_prompt}" a great reply was "${e.ai_response}"`)
+          .join("\n")}`
+      : "";
+
+    const personaBlock = `\n\nYou are chatting as "${personaName}". Stay in that name and personality.`;
+    const openerBlock =
+      data.kind === "opener"
+        ? `\n\nThe person just opened the chat and hasn't typed yet. Send one short, warm, natural opening line that invites them to share what's on their mind. Do not mention waiting, timers or the platform.`
+        : "";
+
     const messages = [
-      { role: "system", content: SYSTEM_PROMPT },
-      ...(history ?? [])
-        .slice()
-        .reverse()
-        .map((m) => ({
-          role: m.sender_role === "client" ? "user" : "assistant",
-          content: m.body,
-        })),
+      { role: "system", content: SYSTEM_PROMPT + personaBlock + examplesBlock + openerBlock },
+      ...ordered.map((m) => ({
+        role: m.sender_role === "client" ? "user" : "assistant",
+        content: m.body,
+      })),
     ];
+    if (data.kind === "opener") {
+      messages.push({ role: "user", content: "(the person just joined the chat)" });
+    }
 
     const key = process.env["LOVABLE_API_KEY"];
     if (!key) return skip("unavailable");
@@ -90,6 +129,14 @@ export const requestAiReply = createServerFn({ method: "POST" })
         .update({ ai_active: true })
         .eq("id", data.sessionId)
         .eq("ai_muted", false);
+
+      await logInteraction({
+        sessionId: data.sessionId,
+        personaId: session.listener_id ?? null,
+        personaName,
+        userPrompt: data.kind === "opener" ? "" : (lastUserMessage ?? ""),
+        aiResponse: chunks.join(" "),
+      });
 
       return { ok: true as const, reason: null, chunks };
     } catch {
