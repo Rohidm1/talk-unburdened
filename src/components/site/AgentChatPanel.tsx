@@ -423,17 +423,51 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                 )}
 
                 <div className="border-t border-border">
+                  {handoff.data ? (
+                    <div className="border-b border-border">
+                      <button
+                        type="button"
+                        className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium"
+                        onClick={() => setShowHandoff((v) => !v)}
+                      >
+                        {showHandoff ? (
+                          <ChevronDown className="size-4" />
+                        ) : (
+                          <ChevronRight className="size-4" />
+                        )}
+                        <History className="size-4 text-primary" /> Voorgeschiedenis vóór overname
+                        <span className="ml-1 rounded-full bg-secondary px-2 py-0.5 text-xs text-muted-foreground">
+                          {handoff.data.transcript.length}
+                        </span>
+                        {handoff.data.aiUsed ? (
+                          <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs text-primary">
+                            stand-in actief geweest
+                          </span>
+                        ) : null}
+                      </button>
+                      {showHandoff ? (
+                        <div className="max-h-56 space-y-2 overflow-y-auto px-4 pb-4">
+                          {handoff.data.transcript.map((m, i) => (
+                            <div key={i} className="rounded-xl bg-secondary/40 px-3 py-2 text-sm">
+                              <span className="mr-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                                {m.role === "client"
+                                  ? "Klant"
+                                  : m.role === "ai"
+                                    ? "Stand-in"
+                                    : "Agent"}
+                              </span>
+                              {m.body}
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
                   <button
                     type="button"
                     className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium"
                     onClick={() => setShowNotes((v) => !v)}
                   >
-                    {showNotes ? (
-                      <ChevronDown className="size-4" />
-                    ) : (
-                      <ChevronRight className="size-4" />
-                    )}
-                    <NotebookPen className="size-4 text-primary" /> Logboek
                     {showNotes ? (
                       <ChevronDown className="size-4" />
                     ) : (
