@@ -305,7 +305,7 @@ function HomePage() {
           </p>
           <AdSenseSlot
             client="ca-pub-5982787822958728"
-            adSlot="REPLACE_WITH_AD_UNIT_ID"
+            adSlot="8988406560"
             format="auto"
           />
         </section>
