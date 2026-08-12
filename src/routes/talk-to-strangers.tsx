@@ -19,7 +19,7 @@ import { Footer } from "@/components/site/Sections";
 import { ParticleField } from "@/components/site/ParticleField";
 import { Reveal } from "@/components/site/Reveal";
 
-const title = "Talk to Strangers Online — Anonymous Chat (Omegle Alternative)";
+const title = "Talk to Strangers Online — Anonymous Chat";
 const description =
   "Chat with strangers anonymously, text only. Pick an alias, get 5 free messages, then 1 credit per message. No video, no real names, no waiting room.";
 const url = "https://anontalk.online/talk-to-strangers";
