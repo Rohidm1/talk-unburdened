@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { SendHorizonal } from "lucide-react";
+import { Dices, SendHorizonal, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -9,6 +9,9 @@ import { toast } from "sonner";
 import { chatHeartbeat, listChatMessages, sendChatMessage } from "@/lib/chat.functions";
 import { persistAiMessage, requestAiReply } from "@/lib/ai-fallback.functions";
 import { typingDelayMs } from "@/lib/ai-persona";
+import { rollIcebreaker } from "@/lib/icebreakers";
+import { isMuted, playSfx, setMuted } from "@/lib/sfx";
+import { awardXp, completeQuest } from "@/lib/gamification";
 import type { Listener } from "@/data/listeners";
 
 export function ChatDialog({
@@ -38,10 +41,16 @@ export function ChatDialog({
   const [sending, setSending] = useState(false);
   const [partnerTyping, setPartnerTyping] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [muted, setMutedState] = useState(false);
+  const [sent, setSent] = useState(0);
   const turnRef = useRef(0);
   const bottomRef = useRef<HTMLDivElement>(null);
   const open = !!listener && !!sessionId;
   const partnerName = listener?.displayName ?? "your chat partner";
+
+  useEffect(() => {
+    setMutedState(isMuted());
+  }, []);
 
   const messages = useQuery({
     queryKey: ["chat-messages", sessionId],
@@ -95,6 +104,17 @@ export function ChatDialog({
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.data?.length, partnerTyping]);
+
+  // A soft chime whenever the partner's reply lands.
+  const lastCount = useRef(0);
+  useEffect(() => {
+    const list = messages.data ?? [];
+    if (list.length > lastCount.current && lastCount.current > 0) {
+      const last = list[list.length - 1];
+      if (last && last.sender_role !== "client") playSfx("receive");
+    }
+    lastCount.current = list.length;
+  }, [messages.data]);
 
   // A human agent joining cancels any pending stand-in reply.
   useEffect(() => {
@@ -166,6 +186,7 @@ export function ChatDialog({
     setSending(true);
     setDraft("");
     setUserSpoke(true);
+    playSfx("send");
     try {
       const result = await send({ data: { sessionId, body } });
       if (!result.ok) {
@@ -183,6 +204,16 @@ export function ChatDialog({
       }
       await messages.refetch();
       setNotice(null);
+      setSent((n) => {
+        const next = n + 1;
+        if (next === 5) {
+          completeQuest("chat5");
+          awardXp(25, "+25 XP · quest complete");
+        } else {
+          awardXp(5, "+5 XP");
+        }
+        return next;
+      });
       if (!answered) void runFallbackTurn("reply");
     } catch {
       setDraft(body);
@@ -194,14 +225,16 @@ export function ChatDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onEnd("user")}>
-      <DialogContent className="flex max-h-[85vh] flex-col gap-0 p-0 sm:max-w-lg">
+      <DialogContent className="glass-strong flex max-h-[85vh] flex-col gap-0 p-0 sm:max-w-lg">
         <DialogHeader className="border-b border-border p-5">
           <DialogTitle className="flex items-center justify-between gap-3 font-display">
             <span className="flex items-center gap-2">
               <span
                 aria-hidden="true"
                 className={`size-2.5 rounded-full ${
-                  connected ? "bg-emerald-500" : "animate-pulse bg-amber-400"
+                  connected
+                    ? "bg-emerald-400 shadow-[0_0_12px_#34d399]"
+                    : "animate-pulse bg-amber-400 shadow-[0_0_12px_#fbbf24]"
                 }`}
               />
               <span className="flex flex-col">
@@ -213,8 +246,23 @@ export function ChatDialog({
                 </span>
               </span>
             </span>
-            <span className="text-sm font-normal tabular-nums text-muted-foreground">
-              {mode === "free" ? "Gratis berichten" : "Resterende credits"}: {remaining}
+            <span className="flex items-center gap-2">
+              <button
+                type="button"
+                aria-label={muted ? "Unmute sounds" : "Mute sounds"}
+                onClick={() => {
+                  const next = !muted;
+                  setMuted(next);
+                  setMutedState(next);
+                  if (!next) playSfx("click");
+                }}
+                className="rounded-full border border-border p-1.5 text-muted-foreground hover:text-foreground"
+              >
+                {muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
+              </button>
+              <span className="text-sm font-normal tabular-nums text-muted-foreground">
+                {mode === "free" ? "Free messages" : "Credits left"}: {remaining}
+              </span>
             </span>
           </DialogTitle>
         </DialogHeader>
@@ -251,6 +299,21 @@ export function ChatDialog({
         </div>
 
         <div className="flex items-center gap-2 border-t border-border p-4">
+          <Button
+            size="icon"
+            variant="outline"
+            aria-label="Roll an icebreaker"
+            title="Roll an icebreaker"
+            className="neon-glow shrink-0"
+            onClick={() => {
+              playSfx("dice");
+              setDraft((d) => rollIcebreaker(d));
+              completeQuest("icebreaker");
+              awardXp(10, "+10 XP · icebreaker");
+            }}
+          >
+            <Dices className="size-4" />
+          </Button>
           <Input
             value={draft}
             maxLength={2000}

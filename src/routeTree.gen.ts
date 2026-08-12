@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CrmRouteRouteImport } from './routes/crm/route'
 import { Route as CrmLoginRouteImport } from './routes/crm-login'
+import { Route as HubRouteImport } from './routes/hub'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -47,6 +48,11 @@ const CrmRouteRoute = CrmRouteRouteImport.update({
 const CrmLoginRoute = CrmLoginRouteImport.update({
   id: '/crm-login',
   path: '/crm-login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubRoute = HubRouteImport.update({
+  id: '/hub',
+  path: '/hub',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/crm': typeof CrmRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/crm-login': typeof CrmLoginRoute
+  '/hub': typeof HubRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
@@ -121,6 +128,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/crm-login': typeof CrmLoginRoute
+  '/hub': typeof HubRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   '/crm': typeof CrmRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/crm-login': typeof CrmLoginRoute
+  '/hub': typeof HubRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
     | '/crm'
     | '/auth'
     | '/crm-login'
+    | '/hub'
     | '/sitemap.xml'
     | '/account'
     | '/admin'
@@ -172,6 +182,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/crm-login'
+    | '/hub'
     | '/sitemap.xml'
     | '/account'
     | '/admin'
@@ -189,6 +200,7 @@ export interface FileRouteTypes {
     | '/crm'
     | '/auth'
     | '/crm-login'
+    | '/hub'
     | '/sitemap.xml'
     | '/_authenticated/account'
     | '/_authenticated/admin'
@@ -207,6 +219,7 @@ export interface RootRouteChildren {
   CrmRouteRoute: typeof CrmRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   CrmLoginRoute: typeof CrmLoginRoute
+  HubRoute: typeof HubRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
@@ -250,6 +263,13 @@ declare module '@tanstack/react-router' {
       path: '/crm-login'
       fullPath: '/crm-login'
       preLoaderRoute: typeof CrmLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub': {
+      id: '/hub'
+      path: '/hub'
+      fullPath: '/hub'
+      preLoaderRoute: typeof HubRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -358,6 +378,7 @@ const rootRouteChildren: RootRouteChildren = {
   CrmRouteRoute: CrmRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   CrmLoginRoute: CrmLoginRoute,
+  HubRoute: HubRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   BlogSlugRoute: BlogSlugRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
@@ -368,13 +389,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
