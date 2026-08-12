@@ -3,7 +3,7 @@ import { CREDIT_PACKAGE_LIST, type CreditPackageKey } from "@/lib/credit-package
 export type ListenerStatus = "online" | "busy" | "offline";
 
 /** Primary language badge shown on the card. */
-export type ListenerLanguage = "NL" | "EN" | "EN/EL/NL/DE";
+export type ListenerLanguage = "NL" | "EN" | "EN/EL/NL/DE" | "EN/NL" | "EN/DE" | "EN/EL";
 
 export type Listener = {
   id: string;
@@ -144,13 +144,15 @@ export const listeners: Listener[] = [
     avatar: "/avatars/profile-8.jpg",
     age: 31,
     bio: {
-      en: "I speak English, Greek, Dutch and German. Say whatever is on your mind, in the language that feels most like you.",
-      nl: "I speak English, Greek, Dutch and German. Say whatever is on your mind, in the language that feels most like you.",
+      en: "Hi everyone, I'm Eleni. I'm a very empathetic person and a passionate foodie. I love helping people clear their minds. If you need a supportive friend, a virtual shoulder to cry on, or just a fun distraction, I'm your girl.",
+      nl: "Hi everyone, I'm Eleni. I'm a very empathetic person and a passionate foodie. I love helping people clear their minds. If you need a supportive friend, a virtual shoulder to cry on, or just a fun distraction, I'm your girl.",
     },
-    language: "EN/EL/NL/DE",
+    language: "EN/EL",
     topics: [
-      { en: "English, Greek, Dutch, German", nl: "English, Greek, Dutch, German" },
-      { en: "No judgment", nl: "No judgment" },
+      { en: "Emotional support", nl: "Emotional support" },
+      { en: "Food & cooking", nl: "Food & cooking" },
+      { en: "Venting about work", nl: "Venting about work" },
+      { en: "Fun distractions", nl: "Fun distractions" },
     ],
     status: "online",
     years: 7,
@@ -178,13 +180,15 @@ export const listeners: Listener[] = [
     avatar: "/avatars/profile-10.jpg",
     age: 36,
     bio: {
-      en: "English, Greek, Dutch or German — whatever comes easiest. Evenings are quiet on my side, so there is time to really talk.",
-      nl: "English, Greek, Dutch or German — whatever comes easiest. Evenings are quiet on my side, so there is time to really talk.",
+      en: "Hey there! I'm Daniela. I love deep conversations about life, mindset, and personal growth. Whether you had a stressful day and just need to vent, or want to share your biggest dreams, I'm here to listen without judgment. Let's talk!",
+      nl: "Hey there! I'm Daniela. I love deep conversations about life, mindset, and personal growth. Whether you had a stressful day and just need to vent, or want to share your biggest dreams, I'm here to listen without judgment. Let's talk!",
     },
-    language: "EN/EL/NL/DE",
+    language: "EN/NL",
     topics: [
-      { en: "English, Greek, Dutch, German", nl: "English, Greek, Dutch, German" },
-      { en: "Late-night talks", nl: "Late-night talks" },
+      { en: "Your day", nl: "Your day" },
+      { en: "Relationship advice", nl: "Relationship advice" },
+      { en: "Stress relief", nl: "Stress relief" },
+      { en: "Future goals", nl: "Future goals" },
     ],
     status: "online",
     years: 11,
@@ -195,13 +199,15 @@ export const listeners: Listener[] = [
     avatar: "/avatars/profile-11.jpg",
     age: 33,
     bio: {
-      en: "Down-to-earth and I speak English, Greek, Dutch and German. No advice unless you ask for it, just someone who listens properly.",
-      nl: "Down-to-earth and I speak English, Greek, Dutch and German. No advice unless you ask for it, just someone who listens properly.",
+      en: "Hi, I'm Stefan. I'm a tech enthusiast, love sports, and enjoy discussing everything from daily struggles to deep, late-night thoughts. I'm an open book and a great listener. No topic is off-limits with me.",
+      nl: "Hi, I'm Stefan. I'm a tech enthusiast, love sports, and enjoy discussing everything from daily struggles to deep, late-night thoughts. I'm an open book and a great listener. No topic is off-limits with me.",
     },
-    language: "EN/EL/NL/DE",
+    language: "EN/DE",
     topics: [
-      { en: "English, Greek, Dutch, German", nl: "English, Greek, Dutch, German" },
-      { en: "Getting it off your chest", nl: "Getting it off your chest" },
+      { en: "Sports", nl: "Sports" },
+      { en: "Career struggles", nl: "Career struggles" },
+      { en: "Casual venting", nl: "Casual venting" },
+      { en: "Late-night thoughts", nl: "Late-night thoughts" },
     ],
     status: "online",
     years: 6,
@@ -212,13 +218,15 @@ export const listeners: Listener[] = [
     avatar: "/avatars/profile-12.jpg",
     age: 29,
     bio: {
-      en: "I chat in English, Greek, Dutch and German. Start in any of them — I'll keep up and take your story seriously.",
-      nl: "I chat in English, Greek, Dutch and German. Start in any of them — I'll keep up and take your story seriously.",
+      en: "Hello! Yannis here. I'm a creative soul who loves music, travel, and good vibes. If you're feeling lonely, bored, or just want a genuine conversation with someone who actually listens, send me a message. Let's connect!",
+      nl: "Hello! Yannis here. I'm a creative soul who loves music, travel, and good vibes. If you're feeling lonely, bored, or just want a genuine conversation with someone who actually listens, send me a message. Let's connect!",
     },
-    language: "EN/EL/NL/DE",
+    language: "EN/EL",
     topics: [
-      { en: "English, Greek, Dutch, German", nl: "English, Greek, Dutch, German" },
-      { en: "Work and burnout", nl: "Work and burnout" },
+      { en: "Music", nl: "Music" },
+      { en: "Loneliness", nl: "Loneliness" },
+      { en: "Travel stories", nl: "Travel stories" },
+      { en: "Friendly casual chat", nl: "Friendly casual chat" },
     ],
     status: "online",
     years: 4,
