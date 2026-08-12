@@ -2,8 +2,8 @@ import { CREDIT_PACKAGE_LIST, type CreditPackageKey } from "@/lib/credit-package
 
 export type ListenerStatus = "online" | "busy" | "offline";
 
-/** A listener speaks exactly one language on the platform: NL or EN. */
-export type ListenerLanguage = "NL" | "EN";
+/** Primary language badge shown on the card. */
+export type ListenerLanguage = "NL" | "EN" | "EN/EL/NL/DE";
 
 export type Listener = {
   id: string;
