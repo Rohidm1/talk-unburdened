@@ -21,6 +21,13 @@ import {
   Voices,
 } from "@/components/site/Sections";
 import { Reveal } from "@/components/site/Reveal";
+import { ParticleField } from "@/components/site/ParticleField";
+import { XpLayer } from "@/components/site/XpLayer";
+import { ProgressWidget } from "@/components/site/ProgressWidget";
+import { ComplimentDialog } from "@/components/site/ComplimentDialog";
+import { MatchingRadar, MoodDialog, LiveActivityCounter, type MoodId } from "@/components/site/MatchFlow";
+import { playSfx } from "@/lib/sfx";
+import { awardXp } from "@/lib/gamification";
 import { listeners as fallbackListeners, type Listener } from "@/data/listeners";
 import { getMyAccount } from "@/lib/account.functions";
 import { endChat, startChat } from "@/lib/chat.functions";
@@ -129,6 +136,10 @@ function HomePage() {
   const [allowance, setAllowance] = useState(0);
   const [topUpReason, setTopUpReason] = useState<"free_used" | "no_credit" | null>(null);
   const [checkoutKey, setCheckoutKey] = useState<CreditPackageKey | null>(null);
+  const [pending, setPending] = useState<Listener | null>(null);
+  const [mood, setMood] = useState<MoodId | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [compliment, setCompliment] = useState<string | null>(null);
 
   const account = useQuery({
     queryKey: ["account"],
@@ -171,9 +182,18 @@ function HomePage() {
       await navigate({ to: "/auth", search: { redirect: "/" } });
       return;
     }
+    playSfx("click");
+    setPending(listener);
+  }
+
+  async function startMatched(listener: Listener) {
+    setSearching(true);
+    const minRadar = new Promise((r) => window.setTimeout(r, 2200));
     setActiveListener(listener);
     try {
       const result = await start({ data: { listenerId: listener.id } });
+      await minRadar;
+      setSearching(false);
       if (!result.ok) {
         setActiveListener(null);
         if (result.reason === "blocked") {
@@ -185,22 +205,27 @@ function HomePage() {
         }
         return;
       }
+      playSfx("match");
+      awardXp(15, "+15 XP · new match");
       setSessionId(result.sessionId);
       setSessionMode(result.mode);
       setAllowance(result.allowance);
     } catch {
+      setSearching(false);
       setActiveListener(null);
       toast.error("The chat could not be started. Please refresh and try again.");
     }
   }
 
   async function handleChatEnd(reason: "user" | "out_of_credit" | "closed") {
+    const partner = activeListener?.displayName ?? null;
     if (sessionId) {
       try {
         await stop({ data: { sessionId } });
       } catch {
         /* ignore */
       }
+      if (partner) setCompliment(partner);
     }
     setActiveListener(null);
     setSessionId(null);
@@ -210,7 +235,9 @@ function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background font-body text-foreground">
+    <div className="relative min-h-screen font-body text-foreground">
+      <ParticleField />
+      <XpLayer />
       <Header />
       <main>
         <Hero
@@ -234,6 +261,10 @@ function HomePage() {
             ) : null}
           </div>
 
+          <div className="mb-6">
+            <LiveActivityCounter />
+          </div>
+
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {listenersOnline.map((l: Listener, i: number) => (
               <Reveal key={l.id} delay={0.05 * (i % 3)}>
@@ -244,6 +275,7 @@ function HomePage() {
         </section>
 
         <ChatIntro />
+        <ProgressWidget />
         <HowItWorks />
         <TrustStrip />
         <Voices />
@@ -255,10 +287,37 @@ function HomePage() {
 
       <ChatDialog
         listener={activeListener}
-        sessionId={sessionId}
+        sessionId={searching ? null : sessionId}
         mode={sessionMode}
         allowance={allowance}
         onEnd={handleChatEnd}
+      />
+
+      <MoodDialog
+        open={pending !== null}
+        onCancel={() => setPending(null)}
+        onPick={(m) => {
+          const listener = pending;
+          setMood(m);
+          setPending(null);
+          if (listener) void startMatched(listener);
+        }}
+      />
+
+      <MatchingRadar
+        open={searching}
+        mood={mood}
+        partnerName={activeListener?.displayName}
+        onCancel={() => {
+          setSearching(false);
+          setActiveListener(null);
+        }}
+      />
+
+      <ComplimentDialog
+        open={compliment !== null}
+        partnerName={compliment ?? ""}
+        onClose={() => setCompliment(null)}
       />
 
       <TopUpDialog
