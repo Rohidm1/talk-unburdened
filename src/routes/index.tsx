@@ -25,7 +25,17 @@ import { ParticleField } from "@/components/site/ParticleField";
 import { XpLayer } from "@/components/site/XpLayer";
 import { ProgressWidget } from "@/components/site/ProgressWidget";
 import { ComplimentDialog } from "@/components/site/ComplimentDialog";
-import { MatchingRadar, MoodDialog, LiveActivityCounter, type MoodId } from "@/components/site/MatchFlow";
+import {
+  MatchingRadar,
+  MoodDialog,
+  LiveActivityCounter,
+  MatchGuarantee,
+  type DepthId,
+  type MoodId,
+} from "@/components/site/MatchFlow";
+import { IcebreakerQuiz } from "@/components/site/IcebreakerQuiz";
+import { FirstMatchBonus, LiveChatTicker } from "@/components/site/Engagement";
+import { logEngagement } from "@/lib/engagement";
 import { playSfx } from "@/lib/sfx";
 import { awardXp } from "@/lib/gamification";
 import { listeners as fallbackListeners, type Listener } from "@/data/listeners";
@@ -138,7 +148,10 @@ function HomePage() {
   const [checkoutKey, setCheckoutKey] = useState<CreditPackageKey | null>(null);
   const [pending, setPending] = useState<Listener | null>(null);
   const [mood, setMood] = useState<MoodId | null>(null);
+  const [depth, setDepth] = useState<DepthId | null>(null);
   const [searching, setSearching] = useState(false);
+  const [quizFor, setQuizFor] = useState<string | null>(null);
+  const [quizAnswer, setQuizAnswer] = useState<string | null>(null);
   const [compliment, setCompliment] = useState<string | null>(null);
 
   const account = useQuery({
@@ -207,6 +220,8 @@ function HomePage() {
       }
       playSfx("match");
       awardXp(15, "+15 XP · new match");
+      logEngagement("match_started", { mood, depth, sessionId: result.sessionId });
+      setQuizFor(listener.displayName);
       setSessionId(result.sessionId);
       setSessionMode(result.mode);
       setAllowance(result.allowance);
@@ -265,6 +280,11 @@ function HomePage() {
             <LiveActivityCounter />
           </div>
 
+          <div className="mb-6 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+            <LiveChatTicker />
+            <MatchGuarantee className="justify-self-start sm:justify-self-end" />
+          </div>
+
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {listenersOnline.map((l: Listener, i: number) => (
               <Reveal key={l.id} delay={0.05 * (i % 3)}>
@@ -287,19 +307,31 @@ function HomePage() {
 
       <ChatDialog
         listener={activeListener}
-        sessionId={searching ? null : sessionId}
+        sessionId={searching || quizFor ? null : sessionId}
         mode={sessionMode}
         allowance={allowance}
         onEnd={handleChatEnd}
       />
 
+      <IcebreakerQuiz
+        open={quizFor !== null}
+        partnerName={quizFor ?? ""}
+        onDone={(answer) => {
+          setQuizAnswer(answer);
+          setQuizFor(null);
+        }}
+      />
+
       <MoodDialog
         open={pending !== null}
         onCancel={() => setPending(null)}
-        onPick={(m) => {
+        onPick={(m, d) => {
           const listener = pending;
           setMood(m);
+          setDepth(d);
           setPending(null);
+          logEngagement("mood_selected", { mood: m });
+          logEngagement("depth_selected", { mood: m, depth: d });
           if (listener) void startMatched(listener);
         }}
       />
@@ -311,6 +343,7 @@ function HomePage() {
         onCancel={() => {
           setSearching(false);
           setActiveListener(null);
+          logEngagement("match_skipped", { mood, depth });
         }}
       />
 
@@ -327,6 +360,12 @@ function HomePage() {
       />
 
       <CreditCheckoutDialog packageKey={checkoutKey} onClose={() => setCheckoutKey(null)} />
+
+      <FirstMatchBonus
+        onStart={() =>
+          document.getElementById("listeners")?.scrollIntoView({ behavior: "smooth" })
+        }
+      />
     </div>
   );
 }
