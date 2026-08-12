@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { playSfx } from "@/lib/sfx";
 import { awardXp, completeQuest } from "@/lib/gamification";
+import { logEngagement } from "@/lib/engagement";
 
 const TOKENS = [
   { id: "heart", emoji: "💜", label: "Thank you" },
@@ -29,6 +30,7 @@ export function ComplimentDialog({
     playSfx("match");
     completeQuest("compliment");
     awardXp(10, "+10 XP · kindness");
+    logEngagement("compliment_sent", { detail: { token: id, label } });
     toast.success(`Your badge was sent anonymously to ${partnerName}.`);
     window.setTimeout(() => {
       setSent(null);

@@ -1,9 +1,10 @@
-import { Check, Flame, Lock, Palette, Zap } from "lucide-react";
+import { Check, Lock, Palette, Zap } from "lucide-react";
 import { QUESTS, THEMES, setTheme, useProgress } from "@/lib/gamification";
 import { playSfx } from "@/lib/sfx";
 import { Progress as Bar } from "@/components/ui/progress";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import { MysteryBox, StreakFlame } from "@/components/site/Engagement";
 
 /** Level, XP, streak, daily quests and theme unlocks. */
 export function ProgressWidget() {
@@ -11,7 +12,7 @@ export function ProgressWidget() {
 
   return (
     <section id="progress" className="mx-auto max-w-6xl px-5 py-10">
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <div className="glass neon-glow rounded-3xl p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -19,7 +20,7 @@ export function ProgressWidget() {
               <p className="font-display text-4xl font-semibold text-primary">{level}</p>
             </div>
             <span className="flex items-center gap-1.5 rounded-full border border-neon-rose/40 bg-black/40 px-3 py-1 text-sm">
-              <Flame className="size-4 text-neon-rose" />
+              <StreakFlame streak={progress.streak} />
               <span className="font-semibold tabular-nums">{progress.streak}</span>
               <span className="text-muted-foreground">day streak</span>
             </span>
@@ -91,6 +92,8 @@ export function ProgressWidget() {
             })}
           </div>
         </div>
+
+        <MysteryBox />
       </div>
     </section>
   );

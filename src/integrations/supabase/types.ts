@@ -534,6 +534,39 @@ export type Database = {
         }
         Relationships: []
       }
+      engagement_events: {
+        Row: {
+          created_at: string
+          depth: string | null
+          detail: Json
+          event: string
+          id: string
+          mood: string | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          depth?: string | null
+          detail?: Json
+          event: string
+          id?: string
+          mood?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          depth?: string | null
+          detail?: Json
+          event?: string
+          id?: string
+          mood?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       listener_agents: {
         Row: {
           agent_user_id: string

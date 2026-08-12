@@ -14,6 +14,10 @@ export type Progress = {
   quests: Record<string, string | undefined>; // questId -> completion day
   readArticles: string[];
   theme: "neon" | "gold" | "acid";
+  chatSeconds: Record<string, number | undefined>; // day -> seconds chatted
+  mysteryClaimed: string | null; // day the mystery box was opened
+  bonusShown: string | null; // day the first-match bonus popup was shown
+  doubleXpUntil: number | null; // epoch ms while the boost is live
 };
 
 export const QUESTS: { id: QuestId; label: string; xp: number }[] = [
@@ -36,7 +40,14 @@ const empty: Progress = {
   quests: {},
   readArticles: [],
   theme: "neon",
+  chatSeconds: {},
+  mysteryClaimed: null,
+  bonusShown: null,
+  doubleXpUntil: null,
 };
+
+/** Seconds of chatting needed to unlock the daily mystery box. */
+export const MYSTERY_GOAL_SECONDS = 180;
 
 export function today() {
   return new Date().toISOString().slice(0, 10);
@@ -81,14 +92,48 @@ export function floatXp(amount: number, label?: string) {
 export function awardXp(amount: number, label?: string) {
   const current = readProgress();
   const before = levelFromXp(current.xp).level;
-  const next = { ...current, xp: current.xp + amount };
+  const boosted =
+    current.doubleXpUntil && current.doubleXpUntil > Date.now() ? amount * 2 : amount;
+  const next = { ...current, xp: current.xp + boosted };
   write(next);
-  floatXp(amount, label);
+  floatXp(boosted, boosted !== amount ? `+${boosted} XP · 2× boost` : label);
   const after = levelFromXp(next.xp).level;
   playSfx(after > before ? "levelup" : "xp");
   if (after > before) {
     window.dispatchEvent(new CustomEvent("at:levelup", { detail: after }));
   }
+}
+
+export function addChatSeconds(seconds: number) {
+  const current = readProgress();
+  const day = today();
+  const now = current.chatSeconds[day] ?? 0;
+  write({ ...current, chatSeconds: { ...current.chatSeconds, [day]: now + seconds } });
+}
+
+export function chatSecondsToday(progress: Progress) {
+  return progress.chatSeconds[today()] ?? 0;
+}
+
+export function claimMysteryBox() {
+  const current = readProgress();
+  if (current.mysteryClaimed === today()) return false;
+  write({ ...current, mysteryClaimed: today() });
+  awardXp(50, "+50 XP · mystery box");
+  return true;
+}
+
+/** Marks today's first-match bonus popup as shown; returns false if already seen. */
+export function markBonusShown() {
+  const current = readProgress();
+  if (current.bonusShown === today()) return false;
+  write({ ...current, bonusShown: today() });
+  return true;
+}
+
+export function startDoubleXp(minutes = 15) {
+  const current = readProgress();
+  write({ ...current, doubleXpUntil: Date.now() + minutes * 60_000 });
 }
 
 export function completeQuest(id: QuestId) {
