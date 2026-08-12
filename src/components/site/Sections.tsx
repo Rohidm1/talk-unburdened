@@ -277,6 +277,8 @@ export function Faq() {
 export function ContactSection() {
   const { t } = useTranslation();
   const [form, setForm] = useState({ email: "", subject: "", message: "" });
+  const [sending, setSending] = useState(false);
+  const sendMessage = useServerFn(submitContactMessage);
 
   return (
     <section id="contact" className="mx-auto w-full max-w-3xl px-5 py-20">
@@ -286,10 +288,19 @@ export function ContactSection() {
       <p className="mt-3 text-muted-foreground">{t("contact.subtitle")}</p>
       <form
         className="mt-8 grid gap-4 rounded-3xl border border-border bg-card p-6"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
-          toast.success(t("contact.sent"));
-          setForm({ email: "", subject: "", message: "" });
+          if (sending) return;
+          setSending(true);
+          try {
+            await sendMessage({ data: form });
+            toast.success(t("contact.sent"));
+            setForm({ email: "", subject: "", message: "" });
+          } catch {
+            toast.error(t("contact.error"));
+          } finally {
+            setSending(false);
+          }
         }}
       >
         <div className="grid gap-2">
@@ -324,8 +335,8 @@ export function ContactSection() {
             onChange={(e) => setForm({ ...form, message: e.target.value })}
           />
         </div>
-        <Button type="submit" className="justify-self-start">
-          {t("contact.send")}
+        <Button type="submit" className="justify-self-start" disabled={sending}>
+          {sending ? t("contact.sending") : t("contact.send")}
         </Button>
       </form>
     </section>
