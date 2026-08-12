@@ -24,7 +24,16 @@ export function ListenerCard({
 }) {
   const { t } = useTranslation();
   const lang = "en" as const;
-  const languageLabel = listener.language === "NL" ? "Dutch" : listener.language === "EN" ? "English" : listener.language;
+  const LANGUAGE_NAMES: Record<string, string> = {
+    EN: "English",
+    NL: "Dutch",
+    DE: "German",
+    EL: "Greek",
+  };
+  const languageLabel = listener.language
+    .split("/")
+    .map((code) => LANGUAGE_NAMES[code] ?? code)
+    .join(", ");
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)] transition-colors hover:border-primary/40">

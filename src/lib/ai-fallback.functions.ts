@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { SYSTEM_PROMPT, checkReplyGuardrails, chunkReply } from "@/lib/ai-persona";
+import { SYSTEM_PROMPT, checkReplyGuardrails, chunkReply, personaPromptFor } from "@/lib/ai-persona";
 
 const sessionInput = (input: unknown) => z.object({ sessionId: z.string().uuid() }).parse(input);
 
@@ -84,7 +84,7 @@ export const requestAiReply = createServerFn({ method: "POST" })
           .join("\n")}`
       : "";
 
-    const personaBlock = `\n\nYou are chatting as "${personaName}". Stay in that name and personality.`;
+    const personaBlock = personaPromptFor(personaName);
     const openerBlock =
       data.kind === "opener"
         ? `\n\nThe person just opened the chat and hasn't typed yet. Send one short, warm, natural opening line that invites them to share what's on their mind. Do not mention waiting, timers or the platform.`
