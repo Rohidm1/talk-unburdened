@@ -24,7 +24,7 @@ export function logEngagement(
       mood: extra.mood ?? null,
       depth: extra.depth ?? null,
       session_id: extra.sessionId ?? null,
-      detail: extra.detail ?? {},
+      detail: (extra.detail ?? {}) as never,
     }),
   );
 }
