@@ -44,6 +44,8 @@ import { endChat, startChat } from "@/lib/chat.functions";
 import { listPublicListeners } from "@/lib/listeners.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { CreditCheckoutDialog } from "@/components/site/CreditCheckoutDialog";
+import { AdSenseSlot } from "@/components/site/AdSenseSlot";
+
 import type { CreditPackageKey } from "@/lib/credit-packages";
 
 const title = "Anontalk - 100% Private & Anonymous Chat Platform.";
@@ -296,6 +298,18 @@ function HomePage() {
         <ChatIntro />
         <ProgressWidget />
         <HowItWorks />
+
+        <section className="mx-auto max-w-4xl px-5 py-10">
+          <p className="mb-3 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Sponsored
+          </p>
+          <AdSenseSlot
+            client="ca-pub-5982787822958728"
+            adSlot="REPLACE_WITH_AD_UNIT_ID"
+            format="auto"
+          />
+        </section>
+
         <TrustStrip />
         <Voices />
         <Pricing />
