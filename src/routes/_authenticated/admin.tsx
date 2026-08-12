@@ -3,7 +3,7 @@ import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { CalendarClock, Globe, MessageCircle, Trash2, UserPlus } from "lucide-react";
+import { Bot, CalendarClock, Globe, MessageCircle, Trash2, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,11 @@ import {
   listLiveConversations,
 } from "@/lib/admin.functions";
 import { createAgentAccount, deleteAgentAccount, getAgentMonthlyStats } from "@/lib/crm.functions";
+import {
+  getAiTranscript,
+  getEngagementAnalytics,
+  listAiConversations,
+} from "@/lib/insights.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
@@ -636,6 +641,202 @@ function MonthlyHours() {
           ))}
         </div>
       )}
+    </section>
+  );
+}
+
+function AiMonitorPanel() {
+  const fetchConversations = useServerFn(listAiConversations);
+  const fetchTranscript = useServerFn(getAiTranscript);
+  const [selected, setSelected] = useState<string | null>(null);
+
+  const conversations = useQuery({
+    queryKey: ["admin-ai-conversations"],
+    queryFn: () => fetchConversations(),
+    refetchInterval: 5000,
+    retry: false,
+  });
+  const transcript = useQuery({
+    queryKey: ["admin-ai-transcript", selected],
+    queryFn: () => fetchTranscript({ data: { sessionId: selected! } }),
+    enabled: !!selected,
+    refetchInterval: 4000,
+    retry: false,
+  });
+
+  const rows = conversations.data?.conversations ?? [];
+
+  return (
+    <section className="grid gap-6 lg:grid-cols-5">
+      <div className="rounded-3xl border border-border bg-card p-6 lg:col-span-2">
+        <div className="flex items-center gap-2">
+          <Bot className="size-5 text-primary" />
+          <h2 className="font-display text-lg font-semibold">Stand-in gesprekken</h2>
+        </div>
+        {rows.length === 0 ? (
+          <p className="mt-4 text-sm text-muted-foreground">Geen actieve stand-in gesprekken.</p>
+        ) : (
+          <ul className="mt-4 divide-y divide-border">
+            {rows.map((c) => (
+              <li key={c.id}>
+                <button
+                  onClick={() => setSelected(c.id)}
+                  className={`w-full py-3 text-left text-sm ${
+                    selected === c.id ? "text-primary" : ""
+                  }`}
+                >
+                  <span className="font-medium">{c.profileName}</span>{" "}
+                  <span className="text-muted-foreground">· {c.clientAlias}</span>
+                  <span className="block text-xs text-muted-foreground">
+                    {c.status}
+                    {c.endedAt ? " · beëindigd" : " · live"}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="rounded-3xl border border-border bg-card p-6 lg:col-span-3">
+        <h2 className="font-display text-lg font-semibold">Transcript</h2>
+        {!selected ? (
+          <p className="mt-4 text-sm text-muted-foreground">Kies een gesprek om mee te lezen.</p>
+        ) : (
+          <div className="mt-4 max-h-[28rem] space-y-2 overflow-y-auto">
+            {(transcript.data?.messages ?? []).map((m) => (
+              <div
+                key={m.id}
+                className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm ${
+                  m.sender_role === "client"
+                    ? "ml-auto bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground"
+                }`}
+              >
+                {m.body}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function EngagementPanel() {
+  const fetchAnalytics = useServerFn(getEngagementAnalytics);
+  const [days, setDays] = useState(30);
+  const query = useQuery({
+    queryKey: ["admin-engagement", days],
+    queryFn: () => fetchAnalytics({ data: { days } }),
+    refetchInterval: 60000,
+    retry: false,
+  });
+  const d = query.data;
+  const maxFeature = Math.max(1, ...(d?.features ?? []).map((f) => f.value));
+  const maxMood = Math.max(1, ...(d?.moods ?? []).map((m) => m.value));
+
+  return (
+    <section className="space-y-6">
+      <div className="flex gap-2">
+        {[7, 30, 90].map((n) => (
+          <Button
+            key={n}
+            size="sm"
+            variant={days === n ? "default" : "outline"}
+            onClick={() => setDays(n)}
+          >
+            {n} dagen
+          </Button>
+        ))}
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { label: "Match success", value: `${d?.match.successRate ?? 0}%` },
+          { label: "Chats gestart", value: d?.match.started ?? 0 },
+          { label: "Gem. DAU", value: d?.stickiness.avgDau ?? 0 },
+          {
+            label: "Gem. chatduur",
+            value: `${Math.round((d?.stickiness.avgSessionSeconds ?? 0) / 60)} min`,
+          },
+        ].map((k) => (
+          <div key={k.label} className="rounded-3xl border border-border bg-card p-6">
+            <p className="text-xs tracking-widest text-muted-foreground uppercase">{k.label}</p>
+            <p className="mt-2 font-display text-3xl tabular-nums">{k.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="rounded-3xl border border-border bg-card p-6">
+          <h2 className="font-display text-lg font-semibold">Feature heatmap</h2>
+          <ul className="mt-4 space-y-3">
+            {(d?.features ?? []).map((f) => (
+              <li key={f.key} className="text-sm">
+                <div className="flex justify-between">
+                  <span>{f.key}</span>
+                  <span className="tabular-nums text-muted-foreground">{f.value}</span>
+                </div>
+                <div className="mt-1 h-2 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-primary"
+                    style={{ width: `${(f.value / maxFeature) * 100}%` }}
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="rounded-3xl border border-border bg-card p-6">
+          <h2 className="font-display text-lg font-semibold">Stemmingen & diepte</h2>
+          {(d?.moods ?? []).length === 0 ? (
+            <p className="mt-4 text-sm text-muted-foreground">Nog geen data.</p>
+          ) : (
+            <ul className="mt-4 space-y-3">
+              {(d?.moods ?? []).map((m) => (
+                <li key={m.mood} className="text-sm">
+                  <div className="flex justify-between">
+                    <span className="capitalize">{m.mood}</span>
+                    <span className="tabular-nums text-muted-foreground">{m.value}</span>
+                  </div>
+                  <div className="mt-1 h-2 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-chart-2"
+                      style={{ width: `${(m.value / maxMood) * 100}%` }}
+                    />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="mt-4 flex flex-wrap gap-2">
+            {(d?.depths ?? []).map((x) => (
+              <span
+                key={x.depth}
+                className="rounded-full border border-border px-3 py-1 text-xs capitalize"
+              >
+                {x.depth}: {x.value}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-3xl border border-border bg-card p-6">
+        <h2 className="font-display text-lg font-semibold">Dagelijkse activiteit</h2>
+        <ul className="mt-4 space-y-1 text-sm">
+          {(d?.daily ?? []).map((row) => (
+            <li key={row.date} className="flex justify-between tabular-nums">
+              <span className="text-muted-foreground">{row.date}</span>
+              <span>
+                {row.dau} bezoekers · {row.chats} chats
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }
