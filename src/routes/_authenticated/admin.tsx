@@ -146,6 +146,8 @@ function AdminPage() {
               <TabsTrigger value="hours">Werkuren</TabsTrigger>
               <TabsTrigger value="clients">Klanten</TabsTrigger>
               <TabsTrigger value="traffic">Bezoekers</TabsTrigger>
+              <TabsTrigger value="ai">AI monitor</TabsTrigger>
+              <TabsTrigger value="engagement">Engagement</TabsTrigger>
             </TabsList>
 
             <TabsContent value="live" className="mt-6">
