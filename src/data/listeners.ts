@@ -138,6 +138,91 @@ export const listeners: Listener[] = [
     status: "online",
     years: 5,
   },
+  {
+    id: "l8",
+    displayName: "Eleni",
+    avatar: "/avatars/profile-8.jpg",
+    age: 31,
+    bio: {
+      en: "I speak English, Greek, Dutch and German. Say whatever is on your mind, in the language that feels most like you.",
+      nl: "I speak English, Greek, Dutch and German. Say whatever is on your mind, in the language that feels most like you.",
+    },
+    language: "EN/EL/NL/DE",
+    topics: [
+      { en: "English, Greek, Dutch, German", nl: "English, Greek, Dutch, German" },
+      { en: "No judgment", nl: "No judgment" },
+    ],
+    status: "online",
+    years: 7,
+  },
+  {
+    id: "l9",
+    displayName: "Marit",
+    avatar: "/avatars/profile-9.jpg",
+    age: 27,
+    bio: {
+      en: "I speak English, Greek, Dutch and German, so switch whenever you like. Just a calm chat about whatever is weighing on you today.",
+      nl: "I speak English, Greek, Dutch and German, so switch whenever you like. Just a calm chat about whatever is weighing on you today.",
+    },
+    language: "EN/EL/NL/DE",
+    topics: [
+      { en: "English, Greek, Dutch, German", nl: "English, Greek, Dutch, German" },
+      { en: "Everyday stress", nl: "Everyday stress" },
+    ],
+    status: "online",
+    years: 5,
+  },
+  {
+    id: "l10",
+    displayName: "Daniela",
+    avatar: "/avatars/profile-10.jpg",
+    age: 36,
+    bio: {
+      en: "English, Greek, Dutch or German — whatever comes easiest. Evenings are quiet on my side, so there is time to really talk.",
+      nl: "English, Greek, Dutch or German — whatever comes easiest. Evenings are quiet on my side, so there is time to really talk.",
+    },
+    language: "EN/EL/NL/DE",
+    topics: [
+      { en: "English, Greek, Dutch, German", nl: "English, Greek, Dutch, German" },
+      { en: "Late-night talks", nl: "Late-night talks" },
+    ],
+    status: "online",
+    years: 11,
+  },
+  {
+    id: "l11",
+    displayName: "Stefan",
+    avatar: "/avatars/profile-11.jpg",
+    age: 33,
+    bio: {
+      en: "Down-to-earth and I speak English, Greek, Dutch and German. No advice unless you ask for it, just someone who listens properly.",
+      nl: "Down-to-earth and I speak English, Greek, Dutch and German. No advice unless you ask for it, just someone who listens properly.",
+    },
+    language: "EN/EL/NL/DE",
+    topics: [
+      { en: "English, Greek, Dutch, German", nl: "English, Greek, Dutch, German" },
+      { en: "Getting it off your chest", nl: "Getting it off your chest" },
+    ],
+    status: "online",
+    years: 6,
+  },
+  {
+    id: "l12",
+    displayName: "Yannis",
+    avatar: "/avatars/profile-12.jpg",
+    age: 29,
+    bio: {
+      en: "I chat in English, Greek, Dutch and German. Start in any of them — I'll keep up and take your story seriously.",
+      nl: "I chat in English, Greek, Dutch and German. Start in any of them — I'll keep up and take your story seriously.",
+    },
+    language: "EN/EL/NL/DE",
+    topics: [
+      { en: "English, Greek, Dutch, German", nl: "English, Greek, Dutch, German" },
+      { en: "Work and burnout", nl: "Work and burnout" },
+    ],
+    status: "online",
+    years: 4,
+  },
 ];
 
 // Pricing lives in src/lib/credit-packages.ts, which is also what Stripe is
