@@ -16,6 +16,7 @@ import { Route as CrmRouteRouteImport } from './routes/crm/route'
 import { Route as CrmLoginRouteImport } from './routes/crm-login'
 import { Route as HubRouteImport } from './routes/hub'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as TalkToStrangersRouteImport } from './routes/talk-to-strangers'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
@@ -58,6 +59,11 @@ const HubRoute = HubRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TalkToStrangersRoute = TalkToStrangersRouteImport.update({
+  id: '/talk-to-strangers',
+  path: '/talk-to-strangers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
@@ -114,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/crm-login': typeof CrmLoginRoute
   '/hub': typeof HubRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/talk-to-strangers': typeof TalkToStrangersRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/staff': typeof AuthenticatedStaffRoute
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/crm-login': typeof CrmLoginRoute
   '/hub': typeof HubRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/talk-to-strangers': typeof TalkToStrangersRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/staff': typeof AuthenticatedStaffRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/crm-login': typeof CrmLoginRoute
   '/hub': typeof HubRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/talk-to-strangers': typeof TalkToStrangersRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRoute
@@ -168,6 +177,7 @@ export interface FileRouteTypes {
     | '/crm-login'
     | '/hub'
     | '/sitemap.xml'
+    | '/talk-to-strangers'
     | '/account'
     | '/admin'
     | '/staff'
@@ -184,6 +194,7 @@ export interface FileRouteTypes {
     | '/crm-login'
     | '/hub'
     | '/sitemap.xml'
+    | '/talk-to-strangers'
     | '/account'
     | '/admin'
     | '/staff'
@@ -202,6 +213,7 @@ export interface FileRouteTypes {
     | '/crm-login'
     | '/hub'
     | '/sitemap.xml'
+    | '/talk-to-strangers'
     | '/_authenticated/account'
     | '/_authenticated/admin'
     | '/_authenticated/staff'
@@ -221,6 +233,7 @@ export interface RootRouteChildren {
   CrmLoginRoute: typeof CrmLoginRoute
   HubRoute: typeof HubRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TalkToStrangersRoute: typeof TalkToStrangersRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   BlogIndexRoute: typeof BlogIndexRoute
@@ -277,6 +290,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/talk-to-strangers': {
+      id: '/talk-to-strangers'
+      path: '/talk-to-strangers'
+      fullPath: '/talk-to-strangers'
+      preLoaderRoute: typeof TalkToStrangersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/account': {
@@ -380,6 +400,7 @@ const rootRouteChildren: RootRouteChildren = {
   CrmLoginRoute: CrmLoginRoute,
   HubRoute: HubRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TalkToStrangersRoute: TalkToStrangersRoute,
   BlogSlugRoute: BlogSlugRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   BlogIndexRoute: BlogIndexRoute,

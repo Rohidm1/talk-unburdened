@@ -138,7 +138,7 @@ function TalkToStrangersPage() {
           </h2>
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
             {facts.map((f, i) => (
-              <Reveal key={f.title} delay={i * 60}>
+              <Reveal key={f.title} delay={i * 0.06}>
                 <div className="glass h-full rounded-3xl border border-border p-6">
                   <f.icon className="size-5 text-primary" />
                   <h3 className="mt-4 font-display text-xl font-semibold">{f.title}</h3>
