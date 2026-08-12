@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import { chatHeartbeat, listChatMessages, sendChatMessage } from "@/lib/chat.functions";
 import { persistAiMessage, requestAiReply } from "@/lib/ai-fallback.functions";
-import { typingDelayMs } from "@/lib/ai-persona";
+import { readingDelayMs, typingDelayMs } from "@/lib/ai-persona";
 import { rollIcebreaker } from "@/lib/icebreakers";
 import { isMuted, playSfx, setMuted } from "@/lib/sfx";
 import { addChatSeconds, awardXp, completeQuest } from "@/lib/gamification";
@@ -139,7 +139,13 @@ export function ChatDialog({
     const stillMine = () => turn === turnRef.current;
     const wait = (ms: number) => new Promise((r) => window.setTimeout(r, ms));
 
+    // A real person first reads the message: nothing happens for 2-4 seconds.
+    setPartnerTyping(false);
+    await wait(readingDelayMs());
+    if (!stillMine()) return;
     setPartnerTyping(true);
+
+    const askedAt = Date.now();
     try {
       const result = await askAi({ data: { sessionId, kind } });
       if (!stillMine()) return;
@@ -156,8 +162,11 @@ export function ChatDialog({
       for (let i = 0; i < result.chunks.length; i += 1) {
         const chunk = result.chunks[i]!;
         if (i > 0) setPartnerTyping(true);
-        // longer messages visibly take longer to "type"
-        await wait(typingDelayMs(chunk));
+        // longer messages visibly take longer to "type"; the time already
+        // spent generating counts towards the first chunk's typing window.
+        const target = typingDelayMs(chunk);
+        const spent = i === 0 ? Date.now() - askedAt : 0;
+        await wait(Math.max(600, target - spent));
         if (!stillMine()) return;
         const saved = await saveAi({ data: { sessionId, body: chunk } });
         if (!stillMine()) return;

@@ -24,7 +24,7 @@ export function ListenerCard({
 }) {
   const { t } = useTranslation();
   const lang = "en" as const;
-  const languageLabel = "English";
+  const languageLabel = listener.language === "NL" ? "Dutch" : listener.language === "EN" ? "English" : listener.language;
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)] transition-colors hover:border-primary/40">
