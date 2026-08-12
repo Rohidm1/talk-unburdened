@@ -128,6 +128,8 @@ const en = {
     message: "Message",
     send: "Send message",
     sent: "Thanks — your message is on its way.",
+    sending: "Sending…",
+    error: "Something went wrong. Please try again.",
   },
   chat: {
     connecting: "Finding a chat partner…",
