@@ -306,6 +306,14 @@ function AdminPage() {
             <TabsContent value="traffic" className="mt-6">
               <TrafficPanel />
             </TabsContent>
+
+            <TabsContent value="ai" className="mt-6">
+              <AiMonitorPanel />
+            </TabsContent>
+
+            <TabsContent value="engagement" className="mt-6">
+              <EngagementPanel />
+            </TabsContent>
           </Tabs>
         </>
       )}
