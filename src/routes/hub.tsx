@@ -45,7 +45,7 @@ function HubPage() {
     <div className="relative min-h-screen">
       <ParticleField />
       <XpLayer />
-      <Header onStart={() => {}} />
+      <Header />
 
       <main className="mx-auto w-full max-w-5xl px-5 py-16">
         {open ? (
