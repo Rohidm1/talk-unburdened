@@ -88,7 +88,7 @@ export function MatchingRadar({
 }: {
   open: boolean;
   mood: MoodId | null;
-  partnerName?: string;
+  partnerName?: string | undefined;
   onCancel: () => void;
 }) {
   const moodLabel = useMemo(() => MOODS.find((m) => m.id === mood)?.label ?? "any mood", [mood]);
