@@ -12,9 +12,10 @@ export const Route = createFileRoute("/blog/$slug")({
     if (!post) throw notFound();
     return post;
   },
-  head: ({ loaderData }) => {
+  head: ({ params, loaderData }) => {
     const title = loaderData ? `${loaderData.title} | Anontalk` : "Article | Anontalk";
     const description = loaderData?.excerpt ?? "An article from the Anontalk journal.";
+    const url = `https://anontalk.online/blog/${params.slug}`;
     return {
       meta: [
         { title },
@@ -22,7 +23,24 @@ export const Route = createFileRoute("/blog/$slug")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:type", content: "article" },
+        { property: "og:url", content: url },
         { name: "twitter:card", content: "summary" },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: loaderData?.title ?? "Anontalk article",
+            description,
+            ...(loaderData?.date ? { datePublished: loaderData.date } : {}),
+            author: { "@type": "Organization", name: "Anontalk" },
+            publisher: { "@type": "Organization", name: "Anontalk", url: "https://anontalk.online" },
+            mainEntityOfPage: url,
+          }),
+        },
       ],
     };
   },
