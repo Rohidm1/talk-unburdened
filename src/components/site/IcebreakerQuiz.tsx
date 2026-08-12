@@ -60,7 +60,7 @@ export function IcebreakerQuiz({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onDone(null)}>
-      <DialogContent className="glass-strong sm:max-w-md" showCloseButton={false}>
+      <DialogContent className="glass-strong sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-display">
             Quick icebreaker with {partnerName}
