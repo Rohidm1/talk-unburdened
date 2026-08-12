@@ -151,7 +151,6 @@ function HomePage() {
   const [depth, setDepth] = useState<DepthId | null>(null);
   const [searching, setSearching] = useState(false);
   const [quizFor, setQuizFor] = useState<string | null>(null);
-  const [quizAnswer, setQuizAnswer] = useState<string | null>(null);
   const [compliment, setCompliment] = useState<string | null>(null);
 
   const account = useQuery({
@@ -316,10 +315,7 @@ function HomePage() {
       <IcebreakerQuiz
         open={quizFor !== null}
         partnerName={quizFor ?? ""}
-        onDone={(answer) => {
-          setQuizAnswer(answer);
-          setQuizFor(null);
-        }}
+        onDone={() => setQuizFor(null)}
       />
 
       <MoodDialog
