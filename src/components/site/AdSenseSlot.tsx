@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface AdSenseSlotProps {
   client: string;
@@ -17,11 +17,16 @@ const PLACEHOLDER_SLOT = "REPLACE_WITH_AD_UNIT_ID";
 
 export function AdSenseSlot({ client, adSlot, format = "auto", className = "" }: AdSenseSlotProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
   const slot = adSlot || PLACEHOLDER_SLOT;
   const isPlaceholder = slot === PLACEHOLDER_SLOT;
 
   useEffect(() => {
-    if (!ref.current || isPlaceholder) return;
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || !ref.current || isPlaceholder) return;
     const container = ref.current;
     container.innerHTML = "";
 
@@ -41,7 +46,7 @@ export function AdSenseSlot({ client, adSlot, format = "auto", className = "" }:
     } catch (err) {
       console.error("AdSense render failed:", err);
     }
-  }, [client, slot, format, isPlaceholder]);
+  }, [mounted, client, slot, format, isPlaceholder]);
 
   if (isPlaceholder) {
     return (
@@ -53,6 +58,15 @@ export function AdSenseSlot({ client, adSlot, format = "auto", className = "" }:
       >
         AdSense placeholder — create an ad unit in AdSense and replace the adSlot prop.
       </div>
+    );
+  }
+
+  if (!mounted) {
+    return (
+      <div
+        className={["min-h-[90px] rounded-xl border border-border bg-card/30", className].join(" ")}
+        aria-label="Advertisement"
+      />
     );
   }
 
