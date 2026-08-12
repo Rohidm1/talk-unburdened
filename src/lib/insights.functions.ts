@@ -25,7 +25,9 @@ export const listAiConversations = createServerFn({ method: "GET" })
       .limit(25);
 
     const rows = sessions ?? [];
-    const listenerIds = Array.from(new Set(rows.map((s) => s.listener_id).filter(Boolean)));
+    const listenerIds = rows
+      .map((s) => s.listener_id)
+      .filter((id): id is string => typeof id === "string");
     const clientIds = Array.from(new Set(rows.map((s) => s.client_id)));
 
     const [{ data: listeners }, { data: profiles }] = await Promise.all([
