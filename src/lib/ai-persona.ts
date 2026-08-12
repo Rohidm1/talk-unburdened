@@ -39,12 +39,27 @@ export function chunkReply(text: string): string[] {
   return second ? [first, second] : [first];
 }
 
-export const MIN_TYPING_MS = 1500;
-export const MAX_TYPING_MS = 4000;
+export const MIN_TYPING_MS = 2000;
+export const MAX_TYPING_MS = 7000;
 
-/** Longer messages visibly take longer to "type". */
+/**
+ * Longer messages visibly take longer to "type": a short sentence lands in
+ * 2-3 seconds, a full paragraph keeps the indicator up for 5-7 seconds.
+ */
 export function typingDelayMs(chunk: string): number {
-  return Math.min(MAX_TYPING_MS, Math.max(MIN_TYPING_MS, chunk.length * 40));
+  const perChar = 26;
+  return Math.min(MAX_TYPING_MS, Math.max(MIN_TYPING_MS, 900 + chunk.length * perChar));
+}
+
+export const MIN_READING_MS = 2000;
+export const MAX_READING_MS = 4000;
+
+/**
+ * The pause before the typing indicator appears: a real person first has to
+ * read the message. Nothing at all happens during this window.
+ */
+export function readingDelayMs(): number {
+  return MIN_READING_MS + Math.random() * (MAX_READING_MS - MIN_READING_MS);
 }
 
 /** Phrases that would break the zero-disclosure identity rule. */
