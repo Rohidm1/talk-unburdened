@@ -11,7 +11,8 @@ import { persistAiMessage, requestAiReply } from "@/lib/ai-fallback.functions";
 import { typingDelayMs } from "@/lib/ai-persona";
 import { rollIcebreaker } from "@/lib/icebreakers";
 import { isMuted, playSfx, setMuted } from "@/lib/sfx";
-import { awardXp, completeQuest } from "@/lib/gamification";
+import { addChatSeconds, awardXp, completeQuest } from "@/lib/gamification";
+import { logEngagement } from "@/lib/engagement";
 import type { Listener } from "@/data/listeners";
 
 export function ChatDialog({
@@ -104,6 +105,13 @@ export function ChatDialog({
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.data?.length, partnerTyping]);
+
+  // Time spent chatting today feeds the mystery box progress.
+  useEffect(() => {
+    if (!open) return;
+    const id = window.setInterval(() => addChatSeconds(15), 15000);
+    return () => window.clearInterval(id);
+  }, [open]);
 
   // A soft chime whenever the partner's reply lands.
   const lastCount = useRef(0);
@@ -310,6 +318,7 @@ export function ChatDialog({
               setDraft((d) => rollIcebreaker(d));
               completeQuest("icebreaker");
               awardXp(10, "+10 XP · icebreaker");
+              logEngagement("icebreaker_dice", { sessionId });
             }}
           >
             <Dices className="size-4" />
