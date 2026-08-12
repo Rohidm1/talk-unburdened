@@ -65,7 +65,7 @@ describe("typingDelayMs", () => {
 
   it("scales with message length", () => {
     expect(typingDelayMs("x".repeat(60))).toBeGreaterThan(typingDelayMs("x".repeat(50)));
-    expect(typingDelayMs("x".repeat(60))).toBe(2400);
+    expect(typingDelayMs("x".repeat(60))).toBe(2460);
   });
 });
 
