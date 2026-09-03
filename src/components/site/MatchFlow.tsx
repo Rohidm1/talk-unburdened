@@ -64,7 +64,7 @@ export function LiveActivityCounter({ className = "" }: { className?: string }) 
       className={`inline-flex items-center gap-2 rounded-full border border-neon-cyan/40 bg-black/40 px-3 py-1 text-xs backdrop-blur ${className}`}
     >
       <span className="size-2 animate-pulse rounded-full bg-neon-cyan shadow-[0_0_12px_var(--neon-cyan)]" />
-      <span className="neon-text font-semibold tabular-nums">{count.toLocaleString()}</span>
+      <span className="neon-text font-semibold tabular-nums">{count.toLocaleString("en-US")}</span>
       <span className="text-muted-foreground">users online chatting</span>
     </span>
   );
