@@ -56,11 +56,12 @@ export const requestAiReply = createServerFn({ method: "POST" })
     const { data: listener } = session.listener_id
       ? await supabaseAdmin
           .from("listeners")
-          .select("display_name")
+          .select("display_name, languages")
           .eq("id", session.listener_id)
           .maybeSingle()
       : { data: null };
     const personaName = listener?.display_name ?? "your chat partner";
+    const personaLanguages = listener?.languages ?? null;
 
     const { data: history } = await supabaseAdmin
       .from("chat_messages")
