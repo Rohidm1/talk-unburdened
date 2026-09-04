@@ -18,8 +18,10 @@ import {
   HowItWorks,
   Pricing,
   TrustStrip,
-  Voices,
 } from "@/components/site/Sections";
+import { ReviewsCarousel } from "@/components/site/Reviews";
+import { FloatingChat } from "@/components/site/FloatingChat";
+import { DailyCheckIn, SessionMilestones } from "@/components/site/Retention";
 import { Reveal } from "@/components/site/Reveal";
 import { ParticleField } from "@/components/site/ParticleField";
 import { XpLayer } from "@/components/site/XpLayer";
@@ -289,6 +291,7 @@ function HomePage() {
     <div className="relative min-h-screen font-body text-foreground">
       <ParticleField />
       <XpLayer />
+      <SessionMilestones />
       <Header />
       <main>
         <Hero
@@ -346,7 +349,28 @@ function HomePage() {
         </section>
 
         <TrustStrip />
-        <Voices />
+        <ReviewsCarousel />
+        <section className="mx-auto w-full max-w-6xl px-5 pb-6">
+          <div className="grid gap-5 md:grid-cols-[1fr_1.4fr] md:items-stretch">
+            <DailyCheckIn />
+            <div className="glass flex flex-col justify-center rounded-3xl p-6 md:p-8">
+              <h2 className="font-display text-2xl font-semibold">Ready when you are</h2>
+              <p className="mt-2 max-w-md text-sm text-muted-foreground">
+                One tap connects you with whoever is free right now. No profile to fill in, no
+                queue, and your first five messages cost nothing.
+              </p>
+              <div className="mt-5">
+                <button
+                  type="button"
+                  onClick={quickChat}
+                  className="glow-cta inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.02]"
+                >
+                  Chat with someone now
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
         <Pricing />
         <Faq />
         <ContactSection />
@@ -411,6 +435,8 @@ function HomePage() {
           document.getElementById("listeners")?.scrollIntoView({ behavior: "smooth" })
         }
       />
+
+      {!activeListener && !searching ? <FloatingChat onStart={quickChat} /> : null}
     </div>
   );
 }
