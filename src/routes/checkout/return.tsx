@@ -10,6 +10,7 @@ import { getCheckoutFulfillment } from "@/lib/payments.functions";
 export const Route = createFileRoute("/checkout/return")({
   head: () => ({
     meta: [
+      { name: "robots", content: "noindex, nofollow" },
       { title: "Payment complete — Anontalk credits added" },
       {
         name: "description",

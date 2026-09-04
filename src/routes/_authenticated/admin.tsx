@@ -35,6 +35,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
   },
   head: () => ({
     meta: [
+      { name: "robots", content: "noindex, nofollow" },
       { title: "Admin panel — Anontalk platform analytics" },
       {
         name: "description",

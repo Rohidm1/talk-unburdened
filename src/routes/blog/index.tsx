@@ -3,10 +3,11 @@ import "@/lib/i18n";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Sections";
 import { Reveal } from "@/components/site/Reveal";
+import { FloatingChat } from "@/components/site/FloatingChat";
 import { blogPosts } from "@/data/blog";
 import { ArrowRight, Clock } from "lucide-react";
 
-const title = "Blog — honest writing on mental health & personal growth | Anontalk";
+const title = "Anontalk Blog – Loneliness, Stress & Talking It Through";
 const description =
   "Short, practical articles on loneliness, stress, self-reflection and why talking things through anonymously helps.";
 
@@ -18,7 +19,8 @@ export const Route = createFileRoute("/blog/")({
       { property: "og:title", content: title },
       { property: "og:description", content: description },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
+      { property: "og:url", content: "https://anontalk.online/blog" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: "https://anontalk.online/blog" }],
   }),
@@ -31,6 +33,7 @@ function BlogIndex() {
   return (
     <div className="min-h-screen bg-background font-body text-foreground">
       <Header />
+      <FloatingChat />
       <main className="mx-auto w-full max-w-6xl px-5 py-16">
         <Reveal>
           <span className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-medium tracking-wide text-primary">

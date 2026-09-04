@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, Clock } from "lucide-react";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Sections";
 import { Reveal } from "@/components/site/Reveal";
+import { FloatingChat } from "@/components/site/FloatingChat";
 import { blogPosts, getPost } from "@/data/blog";
 
 export const Route = createFileRoute("/blog/$slug")({
@@ -24,7 +25,7 @@ export const Route = createFileRoute("/blog/$slug")({
         { property: "og:description", content: description },
         { property: "og:type", content: "article" },
         { property: "og:url", content: url },
-        { name: "twitter:card", content: "summary" },
+        { name: "twitter:card", content: "summary_large_image" },
       ],
       links: [{ rel: "canonical", href: url }],
       scripts: [

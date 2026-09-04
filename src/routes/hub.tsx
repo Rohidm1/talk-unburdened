@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Header } from "@/components/site/Header";
 import { ParticleField } from "@/components/site/ParticleField";
 import { XpLayer } from "@/components/site/XpLayer";
+import { FloatingChat } from "@/components/site/FloatingChat";
 import { articles, type Article } from "@/data/articles";
 import { markArticleRead, useProgress } from "@/lib/gamification";
 import { playSfx } from "@/lib/sfx";
@@ -25,8 +26,10 @@ export const Route = createFileRoute("/hub")({
           "Ten short reads on venting, loneliness, empathy and safe online vulnerability - earn XP for every article you finish.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://anontalk.online/hub" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://anontalk.online/hub" }],
   }),
   component: HubPage,
 });
@@ -46,6 +49,7 @@ function HubPage() {
       <ParticleField />
       <XpLayer />
       <Header />
+      <FloatingChat />
 
       <main className="mx-auto w-full max-w-5xl px-5 py-16">
         {open ? (

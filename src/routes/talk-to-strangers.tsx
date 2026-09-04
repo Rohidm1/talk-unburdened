@@ -15,6 +15,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Header } from "@/components/site/Header";
+import { FloatingChat } from "@/components/site/FloatingChat";
 import { Footer } from "@/components/site/Sections";
 import { ParticleField } from "@/components/site/ParticleField";
 import { Reveal } from "@/components/site/Reveal";
