@@ -56,11 +56,12 @@ export const requestAiReply = createServerFn({ method: "POST" })
     const { data: listener } = session.listener_id
       ? await supabaseAdmin
           .from("listeners")
-          .select("display_name")
+          .select("display_name, languages")
           .eq("id", session.listener_id)
           .maybeSingle()
       : { data: null };
     const personaName = listener?.display_name ?? "your chat partner";
+    const personaLanguages = listener?.languages ?? null;
 
     const { data: history } = await supabaseAdmin
       .from("chat_messages")
@@ -84,7 +85,7 @@ export const requestAiReply = createServerFn({ method: "POST" })
           .join("\n")}`
       : "";
 
-    const personaBlock = personaPromptFor(personaName);
+    const personaBlock = personaPromptFor(personaName, personaLanguages);
     const openerBlock =
       data.kind === "opener"
         ? `\n\nThe person just opened the chat and hasn't typed yet. Send one short, warm, natural opening line that invites them to share what's on their mind. Do not mention waiting, timers or the platform.`

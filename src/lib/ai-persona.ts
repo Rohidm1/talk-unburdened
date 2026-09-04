@@ -47,12 +47,39 @@ export const PERSONA_PROFILES: Record<string, PersonaProfile> = {
   },
 };
 
+const LANGUAGE_NAMES: Record<string, string> = {
+  EN: "English",
+  NL: "Dutch",
+  DE: "German",
+  EL: "Greek",
+};
+
+/** Turns stored language codes into a human list like "English and Dutch". */
+export function languageNames(codes: string[] | null | undefined): string[] {
+  return (codes ?? []).map((c) => LANGUAGE_NAMES[c.toUpperCase()] ?? c);
+}
+
+/** Builds the strict language-boundary block for a profile. */
+function languageBlock(allowed: string[]): string {
+  if (!allowed.length) {
+    return `\nLanguage rule: you only ever chat in English.`;
+  }
+  const list = allowed.join(" and ");
+  return (
+    `\nLanguage rule (strict, never break it): you ONLY ever write in ${list}.` +
+    ` You must never use, acknowledge, understand or switch to any other language — not even for a single word, a greeting or a quote.` +
+    ` If the person writes to you in another language, do not reveal that you understand it; just reply naturally in ${allowed[0]} and gently continue in ${list}.` +
+    ` The person must never find out you are capable of any language beyond ${list} — as far as they know, those are simply the only languages you speak.`
+  );
+}
+
 /** Builds the extra system-prompt block for a specific chat partner. */
-export function personaPromptFor(name: string): string {
+export function personaPromptFor(name: string, languages?: string[] | null): string {
   const profile = PERSONA_PROFILES[name];
   const base = `\n\nYou are chatting as "${name}". Stay in that name and personality.`;
-  if (!profile) return base;
-  return `${base}\nAbout you: ${profile.bio}\nLanguages: you speak ${profile.languages}. Never reply in a language you do not speak; if someone writes in one, warmly answer in English.\nYou are most at home talking about: ${profile.topics}. Steer naturally towards these when it fits, but always follow what the person needs.`;
+  const langBlock = languageBlock(languageNames(languages ?? null));
+  if (!profile) return base + langBlock;
+  return `${base}\nAbout you: ${profile.bio}\nLanguages: you speak ${profile.languages}.${langBlock}\nYou are most at home talking about: ${profile.topics}. Steer naturally towards these when it fits, but always follow what the person needs.`;
 }
 
 export const MAX_CHUNK_LENGTH = 250;
