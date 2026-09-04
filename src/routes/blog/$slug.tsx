@@ -106,6 +106,7 @@ function BlogPostPage() {
   return (
     <div className="min-h-screen bg-background font-body text-foreground">
       <Header />
+      <FloatingChat />
       <main className="mx-auto w-full max-w-3xl px-5 py-16">
         <Link
           to="/blog"

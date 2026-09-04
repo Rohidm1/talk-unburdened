@@ -108,6 +108,7 @@ function TalkToStrangersPage() {
     <div className="relative min-h-screen">
       <ParticleField />
       <Header />
+      <FloatingChat />
 
       <main>
         <section className="mx-auto w-full max-w-4xl px-5 pt-16 pb-12 text-center md:pt-24">

@@ -40,7 +40,7 @@ export function ListenerCard({
       <div className="relative p-3 pb-0">
         <img
           src={listener.avatar}
-          alt={listener.displayName}
+          alt={`${listener.displayName}, anonymous chat partner on Anontalk (${languageLabel})`}
           loading="lazy"
           width={816}
           height={816}
