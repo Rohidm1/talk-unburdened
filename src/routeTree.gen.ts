@@ -17,6 +17,7 @@ import { Route as CrmLoginRouteImport } from './routes/crm-login'
 import { Route as HubRouteImport } from './routes/hub'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TalkToStrangersRouteImport } from './routes/talk-to-strangers'
+import { Route as DotwellKnownAssetlinksDotjsonRouteImport } from './routes/[.]well-known.assetlinks[.]json'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
@@ -66,6 +67,12 @@ const TalkToStrangersRoute = TalkToStrangersRouteImport.update({
   path: '/talk-to-strangers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DotwellKnownAssetlinksDotjsonRoute =
+  DotwellKnownAssetlinksDotjsonRouteImport.update({
+    id: '/.well-known/assetlinks.json',
+    path: '/.well-known/assetlinks.json',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
   id: '/account',
   path: '/account',
@@ -121,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/hub': typeof HubRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/talk-to-strangers': typeof TalkToStrangersRoute
+  '/.well-known/assetlinks.json': typeof DotwellKnownAssetlinksDotjsonRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/staff': typeof AuthenticatedStaffRoute
@@ -138,6 +146,7 @@ export interface FileRoutesByTo {
   '/hub': typeof HubRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/talk-to-strangers': typeof TalkToStrangersRoute
+  '/.well-known/assetlinks.json': typeof DotwellKnownAssetlinksDotjsonRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/staff': typeof AuthenticatedStaffRoute
@@ -158,6 +167,7 @@ export interface FileRoutesById {
   '/hub': typeof HubRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/talk-to-strangers': typeof TalkToStrangersRoute
+  '/.well-known/assetlinks.json': typeof DotwellKnownAssetlinksDotjsonRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/staff': typeof AuthenticatedStaffRoute
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/hub'
     | '/sitemap.xml'
     | '/talk-to-strangers'
+    | '/.well-known/assetlinks.json'
     | '/account'
     | '/admin'
     | '/staff'
@@ -195,6 +206,7 @@ export interface FileRouteTypes {
     | '/hub'
     | '/sitemap.xml'
     | '/talk-to-strangers'
+    | '/.well-known/assetlinks.json'
     | '/account'
     | '/admin'
     | '/staff'
@@ -214,6 +226,7 @@ export interface FileRouteTypes {
     | '/hub'
     | '/sitemap.xml'
     | '/talk-to-strangers'
+    | '/.well-known/assetlinks.json'
     | '/_authenticated/account'
     | '/_authenticated/admin'
     | '/_authenticated/staff'
@@ -234,6 +247,7 @@ export interface RootRouteChildren {
   HubRoute: typeof HubRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TalkToStrangersRoute: typeof TalkToStrangersRoute
+  DotwellKnownAssetlinksDotjsonRoute: typeof DotwellKnownAssetlinksDotjsonRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   BlogIndexRoute: typeof BlogIndexRoute
@@ -297,6 +311,13 @@ declare module '@tanstack/react-router' {
       path: '/talk-to-strangers'
       fullPath: '/talk-to-strangers'
       preLoaderRoute: typeof TalkToStrangersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/assetlinks.json': {
+      id: '/.well-known/assetlinks.json'
+      path: '/.well-known/assetlinks.json'
+      fullPath: '/.well-known/assetlinks.json'
+      preLoaderRoute: typeof DotwellKnownAssetlinksDotjsonRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/account': {
@@ -401,6 +422,7 @@ const rootRouteChildren: RootRouteChildren = {
   HubRoute: HubRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TalkToStrangersRoute: TalkToStrangersRoute,
+  DotwellKnownAssetlinksDotjsonRoute: DotwellKnownAssetlinksDotjsonRoute,
   BlogSlugRoute: BlogSlugRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   BlogIndexRoute: BlogIndexRoute,
