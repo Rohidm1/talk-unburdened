@@ -66,7 +66,16 @@ function Fallback({ message }: { message: string }) {
 }
 
 function Body({ body }: { body: string }) {
-  const blocks = body.split("\n\n");
+  // A "## heading" line is its own block even when the paragraph follows on
+  // the very next line.
+  const blocks = body
+    .split("\n\n")
+    .flatMap((block) => {
+      if (!block.startsWith("## ")) return [block];
+      const nl = block.indexOf("\n");
+      return nl === -1 ? [block] : [block.slice(0, nl), block.slice(nl + 1)];
+    })
+    .filter((b) => b.trim().length > 0);
   return (
     <div className="mt-10 space-y-5">
       {blocks.map((block, i) => {
