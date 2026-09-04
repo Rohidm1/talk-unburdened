@@ -15,6 +15,7 @@ const description =
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
+      { name: "robots", content: "noindex, nofollow" },
       { title },
       { name: "description", content: description },
       { property: "og:title", content: title },

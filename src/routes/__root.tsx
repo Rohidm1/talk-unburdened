@@ -81,13 +81,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Anontalk - 100% Private & Anonymous Chat Platform." },
+      { title: "Anontalk – Anonymous Chat With Real People, 5 Free Messages" },
       {
         name: "description",
         content:
-          "Anontalk: 100% private, anonymous live chat. Sign up to receive 5 free messages and chat instantly with real people, no forms, no waiting room. No subscription.",
+          "Talk to someone anonymously right now. Anontalk is a private 1-on-1 live chat with warm chat partners: no name, no card, no waiting room. Your first 5 messages are free.",
       },
       { name: "author", content: "Anontalk" },
+      { name: "robots", content: "index, follow, max-image-preview:large" },
+      { name: "theme-color", content: "#0b1220" },
+      { property: "og:site_name", content: "Anontalk" },
+      { property: "og:locale", content: "en_US" },
       {
         name: "google-site-verification",
         content: "ZPvCJoja56guGnmJfVoQXXyRuSJL283iMVQXMdgu3Ho",
@@ -100,7 +104,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Anontalk - 100% Private & Anonymous Chat Platform." },
       {
         name: "twitter:description",
@@ -175,11 +178,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           },
         }),
       },
-      {
-        src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5982787822958728",
-        async: true,
-        crossOrigin: "anonymous",
-      },
     ],
   }),
   shellComponent: RootShell,
@@ -202,8 +200,23 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+const ADSENSE_SRC =
+  "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5982787822958728";
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  // AdSense auto-ads inject markup into <body>; loading the script only after
+  // hydration keeps the server HTML and the first client render identical.
+  useEffect(() => {
+    if (document.querySelector(`script[src="${ADSENSE_SRC}"]`)) return;
+    const s = document.createElement("script");
+    s.src = ADSENSE_SRC;
+    s.async = true;
+    s.crossOrigin = "anonymous";
+    document.head.appendChild(s);
+  }, []);
+
 
   return (
     <QueryClientProvider client={queryClient}>

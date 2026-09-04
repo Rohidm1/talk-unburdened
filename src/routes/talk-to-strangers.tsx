@@ -15,6 +15,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Header } from "@/components/site/Header";
+import { FloatingChat } from "@/components/site/FloatingChat";
 import { Footer } from "@/components/site/Sections";
 import { ParticleField } from "@/components/site/ParticleField";
 import { Reveal } from "@/components/site/Reveal";
@@ -107,6 +108,7 @@ function TalkToStrangersPage() {
     <div className="relative min-h-screen">
       <ParticleField />
       <Header />
+      <FloatingChat />
 
       <main>
         <section className="mx-auto w-full max-w-4xl px-5 pt-16 pb-12 text-center md:pt-24">

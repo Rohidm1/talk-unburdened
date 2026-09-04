@@ -35,6 +35,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
   },
   head: () => ({
     meta: [
+      { name: "robots", content: "noindex, nofollow" },
       { title: "Admin panel — Anontalk platform analytics" },
       {
         name: "description",
@@ -130,7 +131,10 @@ function AdminPage() {
         </p>
       ) : (
         <>
-          <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <p className="mt-6 text-xs text-muted-foreground">
+            Statistieken tellen vanaf 4 september 2026 (analytics reset).
+          </p>
+          <section className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
               { label: "Agents online", value: agents.data?.onlineCount ?? 0 },
               { label: "Live chats", value: live.data?.chats.length ?? 0 },

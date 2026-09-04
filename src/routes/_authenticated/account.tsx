@@ -20,6 +20,7 @@ import { BillingDescriptorNotice } from "@/components/site/BillingDescriptorNoti
 export const Route = createFileRoute("/_authenticated/account")({
   head: () => ({
     meta: [
+      { name: "robots", content: "noindex, nofollow" },
       { title: "Your Anontalk account — credits and chat history" },
       {
         name: "description",

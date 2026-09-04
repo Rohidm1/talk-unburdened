@@ -18,8 +18,10 @@ import {
   HowItWorks,
   Pricing,
   TrustStrip,
-  Voices,
 } from "@/components/site/Sections";
+import { ReviewsCarousel } from "@/components/site/Reviews";
+import { FloatingChat } from "@/components/site/FloatingChat";
+import { DailyCheckIn, SessionMilestones } from "@/components/site/Retention";
 import { Reveal } from "@/components/site/Reveal";
 import { ParticleField } from "@/components/site/ParticleField";
 import { XpLayer } from "@/components/site/XpLayer";
@@ -48,11 +50,13 @@ import { AdSenseSlot } from "@/components/site/AdSenseSlot";
 
 import type { CreditPackageKey } from "@/lib/credit-packages";
 
-const title = "Anontalk - 100% Private & Anonymous Chat Platform.";
+const title = "Anontalk – Anonymous Chat With Real People, 5 Free Messages";
 const description =
-  "Anontalk: 100% private, anonymous live chat. Sign up to receive 5 free messages and chat instantly with real people, no forms, no waiting room. No subscription.";
+  "Talk to someone anonymously right now. Anontalk is a private 1-on-1 live chat with warm chat partners: no name, no card, no waiting room. Your first 5 messages are free.";
 
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>): { chat?: 1 } =>
+    search["chat"] === 1 || search["chat"] === "1" ? { chat: 1 } : {},
   head: () => ({
     meta: [
       { title },
@@ -60,6 +64,15 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: title },
       { property: "og:description", content: description },
       { property: "og:url", content: "https://anontalk.online/" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: title },
+      { name: "twitter:description", content: description },
+      {
+        name: "keywords",
+        content:
+          "anonymous chat, talk to someone, talk to strangers, private chat, vent anonymously, chat with real people, omegle alternative",
+      },
     ],
     links: [{ rel: "canonical", href: "https://anontalk.online/" }],
     scripts: [
@@ -136,7 +149,8 @@ export const Route = createFileRoute("/")({
 function HomePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { chat: autoChat } = Route.useSearch();
+  const { user, loading: authLoading } = useAuth();
   const fetchAccount = useServerFn(getMyAccount);
   const fetchListeners = useServerFn(listPublicListeners);
   const start = useServerFn(startChat);
@@ -200,6 +214,29 @@ function HomePage() {
     setPending(listener);
   }
 
+  /** One-click start: picks whoever is free right now. */
+  function quickChat() {
+    const pool = listenersOnline.filter((l) => l.status === "online");
+    const pick = (pool.length ? pool : listenersOnline)[
+      Math.floor(Math.random() * Math.max(1, (pool.length ? pool : listenersOnline).length))
+    ];
+    if (!pick) {
+      document.getElementById("listeners")?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+    void handleChat(pick);
+  }
+
+  // `/?chat=1` (from the floating button on other pages) opens the flow directly.
+  const [autoStarted, setAutoStarted] = useState(false);
+  useEffect(() => {
+    if (!autoChat || autoStarted || authLoading || listenersOnline.length === 0) return;
+    setAutoStarted(true);
+    void navigate({ to: "/", search: {}, replace: true });
+    quickChat();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoChat, autoStarted, authLoading, listenersOnline.length]);
+
   async function startMatched(listener: Listener) {
     setSearching(true);
     const minRadar = new Promise((r) => window.setTimeout(r, 2200));
@@ -254,6 +291,7 @@ function HomePage() {
     <div className="relative min-h-screen font-body text-foreground">
       <ParticleField />
       <XpLayer />
+      <SessionMilestones />
       <Header />
       <main>
         <Hero
@@ -311,7 +349,28 @@ function HomePage() {
         </section>
 
         <TrustStrip />
-        <Voices />
+        <ReviewsCarousel />
+        <section className="mx-auto w-full max-w-6xl px-5 pb-6">
+          <div className="grid gap-5 md:grid-cols-[1fr_1.4fr] md:items-stretch">
+            <DailyCheckIn />
+            <div className="glass flex flex-col justify-center rounded-3xl p-6 md:p-8">
+              <h2 className="font-display text-2xl font-semibold">Ready when you are</h2>
+              <p className="mt-2 max-w-md text-sm text-muted-foreground">
+                One tap connects you with whoever is free right now. No profile to fill in, no
+                queue, and your first five messages cost nothing.
+              </p>
+              <div className="mt-5">
+                <button
+                  type="button"
+                  onClick={quickChat}
+                  className="glow-cta inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.02]"
+                >
+                  Chat with someone now
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
         <Pricing />
         <Faq />
         <ContactSection />
@@ -376,6 +435,8 @@ function HomePage() {
           document.getElementById("listeners")?.scrollIntoView({ behavior: "smooth" })
         }
       />
+
+      {!activeListener && !searching ? <FloatingChat onStart={quickChat} /> : null}
     </div>
   );
 }

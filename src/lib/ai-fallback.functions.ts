@@ -1,7 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { SYSTEM_PROMPT, checkReplyGuardrails, chunkReply, personaPromptFor } from "@/lib/ai-persona";
+import {
+  SYSTEM_PROMPT,
+  checkReplyGuardrails,
+  chunkReply,
+  maybeInjectTypo,
+  personaPromptFor,
+} from "@/lib/ai-persona";
 
 const sessionInput = (input: unknown) => z.object({ sessionId: z.string().uuid() }).parse(input);
 
@@ -122,8 +128,10 @@ export const requestAiReply = createServerFn({ method: "POST" })
       const text = json.choices?.[0]?.message?.content?.trim();
       if (!text) return skip("unavailable");
 
-      const chunks = chunkReply(text);
-      if (chunks.some((chunk) => !checkReplyGuardrails(chunk).ok)) return skip("unavailable");
+      const cleanChunks = chunkReply(text);
+      if (cleanChunks.some((chunk) => !checkReplyGuardrails(chunk).ok)) return skip("unavailable");
+      // Human quirk: now and then a small typo slips in, followed by a quick fix.
+      const { chunks } = data.kind === "opener" ? { chunks: cleanChunks } : maybeInjectTypo(cleanChunks);
 
       await supabaseAdmin
         .from("chat_sessions")

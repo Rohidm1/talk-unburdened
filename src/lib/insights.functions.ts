@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { clampToBaseline } from "@/lib/analytics-baseline";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 async function assertAdmin(context: { supabase: any; userId: string }) {
@@ -80,7 +81,7 @@ export const getEngagementAnalytics = createServerFn({ method: "GET" })
   )
   .handler(async ({ data, context }) => {
     const admin = await assertAdmin(context);
-    const since = new Date(Date.now() - data.days * 86_400_000).toISOString();
+    const since = clampToBaseline(new Date(Date.now() - data.days * 86_400_000).toISOString());
 
     const [{ data: events }, { data: sessions }, { data: visits }] = await Promise.all([
       admin

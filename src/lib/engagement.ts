@@ -9,7 +9,10 @@ export type EngagementEvent =
   | "quiz_answered"
   | "mystery_box_unlocked"
   | "bonus_claimed"
-  | "compliment_sent";
+  | "compliment_sent"
+  | "fab_clicked"
+  | "session_milestone"
+  | "daily_checkin";
 
 /** Fire-and-forget engagement telemetry used by the admin analytics tab. */
 export function logEngagement(

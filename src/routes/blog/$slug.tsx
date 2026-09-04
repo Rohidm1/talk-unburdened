@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, Clock } from "lucide-react";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Sections";
 import { Reveal } from "@/components/site/Reveal";
+import { FloatingChat } from "@/components/site/FloatingChat";
 import { blogPosts, getPost } from "@/data/blog";
 
 export const Route = createFileRoute("/blog/$slug")({
@@ -24,7 +25,7 @@ export const Route = createFileRoute("/blog/$slug")({
         { property: "og:description", content: description },
         { property: "og:type", content: "article" },
         { property: "og:url", content: url },
-        { name: "twitter:card", content: "summary" },
+        { name: "twitter:card", content: "summary_large_image" },
       ],
       links: [{ rel: "canonical", href: url }],
       scripts: [
@@ -65,7 +66,16 @@ function Fallback({ message }: { message: string }) {
 }
 
 function Body({ body }: { body: string }) {
-  const blocks = body.split("\n\n");
+  // A "## heading" line is its own block even when the paragraph follows on
+  // the very next line.
+  const blocks = body
+    .split("\n\n")
+    .flatMap((block) => {
+      if (!block.startsWith("## ")) return [block];
+      const nl = block.indexOf("\n");
+      return nl === -1 ? [block] : [block.slice(0, nl), block.slice(nl + 1)];
+    })
+    .filter((b) => b.trim().length > 0);
   return (
     <div className="mt-10 space-y-5">
       {blocks.map((block, i) => {
@@ -105,6 +115,7 @@ function BlogPostPage() {
   return (
     <div className="min-h-screen bg-background font-body text-foreground">
       <Header />
+      <FloatingChat />
       <main className="mx-auto w-full max-w-3xl px-5 py-16">
         <Link
           to="/blog"

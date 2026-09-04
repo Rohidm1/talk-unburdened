@@ -11,6 +11,134 @@ export type BlogPost = {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: "no-one-to-talk-to",
+    title: "\"I have no one to talk to\" — what to do tonight, not someday",
+    excerpt:
+      "It is one of the most searched sentences on the internet at 2am. Here is a short, practical answer that does not involve fixing your whole social life first.",
+    category: "Loneliness",
+    readMinutes: 5,
+    date: "2026-09-02",
+    body: `If you typed that sentence into a search bar, you already did the hardest part: you admitted it. Most people never get that far. Now let's make the next step small enough to actually take.
+
+## Separate the two problems
+"No one to talk to" is really two things. One is a long-term question about friendships and community. The other is tonight: a specific thought that needs to leave your head before you can sleep. Trying to solve the first one at midnight is how you end up doom-scrolling until three. Solve the second one.
+
+## What tonight needs
+- One person who reads properly and replies like a human.
+- No history with you, so you can say the unedited version.
+- No follow-up tomorrow, no worried texts, no "are you okay?" at work.
+
+That is a very different requirement from friendship, and it is much easier to meet. An anonymous chat with a real person does exactly that job.
+
+## Say the real sentence first
+Do not warm up. Do not start with "hey, how are you". Start with the thing: "I've been feeling invisible for months and I don't know who to tell." Anonymity removes the cost of saying it, so spend that freedom on honesty.
+
+## Then, and only then, the bigger question
+Once the pressure is off, the long-term version gets easier to think about. People who practise saying real things to strangers get noticeably better at saying them to people they know. Tonight's conversation is the rehearsal.`,
+  },
+  {
+    slug: "omegle-alternative-that-is-not-a-lottery",
+    title: "Looking for an Omegle alternative? Here's what actually matters",
+    excerpt:
+      "Random video roulette is gone and most replacements copy its worst parts. If what you wanted was a real conversation with a stranger, these are the things to look for.",
+    category: "Talk to strangers",
+    readMinutes: 6,
+    date: "2026-08-30",
+    body: `Omegle shut down because random pairing at scale is impossible to keep safe. The sites that rushed in to replace it mostly kept the lottery and lost the part people actually came for: an unexpected, honest conversation with someone who had no reason to judge you.
+
+## What people were really looking for
+Ask former users what they miss and it is rarely the webcam. It is the feeling of being able to say anything to someone who does not know you, and having them actually respond. That need did not go away.
+
+## The checklist for a decent alternative
+- Text first. Typing gives you time to say what you mean, and nobody has to see your face at 1am.
+- A real person on the other side who wants to be there, not whoever the algorithm threw at you.
+- Anonymity that holds up: no phone number, no photo, no profile that follows you around.
+- A way to leave the moment it stops feeling right, with no consequences.
+- Clear costs. Free to try, and no surprise subscriptions.
+
+## Why matched beats random
+A random stranger owes you nothing and often acts like it. A chat partner who chose to be available tonight, who you picked because their vibe matched yours, is a different experience entirely. You lose the slot-machine thrill; you gain the conversation you came for.
+
+## Try it the right way
+Pick the mood you are in, not the person you think you should be. Start with the honest sentence. Give it five messages before you decide. That is how long it takes to tell the difference between a lottery and a conversation.`,
+  },
+  {
+    slug: "stop-overthinking-at-night",
+    title: "Why your brain gets louder at midnight (and how to turn it down)",
+    excerpt:
+      "Overthinking at night is not a willpower problem. It is what happens when the day's distractions switch off. Three things that actually quiet it.",
+    category: "Stress",
+    readMinutes: 5,
+    date: "2026-08-27",
+    body: `During the day your worries compete with emails, traffic, other people. At night the competition leaves and the worries get the whole stage. That is why the same thought that felt manageable at lunch feels catastrophic at midnight.
+
+## It is a volume problem, not a truth problem
+Nothing about your situation changed between 2pm and 2am. Only the volume did. Reminding yourself of that does not fix it, but it stops you from treating the midnight version as the accurate one.
+
+## Three things that reliably work
+- Externalise it. A worry inside your head loops; a worry written down or said to someone becomes a sentence with a beginning and an end. The act of forming the sentence is what breaks the loop.
+- Give it a time slot. Tell yourself "I will think about this properly at 10am tomorrow". It sounds silly. It works, because the brain mostly wants reassurance that the problem will not be forgotten.
+- Talk to someone who is awake. Not to solve anything, just to put the thought somewhere outside you for twenty minutes. Anonymous chats exist for exactly this hour.
+
+## What does not work
+Reading about the problem. Researching solutions. Drafting the message you will send tomorrow. All of these feel productive and all of them feed the loop.
+
+## The five-message test
+Type the thing that is looping to someone who does not know you. Watch what happens to its size once it is on the screen instead of in your head. Most people are surprised.`,
+  },
+  {
+    slug: "how-to-start-a-conversation-about-something-hard",
+    title: "How to start a conversation when you don't know how to start",
+    excerpt:
+      "The blank message box is the real obstacle. Six opening lines that get the hard thing out in the first ten seconds, before you can talk yourself out of it.",
+    category: "Personal growth",
+    readMinutes: 4,
+    date: "2026-08-23",
+    body: `Most conversations that never happen fail at the first line. Not because the person was unwilling, but because there was no obvious way in. So here are the ways in.
+
+## Six openers that work
+- "I don't really know how to say this, so I'm just going to say it:"
+- "Can I think out loud for a minute? I don't need advice."
+- "Something's been bothering me for weeks and I haven't told anyone."
+- "This is going to sound small but it's not small to me."
+- "I'm not okay and I'm tired of pretending I am."
+- "I just need someone to read this. That's it."
+
+## Why they work
+Each one names the awkwardness instead of pretending it is not there. Each one tells the other person what you need, so they do not have to guess. And each one takes less than ten seconds to type, which is shorter than the time it takes for doubt to kick in.
+
+## Use anonymity as training wheels
+If saying these to someone you know feels impossible, say them to someone you do not know first. An anonymous chat is a low-stakes rehearsal: same words, none of the consequences. Once you have heard yourself say the sentence out loud, the second time is easier.
+
+## Then stop
+After the opener, resist the urge to explain, soften or apologise. Let the other person respond. The hard part is done.`,
+  },
+  {
+    slug: "peer-support-vs-professional-help",
+    title: "A peer conversation is not treatment — here's what it is good for",
+    excerpt:
+      "Talking to a warm stranger will not replace professional care, and it should not try to. But there is a lot it does better. An honest map of where each one fits.",
+    category: "Mental health",
+    readMinutes: 6,
+    date: "2026-08-19",
+    body: `We get asked this a lot, so let's be direct. The people you chat with on Anontalk are not professionals and they do not pretend to be. That is a limitation and, in some situations, an advantage. Knowing which is which matters.
+
+## When you need a professional
+If you are in danger, if you cannot function day to day, if something has been getting worse for months: that is a job for trained help, and no amount of kind conversation substitutes for it. Please reach out to a local service or emergency line. We mean that.
+
+## What a peer does well
+- Immediacy. Tonight, in two minutes, not in six weeks.
+- Ordinary language. No intake forms, no frameworks, just someone reading and responding.
+- Equality. Nobody is assessing you. You can complain about your boss without it becoming a symptom.
+- Practice. Saying things to a peer makes it easier to say them to a professional later.
+
+## The honest overlap
+A huge share of what weighs on people is not clinical at all. It is a bad week, a text that was never answered, a decision that will not sit still. Those things get lighter when they are spoken. That is what peers are for.
+
+## Use both without guilt
+Plenty of people talk to a professional on Tuesdays and to a stranger at midnight on Fridays. Those are not competing choices. They are different tools for different hours.`,
+  },
+  {
     slug: "why-talking-helps",
     title: "Why simply talking about it changes how you feel",
     excerpt:
