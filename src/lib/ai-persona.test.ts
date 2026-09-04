@@ -21,7 +21,7 @@ describe("persona prompt", () => {
 
   it("asks for short, unformatted, human replies", () => {
     expect(SYSTEM_PROMPT).toMatch(/Never use bullet points/);
-    expect(SYSTEM_PROMPT).toMatch(/under about 400 characters/);
+    expect(SYSTEM_PROMPT).toMatch(/under about 350 characters/);
   });
 });
 
@@ -109,5 +109,36 @@ describe("safety guardrails", () => {
   it("guards every chunk of a split reply", () => {
     const chunks = chunkReply(`${"I hear you and that matters. ".repeat(10)}I'm an AI though.`);
     expect(chunks.some((c) => !checkReplyGuardrails(c).ok)).toBe(true);
+  });
+});
+import { maybeInjectTypo, misspell, isCorrectionChunk, typingDelayMs as tdm } from "./ai-persona";
+import { describe as d2, expect as e2, it as i2 } from "vitest";
+
+d2("typo quirk", () => {
+  i2("misspells only inner letters", () => {
+    const out = misspell("really", () => 0.5);
+    e2(out).not.toBe("really");
+    e2(out[0]).toBe("r");
+    e2(out[out.length - 1]).toBe("y");
+  });
+  i2("adds a correction chunk when the dice hit", () => {
+    const seq = [0.01, 0.2, 0.5, 0.1];
+    let k = 0;
+    const rand = () => seq[k++ % seq.length]!;
+    const { chunks, typo } = maybeInjectTypo(["that sounds really heavy, honestly"], rand, 0.12);
+    e2(chunks).toHaveLength(2);
+    e2(typo).not.toBeNull();
+    e2(chunks[1]).toContain(typo!.right);
+    e2(isCorrectionChunk(chunks[1]!)).toBe(true);
+    e2(tdm(chunks[1]!)).toBeLessThanOrEqual(1800);
+  });
+  i2("leaves the reply alone when the dice miss", () => {
+    const { chunks, typo } = maybeInjectTypo(["hello there friend"], () => 0.99);
+    e2(chunks).toEqual(["hello there friend"]);
+    e2(typo).toBeNull();
+  });
+  i2("never touches non-Latin text", () => {
+    const { typo } = maybeInjectTypo(["Καλησπέρα, τι κάνεις σήμερα;"], () => 0.01);
+    e2(typo).toBeNull();
   });
 });

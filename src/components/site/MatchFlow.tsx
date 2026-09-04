@@ -42,17 +42,42 @@ export function MatchGuarantee({ className = "" }: { className?: string }) {
   );
 }
 
-/** Live-ish global activity counter (simulated, drifts gently). */
-export function useLiveCounter(seed = 1242) {
-  const [count, setCount] = useState(seed);
+/**
+ * Expected number of people online for a given moment: a smooth daily curve
+ * (quiet early morning, busy evenings, a small late-night bump) with a
+ * slightly busier weekend. Deterministic, so every visitor sees roughly the
+ * same figure at the same time and it never jumps between page loads.
+ */
+export function baselineOnline(date = new Date()): number {
+  const h = date.getUTCHours() + 1 + Math.floor(date.getUTCMinutes() / 10) / 6; // ~CET, 10-min steps (SSR-stable)
+  const day = date.getUTCDay();
+  const evening = Math.exp(-((h - 21) ** 2) / 14); // peak around 21:00
+  const midday = 0.45 * Math.exp(-((h - 13) ** 2) / 20); // lunch-break bump
+  const lateNight = 0.35 * Math.exp(-(((h + 24 - 25) % 24) ** 2) / 6); // 01:00
+  const weekend = day === 0 || day === 6 ? 1.12 : 1;
+  return Math.round((160 + 340 * (evening + midday + lateNight)) * weekend);
+}
+
+/**
+ * Live activity counter: sits on the daily curve and drifts organically by a
+ * few people at a time, at irregular intervals, never spiking or freezing.
+ */
+export function useLiveCounter() {
+  const [count, setCount] = useState(() => baselineOnline());
   useEffect(() => {
-    const id = window.setInterval(() => {
+    let timer = 0;
+    const tick = () => {
       setCount((c) => {
-        const drift = Math.round((Math.random() - 0.45) * 9);
-        return Math.min(2400, Math.max(880, c + drift));
+        const target = baselineOnline();
+        const pull = (target - c) * 0.08; // slow mean reversion
+        const noise = (Math.random() - 0.5) * 6; // ±3 people of wobble
+        const next = Math.round(c + pull + noise);
+        return Math.max(40, next);
       });
-    }, 2200);
-    return () => window.clearInterval(id);
+      timer = window.setTimeout(tick, 3500 + Math.random() * 5000);
+    };
+    timer = window.setTimeout(tick, 2500);
+    return () => window.clearTimeout(timer);
   }, []);
   return count;
 }

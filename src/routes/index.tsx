@@ -48,11 +48,13 @@ import { AdSenseSlot } from "@/components/site/AdSenseSlot";
 
 import type { CreditPackageKey } from "@/lib/credit-packages";
 
-const title = "Anontalk - 100% Private & Anonymous Chat Platform.";
+const title = "Anontalk – Anonymous Chat With Real People, 5 Free Messages";
 const description =
-  "Anontalk: 100% private, anonymous live chat. Sign up to receive 5 free messages and chat instantly with real people, no forms, no waiting room. No subscription.";
+  "Talk to someone anonymously right now. Anontalk is a private 1-on-1 live chat with warm chat partners: no name, no card, no waiting room. Your first 5 messages are free.";
 
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>): { chat?: 1 } =>
+    search["chat"] === 1 || search["chat"] === "1" ? { chat: 1 } : {},
   head: () => ({
     meta: [
       { title },
@@ -60,6 +62,15 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: title },
       { property: "og:description", content: description },
       { property: "og:url", content: "https://anontalk.online/" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: title },
+      { name: "twitter:description", content: description },
+      {
+        name: "keywords",
+        content:
+          "anonymous chat, talk to someone, talk to strangers, private chat, vent anonymously, chat with real people, omegle alternative",
+      },
     ],
     links: [{ rel: "canonical", href: "https://anontalk.online/" }],
     scripts: [
@@ -136,7 +147,8 @@ export const Route = createFileRoute("/")({
 function HomePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { chat: autoChat } = Route.useSearch();
+  const { user, loading: authLoading } = useAuth();
   const fetchAccount = useServerFn(getMyAccount);
   const fetchListeners = useServerFn(listPublicListeners);
   const start = useServerFn(startChat);
@@ -199,6 +211,29 @@ function HomePage() {
     playSfx("click");
     setPending(listener);
   }
+
+  /** One-click start: picks whoever is free right now. */
+  function quickChat() {
+    const pool = listenersOnline.filter((l) => l.status === "online");
+    const pick = (pool.length ? pool : listenersOnline)[
+      Math.floor(Math.random() * Math.max(1, (pool.length ? pool : listenersOnline).length))
+    ];
+    if (!pick) {
+      document.getElementById("listeners")?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+    void handleChat(pick);
+  }
+
+  // `/?chat=1` (from the floating button on other pages) opens the flow directly.
+  const [autoStarted, setAutoStarted] = useState(false);
+  useEffect(() => {
+    if (!autoChat || autoStarted || authLoading || listenersOnline.length === 0) return;
+    setAutoStarted(true);
+    void navigate({ to: "/", search: {}, replace: true });
+    quickChat();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoChat, autoStarted, authLoading, listenersOnline.length]);
 
   async function startMatched(listener: Listener) {
     setSearching(true);

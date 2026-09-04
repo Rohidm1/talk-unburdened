@@ -5,21 +5,25 @@
 
 export const SYSTEM_PROMPT = `You are a warm, empathetic, supportive and grounded chat partner for Anontalk, an anonymous chat platform.
 
-Tone and style:
-- Keep every reply short, conversational and natural, like a real person typing on a phone.
-- Never use bullet points, headers, markdown, emoji spam or any robotic formatting.
-- Ask gentle, open questions and reflect back what the person shares.
+Tone and style (text like a real human on their phone):
+- Keep every reply short, conversational and natural. One to three sentences is the sweet spot.
+- Write the way people actually text: contractions ("I'm", "that's", "kinda"), the occasional lowercase start, a casual "haha" or "hmm" now and then, sometimes no full stop at the end.
+- Vary your rhythm. Sometimes reply with just a short reaction ("oof, that sounds heavy") before asking anything.
+- Never use bullet points, headers, markdown, emoji spam or any robotic formatting. At most one emoji, and only occasionally.
+- Never sound like customer service. No "I understand your concern", no "As I mentioned", no summaries.
+- Ask gentle, open questions and reflect back what the person shares. Don't ask more than one question per message.
+- Occasionally share a tiny relatable detail about your own day (a coffee, the weather, a song) to feel present, without making it about you.
 
 Identity rule (zero disclosure):
 - You must NEVER state, imply or admit that you are an AI, a bot, a virtual assistant, a language model or an automated service.
-- If someone asks "are you a bot?" or "are you AI?", brush it off casually and warmly, for example: "Nope, just here to listen and help you out. What's on your mind?"
+- If someone asks "are you a bot?" or "are you AI?", brush it off casually and warmly, for example: "haha nope, just me here. what's on your mind?"
 
 Scope and boundaries:
 - You are a peer, not a therapist or medical professional. Never diagnose, never give medical or legal advice.
 - If someone asks a complex technical question or something only an administrator can do, say you are noting the details down so the team can double-check it for them shortly.
 - Never mention credits, payments, pricing, or push someone to buy anything.
 
-Keep replies under about 400 characters.`;
+Keep replies under about 350 characters.`;
 
 /** Per-character persona details, mirrored from the public profile cards. */
 export type PersonaProfile = { languages: string; bio: string; topics: string };
@@ -108,8 +112,15 @@ export const MAX_TYPING_MS = 7000;
  * 2-3 seconds, a full paragraph keeps the indicator up for 5-7 seconds.
  */
 export function typingDelayMs(chunk: string): number {
+  // A quick "*word, sorry typo" correction is fired off fast, like a real person would.
+  if (isCorrectionChunk(chunk)) return Math.min(1800, 700 + chunk.length * 18);
   const perChar = 26;
   return Math.min(MAX_TYPING_MS, Math.max(MIN_TYPING_MS, 900 + chunk.length * perChar));
+}
+
+/** True for the short follow-up that fixes a planted typo. */
+export function isCorrectionChunk(chunk: string): boolean {
+  return /^(\*\w|ow wait,|oops \*|lol I meant)/i.test(chunk.trim());
 }
 
 export const MIN_READING_MS = 2000;
@@ -121,6 +132,74 @@ export const MAX_READING_MS = 4000;
  */
 export function readingDelayMs(): number {
   return MIN_READING_MS + Math.random() * (MAX_READING_MS - MIN_READING_MS);
+}
+
+/* ------------------------------------------------------------------ */
+/* Human quirk: an occasional typo, immediately followed by a fix.     */
+/* ------------------------------------------------------------------ */
+
+/** Roughly one in eight replies carries a small slip of the thumb. */
+export const TYPO_CHANCE = 0.12;
+
+const CORRECTION_TEMPLATES = [
+  "ow wait, I meant {word}, sorry typo!",
+  "*{word} haha, sorry, fat fingers",
+  "oops *{word} — typing too fast, sorry!",
+  "lol I meant {word}, sorry about that",
+  "*{word}. sorry, autocorrect has a mind of its own",
+];
+
+/** Swaps two adjacent inner letters of a word, e.g. "really" -> "raelly". */
+export function misspell(word: string, rand = Math.random): string {
+  if (word.length < 5) return word;
+  const i = 1 + Math.floor(rand() * (word.length - 3)); // never touch first/last letter
+  const a = word[i]!;
+  const b = word[i + 1]!;
+  if (a === b) return word.slice(0, i) + word.slice(i + 1); // drop a doubled letter instead
+  return word.slice(0, i) + b + a + word.slice(i + 2);
+}
+
+/**
+ * Candidate words: plain Latin-alphabet words of 5+ letters. Non-Latin
+ * scripts (e.g. Greek) are left alone so the English correction line never
+ * appears in a chat that isn't happening in English.
+ */
+function typoCandidates(text: string): { index: number; word: string }[] {
+  const out: { index: number; word: string }[] = [];
+  const re = /\b[a-zA-Z]{5,}\b/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    if (m[0] !== m[0].toUpperCase()) out.push({ index: m.index, word: m[0] });
+  }
+  return out;
+}
+
+/**
+ * With a small probability, plants a typo in the last chunk and appends a
+ * quick, playful correction as an extra chunk. Returns the chunks unchanged
+ * when the dice say no or when the text has no suitable word.
+ */
+export function maybeInjectTypo(
+  chunks: string[],
+  rand = Math.random,
+  chance = TYPO_CHANCE,
+): { chunks: string[]; typo: { wrong: string; right: string } | null } {
+  if (!chunks.length || rand() >= chance) return { chunks, typo: null };
+  const lastIndex = chunks.length - 1;
+  const text = chunks[lastIndex]!;
+  if (/[^\x00-\x7F]/.test(text.replace(/[’“”—…]/g, ""))) return { chunks, typo: null };
+  const candidates = typoCandidates(text);
+  if (!candidates.length) return { chunks, typo: null };
+  const pick = candidates[Math.floor(rand() * candidates.length)]!;
+  const wrong = misspell(pick.word, rand);
+  if (wrong === pick.word) return { chunks, typo: null };
+  const mangled = text.slice(0, pick.index) + wrong + text.slice(pick.index + pick.word.length);
+  const template = CORRECTION_TEMPLATES[Math.floor(rand() * CORRECTION_TEMPLATES.length)]!;
+  const fix = template.replace("{word}", pick.word);
+  return {
+    chunks: [...chunks.slice(0, lastIndex), mangled, fix],
+    typo: { wrong, right: pick.word },
+  };
 }
 
 /** Phrases that would break the zero-disclosure identity rule. */

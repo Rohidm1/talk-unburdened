@@ -55,11 +55,22 @@ export const getAdminStats = createServerFn({ method: "GET" })
     if (!isAdmin) throw new Error("Forbidden");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { ANALYTICS_RESET_AT } = await import("@/lib/analytics-baseline");
+    // Every headline metric counts from the analytics reset date onwards.
     const [users, chats, listeners, transactions] = await Promise.all([
-      supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }),
-      supabaseAdmin.from("chat_sessions").select("id, started_at, ended_at"),
+      supabaseAdmin
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", ANALYTICS_RESET_AT),
+      supabaseAdmin
+        .from("chat_sessions")
+        .select("id, started_at, ended_at")
+        .gte("started_at", ANALYTICS_RESET_AT),
       supabaseAdmin.from("listeners").select("id, display_name, status"),
-      supabaseAdmin.from("credit_transactions").select("amount_cents, credits_delta, kind"),
+      supabaseAdmin
+        .from("credit_transactions")
+        .select("amount_cents, credits_delta, kind")
+        .gte("created_at", ANALYTICS_RESET_AT),
     ]);
 
     const rows = transactions.data ?? [];
@@ -71,6 +82,7 @@ export const getAdminStats = createServerFn({ method: "GET" })
       .reduce((sum, r) => sum + Math.abs(r.credits_delta ?? 0), 0);
 
     return {
+      since: ANALYTICS_RESET_AT,
       totalUsers: users.count ?? 0,
       totalChats: (chats.data ?? []).length,
       messagesSent,

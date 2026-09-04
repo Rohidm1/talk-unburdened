@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { MAX_CHATS_PER_AGENT } from "@/lib/credit-packages";
+import { clampToBaseline } from "@/lib/analytics-baseline";
 
 const ONLINE_WINDOW_MS = 60_000;
 
@@ -111,7 +112,7 @@ export const getTrafficStats = createServerFn({ method: "GET" })
   )
   .handler(async ({ data, context }) => {
     const admin = await assertAdmin(context);
-    const since = new Date(Date.now() - data.days * 86_400_000).toISOString();
+    const since = clampToBaseline(new Date(Date.now() - data.days * 86_400_000).toISOString());
 
     const [{ data: visits }, { data: profiles }] = await Promise.all([
       admin
