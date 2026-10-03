@@ -1,0 +1,36 @@
+{
+  "packageId": "online.anontalk.app",
+  "host": "anontalk.online",
+  "name": "Anontalk",
+  "launcherName": "Anontalk",
+  "display": "standalone",
+  "themeColor": "#0b1220",
+  "navigationColor": "#0b1220",
+  "backgroundColor": "#0b1220",
+  "startUrl": "/?source=pwa",
+  "iconUrl": "https://anontalk.online/icons/icon-512.png",
+  "maskableIconUrl": "https://anontalk.online/icons/maskable-512.png",
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "minSdkVersion": 24,
+  "targetSdkVersion": 35,
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": { "enabled": false },
+  "enableNotifications": false,
+  "locationDelegation": { "enabled": false },
+  "playBilling": { "enabled": false },
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "anontalk"
+  },
+  "shortcuts": [
+    {
+      "name": "Start een chat",
+      "shortName": "Chat",
+      "url": "/?chat=1&source=pwa",
+      "chosenIconUrl": "https://anontalk.online/icons/icon-192.png"
+    }
+  ],
+  "webManifestUrl": "https://anontalk.online/manifest.webmanifest"
+}
