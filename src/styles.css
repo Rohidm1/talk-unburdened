@@ -374,3 +374,17 @@
     scroll-behavior: auto;
   }
 }
+
+/* Community pages */
+.ocean {
+  background: linear-gradient(180deg, color-mix(in oklab, var(--neon-cyan) 18%, transparent), color-mix(in oklab, var(--primary) 30%, var(--background)));
+}
+@keyframes bottle-float {
+  0%, 100% { transform: translateY(0) rotate(-8deg); }
+  50% { transform: translateY(-14px) rotate(8deg); }
+}
+.bottle-float { animation: bottle-float 4s ease-in-out infinite; }
+@keyframes shred-fall {
+  to { transform: translateY(160px) rotate(6deg); opacity: 0; }
+}
+.shred-strip { animation: shred-fall 1.4s ease-in forwards; }

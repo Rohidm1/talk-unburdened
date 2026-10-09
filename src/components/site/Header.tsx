@@ -10,6 +10,9 @@ const links = [
   { href: "/#how", key: "nav.how" },
   { href: "/#pricing", key: "nav.pricing" },
   { href: "/blog", key: "nav.blog" },
+  { href: "/bottles", key: "nav.bottles" },
+  { href: "/dilemma", key: "nav.dilemma" },
+  { href: "/wellness", key: "nav.wellness" },
   { href: "/#faq", key: "nav.faq" },
   { href: "/#contact", key: "nav.contact" },
 ];
