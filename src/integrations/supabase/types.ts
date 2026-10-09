@@ -1214,6 +1214,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      mask_pii: { Args: { _t: string }; Returns: string }
       match_ai_playbook: {
         Args: { match_count?: number; query_embedding: string }
         Returns: {
