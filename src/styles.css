@@ -118,6 +118,30 @@
   --shadow-card: 0 24px 60px -30px oklch(0 0 0 / 0.95);
 }
 
+/* Daily rotating palettes (midnight-neon is the default :root). */
+[data-daily="deep-ocean"] {
+  --background: oklch(0.07 0.025 240);
+  --primary: oklch(0.72 0.15 220);
+  --accent: oklch(0.78 0.13 185);
+  --ring: oklch(0.72 0.15 220);
+  --neon-purple: oklch(0.72 0.15 220);
+  --neon-rose: oklch(0.78 0.13 185);
+  --neon-cyan: oklch(0.88 0.12 195);
+  --border: oklch(0.72 0.15 220 / 0.28);
+  --card: oklch(0.17 0.045 235 / 0.55);
+}
+[data-daily="sunset-amethyst"] {
+  --background: oklch(0.07 0.02 330);
+  --primary: oklch(0.72 0.19 20);
+  --accent: oklch(0.68 0.2 320);
+  --ring: oklch(0.72 0.19 20);
+  --neon-purple: oklch(0.68 0.2 320);
+  --neon-rose: oklch(0.72 0.19 20);
+  --neon-cyan: oklch(0.85 0.13 70);
+  --border: oklch(0.72 0.19 20 / 0.28);
+  --card: oklch(0.17 0.045 330 / 0.55);
+}
+
 /* Theme unlocks: swap the neon accent trio. */
 [data-theme="gold"] {
   --primary: oklch(0.83 0.16 88);
@@ -350,3 +374,17 @@
     scroll-behavior: auto;
   }
 }
+
+/* Community pages */
+.ocean {
+  background: linear-gradient(180deg, color-mix(in oklab, var(--neon-cyan) 18%, transparent), color-mix(in oklab, var(--primary) 30%, var(--background)));
+}
+@keyframes bottle-float {
+  0%, 100% { transform: translateY(0) rotate(-8deg); }
+  50% { transform: translateY(-14px) rotate(8deg); }
+}
+.bottle-float { animation: bottle-float 4s ease-in-out infinite; }
+@keyframes shred-fall {
+  to { transform: translateY(160px) rotate(6deg); opacity: 0; }
+}
+.shred-strip { animation: shred-fall 1.4s ease-in forwards; }

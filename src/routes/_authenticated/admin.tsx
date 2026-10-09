@@ -1,3 +1,4 @@
+import { SupportInbox } from "@/components/site/SupportInbox";
 import { useState } from "react";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -157,6 +158,7 @@ function AdminPage() {
               <TabsTrigger value="traffic">Bezoekers</TabsTrigger>
               <TabsTrigger value="ai">AI monitor</TabsTrigger>
               <TabsTrigger value="engagement">Engagement</TabsTrigger>
+              <TabsTrigger value="inbox">Inbox</TabsTrigger>
             </TabsList>
 
             <TabsContent value="live" className="mt-6">
@@ -324,6 +326,9 @@ function AdminPage() {
 
             <TabsContent value="engagement" className="mt-6">
               <EngagementPanel />
+            </TabsContent>
+            <TabsContent value="inbox" className="mt-6">
+              <SupportInbox />
             </TabsContent>
           </Tabs>
         </>
