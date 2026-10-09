@@ -12,11 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BottlesRouteImport } from './routes/bottles'
 import { Route as CrmRouteRouteImport } from './routes/crm/route'
 import { Route as CrmLoginRouteImport } from './routes/crm-login'
+import { Route as DilemmaRouteImport } from './routes/dilemma'
 import { Route as HubRouteImport } from './routes/hub'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TalkToStrangersRouteImport } from './routes/talk-to-strangers'
+import { Route as WellnessRouteImport } from './routes/wellness'
 import { Route as DotwellKnownAssetlinksDotjsonRouteImport } from './routes/[.]well-known.assetlinks[.]json'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -42,6 +45,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BottlesRoute = BottlesRouteImport.update({
+  id: '/bottles',
+  path: '/bottles',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CrmRouteRoute = CrmRouteRouteImport.update({
   id: '/crm',
   path: '/crm',
@@ -50,6 +58,11 @@ const CrmRouteRoute = CrmRouteRouteImport.update({
 const CrmLoginRoute = CrmLoginRouteImport.update({
   id: '/crm-login',
   path: '/crm-login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DilemmaRoute = DilemmaRouteImport.update({
+  id: '/dilemma',
+  path: '/dilemma',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HubRoute = HubRouteImport.update({
@@ -65,6 +78,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const TalkToStrangersRoute = TalkToStrangersRouteImport.update({
   id: '/talk-to-strangers',
   path: '/talk-to-strangers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WellnessRoute = WellnessRouteImport.update({
+  id: '/wellness',
+  path: '/wellness',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DotwellKnownAssetlinksDotjsonRoute =
@@ -124,10 +142,13 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/crm': typeof CrmRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/bottles': typeof BottlesRoute
   '/crm-login': typeof CrmLoginRoute
+  '/dilemma': typeof DilemmaRoute
   '/hub': typeof HubRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/talk-to-strangers': typeof TalkToStrangersRoute
+  '/wellness': typeof WellnessRoute
   '/.well-known/assetlinks.json': typeof DotwellKnownAssetlinksDotjsonRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
@@ -142,10 +163,13 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/bottles': typeof BottlesRoute
   '/crm-login': typeof CrmLoginRoute
+  '/dilemma': typeof DilemmaRoute
   '/hub': typeof HubRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/talk-to-strangers': typeof TalkToStrangersRoute
+  '/wellness': typeof WellnessRoute
   '/.well-known/assetlinks.json': typeof DotwellKnownAssetlinksDotjsonRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
@@ -163,10 +187,13 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/crm': typeof CrmRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/bottles': typeof BottlesRoute
   '/crm-login': typeof CrmLoginRoute
+  '/dilemma': typeof DilemmaRoute
   '/hub': typeof HubRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/talk-to-strangers': typeof TalkToStrangersRoute
+  '/wellness': typeof WellnessRoute
   '/.well-known/assetlinks.json': typeof DotwellKnownAssetlinksDotjsonRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
@@ -184,10 +211,13 @@ export interface FileRouteTypes {
     | '/'
     | '/crm'
     | '/auth'
+    | '/bottles'
     | '/crm-login'
+    | '/dilemma'
     | '/hub'
     | '/sitemap.xml'
     | '/talk-to-strangers'
+    | '/wellness'
     | '/.well-known/assetlinks.json'
     | '/account'
     | '/admin'
@@ -202,10 +232,13 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/bottles'
     | '/crm-login'
+    | '/dilemma'
     | '/hub'
     | '/sitemap.xml'
     | '/talk-to-strangers'
+    | '/wellness'
     | '/.well-known/assetlinks.json'
     | '/account'
     | '/admin'
@@ -222,10 +255,13 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/crm'
     | '/auth'
+    | '/bottles'
     | '/crm-login'
+    | '/dilemma'
     | '/hub'
     | '/sitemap.xml'
     | '/talk-to-strangers'
+    | '/wellness'
     | '/.well-known/assetlinks.json'
     | '/_authenticated/account'
     | '/_authenticated/admin'
@@ -243,10 +279,13 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   CrmRouteRoute: typeof CrmRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  BottlesRoute: typeof BottlesRoute
   CrmLoginRoute: typeof CrmLoginRoute
+  DilemmaRoute: typeof DilemmaRoute
   HubRoute: typeof HubRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TalkToStrangersRoute: typeof TalkToStrangersRoute
+  WellnessRoute: typeof WellnessRoute
   DotwellKnownAssetlinksDotjsonRoute: typeof DotwellKnownAssetlinksDotjsonRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
@@ -278,6 +317,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bottles': {
+      id: '/bottles'
+      path: '/bottles'
+      fullPath: '/bottles'
+      preLoaderRoute: typeof BottlesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/crm': {
       id: '/crm'
       path: '/crm'
@@ -290,6 +336,13 @@ declare module '@tanstack/react-router' {
       path: '/crm-login'
       fullPath: '/crm-login'
       preLoaderRoute: typeof CrmLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dilemma': {
+      id: '/dilemma'
+      path: '/dilemma'
+      fullPath: '/dilemma'
+      preLoaderRoute: typeof DilemmaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hub': {
@@ -311,6 +364,13 @@ declare module '@tanstack/react-router' {
       path: '/talk-to-strangers'
       fullPath: '/talk-to-strangers'
       preLoaderRoute: typeof TalkToStrangersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wellness': {
+      id: '/wellness'
+      path: '/wellness'
+      fullPath: '/wellness'
+      preLoaderRoute: typeof WellnessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.well-known/assetlinks.json': {
@@ -418,10 +478,13 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   CrmRouteRoute: CrmRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  BottlesRoute: BottlesRoute,
   CrmLoginRoute: CrmLoginRoute,
+  DilemmaRoute: DilemmaRoute,
   HubRoute: HubRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TalkToStrangersRoute: TalkToStrangersRoute,
+  WellnessRoute: WellnessRoute,
   DotwellKnownAssetlinksDotjsonRoute: DotwellKnownAssetlinksDotjsonRoute,
   BlogSlugRoute: BlogSlugRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
