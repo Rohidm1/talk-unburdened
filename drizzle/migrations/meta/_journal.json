@@ -8,6 +8,13 @@
       "when": 1791573552415,
       "tag": "0000_community_features",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791573966453,
+      "tag": "0001_speed_chat_and_community",
+      "breakpoints": true
     }
   ]
 }
