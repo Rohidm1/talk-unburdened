@@ -12,7 +12,8 @@
 - [x] Message in a Bottle (/bottles): drop 2/day, fish, echoes, chat link
 - [x] Daily Dilemma (/dilemma): vote, results after voting, argument wall with up/down votes (14 days seeded)
 - [x] AI support assistant + admin Inbox tab (reply via email link)
-- [ ] Speed-Chat roulette (user-to-user, 120s timer + extend) — next phase; needs moderation rules
-- [ ] Community topics hub with nested comments — next phase
+- [x] Speed-Chat (/speed-chat): user-to-user matching, 120s timer, both-must-extend, 3/day, report + word filter + contact-detail hiding
+- [x] Community (/community): 4 topics, nested replies, live updates, word filter
 - [ ] Daily limits paywall / micro-purchases (Stripe) — next phase
 - [ ] Add new dilemmas after 2026-10-22
+- [x] Menu fits on all screens; preview label glitch fixed; database trigger functions locked down
