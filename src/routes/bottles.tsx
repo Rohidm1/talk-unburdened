@@ -107,7 +107,7 @@ function BottlesPage() {
     const body = echo.trim();
     if (body.length < 2) return;
     const { error } = await supabase.from("bottle_echoes").insert({ bottle_id: fished.id, user_id: user.id, body });
-    if (error) return toast.error("Could not send your echo.");
+    if (error) { toast.error("Could not send your echo."); return; }
     setEcho("");
     setFished(null);
     toast.success("Echo sent. That might make someone's day.");

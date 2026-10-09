@@ -78,7 +78,7 @@ function DilemmaPage() {
   async function vote(choice: "a" | "b") {
     if (!user || !d) return;
     const { error } = await supabase.from("dilemma_votes").insert({ dilemma_id: d.id, user_id: user.id, choice });
-    if (error) return toast.error("Could not save your vote.");
+    if (error) { toast.error("Could not save your vote."); return; }
     await qc.invalidateQueries({ queryKey: ["dilemma-vote"] });
   }
 
@@ -87,7 +87,7 @@ function DilemmaPage() {
     const body = arg.trim();
     if (body.length < 3) return;
     const { error } = await supabase.from("dilemma_arguments").insert({ dilemma_id: d.id, user_id: user.id, side: voted, body });
-    if (error) return toast.error("Could not post your argument.");
+    if (error) { toast.error("Could not post your argument."); return; }
     setArg("");
     await qc.invalidateQueries({ queryKey: ["dilemma-args"] });
   }
