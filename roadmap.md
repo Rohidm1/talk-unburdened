@@ -7,3 +7,12 @@
 - [x] 6. Humanized AI persona + typo/correction quirk
 - [x] Fix hydration mismatch (AdSense script now loads after hydration)
 - [x] Fix blog heading rendering bug
+- [x] Daily rotating color theme (3 palettes)
+- [x] Wellness page: box breathing, vent & shred, mind unwind
+- [x] Message in a Bottle (/bottles): drop 2/day, fish, echoes, chat link
+- [x] Daily Dilemma (/dilemma): vote, results after voting, argument wall with up/down votes (14 days seeded)
+- [x] AI support assistant + admin Inbox tab (reply via email link)
+- [ ] Speed-Chat roulette (user-to-user, 120s timer + extend) — next phase; needs moderation rules
+- [ ] Community topics hub with nested comments — next phase
+- [ ] Daily limits paywall / micro-purchases (Stripe) — next phase
+- [ ] Add new dilemmas after 2026-10-22
