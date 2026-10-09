@@ -47,6 +47,23 @@ const ERRORS: Record<string, string> = {
 };
 const errText = (m: string) => ERRORS[Object.keys(ERRORS).find((k) => m.includes(k)) ?? ""] ?? "Something went wrong.";
 
+/** Contact details are replaced by "[hidden]" on the server; show them as a blurred block. */
+function MaskedText({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(/(\[hidden\])/g).map((part, i) =>
+        part === "[hidden]" ? (
+          <span key={i} title="Personal info hidden for your safety" className="mx-0.5 inline-block select-none rounded bg-current/20 px-1 blur-[3px]" aria-label="hidden personal information">
+            ●●●●●●
+          </span>
+        ) : (
+          <span key={i}>{part}</span>
+        ),
+      )}
+    </>
+  );
+}
+
 function SpeedChatPage() {
   const { user, loading } = useAuth();
   const [state, setState] = useState<"idle" | "searching" | "chat" | "ended">("idle");
@@ -152,7 +169,7 @@ function SpeedChatPage() {
       <main className="mx-auto max-w-2xl px-5 py-12">
         <h1 className="font-display text-4xl font-semibold tracking-tight">Speed-Chat</h1>
         <p className="mt-2 text-muted-foreground">
-          2 minutes with a random stranger. Both tap “Extend” for 2 more. Be kind — contact details are hidden automatically.
+          2 minutes with a random stranger. Both tap “Extend” for 2 more. Be kind — phone numbers, emails, addresses and links are blurred automatically.
         </p>
 
         {loading ? null : !user ? (
@@ -204,8 +221,8 @@ function SpeedChatPage() {
                 {String(Math.floor(left / 60)).padStart(2, "0")}:{String(left % 60).padStart(2, "0")}
               </span>
               <div className="flex items-center gap-2">
-                <button type="button" onClick={report} aria-label="Report" className="rounded-full p-2 text-muted-foreground hover:text-destructive">
-                  <Flag className="size-4" />
+                <button type="button" onClick={report} className="inline-flex items-center gap-1.5 rounded-full border border-destructive/50 px-3 py-1 text-sm text-destructive hover:bg-destructive/10">
+                  <Flag className="size-4" /> Report
                 </button>
                 <button type="button" onClick={() => match && void supabase.rpc("speed_end", { _match_id: match.id })} className="rounded-full border border-border px-3 py-1 text-sm">
                   Leave
@@ -224,7 +241,7 @@ function SpeedChatPage() {
               {msgs.length === 0 ? <p className="text-center text-muted-foreground">You're connected. Say hi 👋</p> : null}
               {msgs.map((m) => (
                 <p key={m.id} className={m.user_id === user.id ? "ml-auto w-fit max-w-[80%] rounded-2xl bg-primary px-3 py-2 text-primary-foreground" : "w-fit max-w-[80%] rounded-2xl bg-muted px-3 py-2"}>
-                  {m.body}
+                  <MaskedText text={m.body} />
                 </p>
               ))}
             </div>
