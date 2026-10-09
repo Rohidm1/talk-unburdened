@@ -8,6 +8,8 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { SupportWidget } from "@/components/site/SupportWidget";
+import { dailyTheme } from "@/lib/daily-theme";
 
 import appCss from "../styles.css?url";
 import i18n from "@/lib/i18n";
@@ -223,6 +225,10 @@ function RootComponent() {
     document.head.appendChild(s);
   }, []);
 
+  useEffect(() => {
+    document.documentElement.dataset["daily"] = dailyTheme();
+  }, []);
+
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -231,6 +237,7 @@ function RootComponent() {
         <Outlet />
         <Toaster />
         <VisitTracker />
+        <SupportWidget />
       </I18nextProvider>
     </QueryClientProvider>
   );
