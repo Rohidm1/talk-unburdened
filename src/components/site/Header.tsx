@@ -10,6 +10,8 @@ const links = [
   { href: "/#how", key: "nav.how" },
   { href: "/#pricing", key: "nav.pricing" },
   { href: "/blog", key: "nav.blog" },
+  { href: "/speed-chat", key: "nav.speed" },
+  { href: "/community", key: "nav.community" },
   { href: "/bottles", key: "nav.bottles" },
   { href: "/dilemma", key: "nav.dilemma" },
   { href: "/wellness", key: "nav.wellness" },
@@ -32,7 +34,7 @@ export function Header() {
           <span className="font-display text-lg font-semibold tracking-tight">Anontalk</span>
         </a>
 
-        <nav className="hidden items-center gap-7 md:flex">
+        <nav className="hidden items-center gap-6 xl:flex">
           {links.map((l) => (
             <a
               key={l.href}
@@ -59,14 +61,14 @@ export function Header() {
               </Button>
             </>
           )}
-          <button className="md:hidden" onClick={() => setOpen((v) => !v)} aria-label="Menu">
+          <button className="xl:hidden" onClick={() => setOpen((v) => !v)} aria-label="Menu">
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
         </div>
       </div>
 
       {open ? (
-        <div className="border-t border-border/60 px-5 py-4 md:hidden">
+        <div className="border-t border-border/60 px-5 py-4 xl:hidden">
           <nav className="flex flex-col gap-3">
             {links.map((l) => (
               <a

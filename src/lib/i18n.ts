@@ -7,6 +7,8 @@ const en = {
     how: "How it works",
     pricing: "Pricing",
     blog: "Blog",
+    speed: "Speed-Chat",
+    community: "Community",
     bottles: "Bottles",
     dilemma: "Dilemma",
     wellness: "Wellness",

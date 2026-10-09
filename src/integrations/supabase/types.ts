@@ -604,6 +604,47 @@ export type Database = {
           },
         ]
       }
+      community_posts: {
+        Row: {
+          alias: string
+          body: string
+          created_at: string
+          id: string
+          is_hidden: boolean
+          parent_id: string | null
+          topic: string
+          user_id: string
+        }
+        Insert: {
+          alias?: string
+          body: string
+          created_at?: string
+          id?: string
+          is_hidden?: boolean
+          parent_id?: string | null
+          topic: string
+          user_id: string
+        }
+        Update: {
+          alias?: string
+          body?: string
+          created_at?: string
+          id?: string
+          is_hidden?: boolean
+          parent_id?: string | null
+          topic?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_posts_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_messages: {
         Row: {
           created_at: string
@@ -952,6 +993,121 @@ export type Database = {
         }
         Relationships: []
       }
+      speed_matches: {
+        Row: {
+          a_extend: boolean
+          b_extend: boolean
+          created_at: string
+          ends_at: string
+          id: string
+          status: string
+          user_a: string
+          user_b: string
+        }
+        Insert: {
+          a_extend?: boolean
+          b_extend?: boolean
+          created_at?: string
+          ends_at?: string
+          id?: string
+          status?: string
+          user_a: string
+          user_b: string
+        }
+        Update: {
+          a_extend?: boolean
+          b_extend?: boolean
+          created_at?: string
+          ends_at?: string
+          id?: string
+          status?: string
+          user_a?: string
+          user_b?: string
+        }
+        Relationships: []
+      }
+      speed_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          match_id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          match_id: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          match_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "speed_messages_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "speed_matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      speed_queue: {
+        Row: {
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      speed_reports: {
+        Row: {
+          created_at: string
+          id: string
+          match_id: string
+          reason: string | null
+          reported_id: string
+          reporter_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_id: string
+          reason?: string | null
+          reported_id: string
+          reporter_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_id?: string
+          reason?: string | null
+          reported_id?: string
+          reporter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "speed_reports_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "speed_matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_tickets: {
         Row: {
           category: string
@@ -1128,6 +1284,18 @@ export type Database = {
       settle_stale_chats: {
         Args: { _rate_cents: number; _user_id: string }
         Returns: undefined
+      }
+      speed_end: { Args: { _match_id: string }; Returns: undefined }
+      speed_extend: { Args: { _match_id: string }; Returns: undefined }
+      speed_join: { Args: never; Returns: string }
+      speed_leave_queue: { Args: never; Returns: undefined }
+      speed_report: {
+        Args: { _match_id: string; _reason: string }
+        Returns: undefined
+      }
+      speed_send: {
+        Args: { _body: string; _match_id: string }
+        Returns: string
       }
       spend_chat_credit: {
         Args: { _session_id: string; _user_id: string }

@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.bottles_daily_limit(), public.bump_echo_count(), public.community_post_guard() FROM public, anon, authenticated;
