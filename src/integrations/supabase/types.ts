@@ -186,6 +186,91 @@ export type Database = {
         }
         Relationships: []
       }
+      argument_votes: {
+        Row: {
+          argument_id: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          argument_id: string
+          user_id: string
+          value: number
+        }
+        Update: {
+          argument_id?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "argument_votes_argument_id_fkey"
+            columns: ["argument_id"]
+            isOneToOne: false
+            referencedRelation: "dilemma_arguments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bottle_echoes: {
+        Row: {
+          body: string
+          bottle_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          bottle_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          bottle_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bottle_echoes_bottle_id_fkey"
+            columns: ["bottle_id"]
+            isOneToOne: false
+            referencedRelation: "bottles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bottles: {
+        Row: {
+          body: string
+          created_at: string
+          echo_count: number
+          id: string
+          is_hidden: boolean
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          echo_count?: number
+          id?: string
+          is_hidden?: boolean
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          echo_count?: number
+          id?: string
+          is_hidden?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       call_monitor_sessions: {
         Row: {
           admin_user_id: string
@@ -582,6 +667,103 @@ export type Database = {
         }
         Relationships: []
       }
+      dilemma_arguments: {
+        Row: {
+          body: string
+          created_at: string
+          dilemma_id: string
+          id: string
+          score: number
+          side: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          dilemma_id: string
+          id?: string
+          score?: number
+          side: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          dilemma_id?: string
+          id?: string
+          score?: number
+          side?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dilemma_arguments_dilemma_id_fkey"
+            columns: ["dilemma_id"]
+            isOneToOne: false
+            referencedRelation: "dilemmas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dilemma_votes: {
+        Row: {
+          choice: string
+          created_at: string
+          dilemma_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          choice: string
+          created_at?: string
+          dilemma_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          choice?: string
+          created_at?: string
+          dilemma_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dilemma_votes_dilemma_id_fkey"
+            columns: ["dilemma_id"]
+            isOneToOne: false
+            referencedRelation: "dilemmas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dilemmas: {
+        Row: {
+          created_at: string
+          day: string
+          id: string
+          option_a: string
+          option_b: string
+          question: string
+        }
+        Insert: {
+          created_at?: string
+          day: string
+          id?: string
+          option_a: string
+          option_b: string
+          question: string
+        }
+        Update: {
+          created_at?: string
+          day?: string
+          id?: string
+          option_a?: string
+          option_b?: string
+          question?: string
+        }
+        Relationships: []
+      }
       engagement_events: {
         Row: {
           created_at: string
@@ -770,6 +952,39 @@ export type Database = {
         }
         Relationships: []
       }
+      support_tickets: {
+        Row: {
+          category: string
+          created_at: string
+          email: string | null
+          id: string
+          status: string
+          summary: string
+          transcript: string
+          user_id: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          status?: string
+          summary: string
+          transcript: string
+          user_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          status?: string
+          summary?: string
+          transcript?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -801,7 +1016,23 @@ export type Database = {
         Returns: string
       }
       claim_next_chat: { Args: { _agent_user_id: string }; Returns: string }
+      dilemma_results: {
+        Args: { _dilemma_id: string }
+        Returns: {
+          votes_a: number
+          votes_b: number
+        }[]
+      }
       expire_stale_chats: { Args: never; Returns: undefined }
+      fish_bottle: {
+        Args: never
+        Returns: {
+          body: string
+          created_at: string
+          echo_count: number
+          id: string
+        }[]
+      }
       grant_chat_credits: {
         Args: {
           _cents: number
@@ -909,6 +1140,10 @@ export type Database = {
       sync_listener_status: {
         Args: { _listener_id: string }
         Returns: undefined
+      }
+      vote_argument: {
+        Args: { _argument_id: string; _value: number }
+        Returns: number
       }
     }
     Enums: {
