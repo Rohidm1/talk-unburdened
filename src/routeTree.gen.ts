@@ -13,11 +13,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BottlesRouteImport } from './routes/bottles'
+import { Route as CommunityRouteImport } from './routes/community'
 import { Route as CrmRouteRouteImport } from './routes/crm/route'
 import { Route as CrmLoginRouteImport } from './routes/crm-login'
 import { Route as DilemmaRouteImport } from './routes/dilemma'
 import { Route as HubRouteImport } from './routes/hub'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SpeedChatRouteImport } from './routes/speed-chat'
 import { Route as TalkToStrangersRouteImport } from './routes/talk-to-strangers'
 import { Route as WellnessRouteImport } from './routes/wellness'
 import { Route as DotwellKnownAssetlinksDotjsonRouteImport } from './routes/[.]well-known.assetlinks[.]json'
@@ -50,6 +52,11 @@ const BottlesRoute = BottlesRouteImport.update({
   path: '/bottles',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CommunityRoute = CommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CrmRouteRoute = CrmRouteRouteImport.update({
   id: '/crm',
   path: '/crm',
@@ -73,6 +80,11 @@ const HubRoute = HubRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SpeedChatRoute = SpeedChatRouteImport.update({
+  id: '/speed-chat',
+  path: '/speed-chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TalkToStrangersRoute = TalkToStrangersRouteImport.update({
@@ -143,10 +155,12 @@ export interface FileRoutesByFullPath {
   '/crm': typeof CrmRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/bottles': typeof BottlesRoute
+  '/community': typeof CommunityRoute
   '/crm-login': typeof CrmLoginRoute
   '/dilemma': typeof DilemmaRoute
   '/hub': typeof HubRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/speed-chat': typeof SpeedChatRoute
   '/talk-to-strangers': typeof TalkToStrangersRoute
   '/wellness': typeof WellnessRoute
   '/.well-known/assetlinks.json': typeof DotwellKnownAssetlinksDotjsonRoute
@@ -164,10 +178,12 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/bottles': typeof BottlesRoute
+  '/community': typeof CommunityRoute
   '/crm-login': typeof CrmLoginRoute
   '/dilemma': typeof DilemmaRoute
   '/hub': typeof HubRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/speed-chat': typeof SpeedChatRoute
   '/talk-to-strangers': typeof TalkToStrangersRoute
   '/wellness': typeof WellnessRoute
   '/.well-known/assetlinks.json': typeof DotwellKnownAssetlinksDotjsonRoute
@@ -188,10 +204,12 @@ export interface FileRoutesById {
   '/crm': typeof CrmRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/bottles': typeof BottlesRoute
+  '/community': typeof CommunityRoute
   '/crm-login': typeof CrmLoginRoute
   '/dilemma': typeof DilemmaRoute
   '/hub': typeof HubRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/speed-chat': typeof SpeedChatRoute
   '/talk-to-strangers': typeof TalkToStrangersRoute
   '/wellness': typeof WellnessRoute
   '/.well-known/assetlinks.json': typeof DotwellKnownAssetlinksDotjsonRoute
@@ -212,10 +230,12 @@ export interface FileRouteTypes {
     | '/crm'
     | '/auth'
     | '/bottles'
+    | '/community'
     | '/crm-login'
     | '/dilemma'
     | '/hub'
     | '/sitemap.xml'
+    | '/speed-chat'
     | '/talk-to-strangers'
     | '/wellness'
     | '/.well-known/assetlinks.json'
@@ -233,10 +253,12 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/bottles'
+    | '/community'
     | '/crm-login'
     | '/dilemma'
     | '/hub'
     | '/sitemap.xml'
+    | '/speed-chat'
     | '/talk-to-strangers'
     | '/wellness'
     | '/.well-known/assetlinks.json'
@@ -256,10 +278,12 @@ export interface FileRouteTypes {
     | '/crm'
     | '/auth'
     | '/bottles'
+    | '/community'
     | '/crm-login'
     | '/dilemma'
     | '/hub'
     | '/sitemap.xml'
+    | '/speed-chat'
     | '/talk-to-strangers'
     | '/wellness'
     | '/.well-known/assetlinks.json'
@@ -280,10 +304,12 @@ export interface RootRouteChildren {
   CrmRouteRoute: typeof CrmRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   BottlesRoute: typeof BottlesRoute
+  CommunityRoute: typeof CommunityRoute
   CrmLoginRoute: typeof CrmLoginRoute
   DilemmaRoute: typeof DilemmaRoute
   HubRoute: typeof HubRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SpeedChatRoute: typeof SpeedChatRoute
   TalkToStrangersRoute: typeof TalkToStrangersRoute
   WellnessRoute: typeof WellnessRoute
   DotwellKnownAssetlinksDotjsonRoute: typeof DotwellKnownAssetlinksDotjsonRoute
@@ -324,6 +350,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BottlesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/community': {
+      id: '/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof CommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/crm': {
       id: '/crm'
       path: '/crm'
@@ -357,6 +390,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/speed-chat': {
+      id: '/speed-chat'
+      path: '/speed-chat'
+      fullPath: '/speed-chat'
+      preLoaderRoute: typeof SpeedChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/talk-to-strangers': {
@@ -479,10 +519,12 @@ const rootRouteChildren: RootRouteChildren = {
   CrmRouteRoute: CrmRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   BottlesRoute: BottlesRoute,
+  CommunityRoute: CommunityRoute,
   CrmLoginRoute: CrmLoginRoute,
   DilemmaRoute: DilemmaRoute,
   HubRoute: HubRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SpeedChatRoute: SpeedChatRoute,
   TalkToStrangersRoute: TalkToStrangersRoute,
   WellnessRoute: WellnessRoute,
   DotwellKnownAssetlinksDotjsonRoute: DotwellKnownAssetlinksDotjsonRoute,

@@ -34,7 +34,7 @@ export function Header() {
           <span className="font-display text-lg font-semibold tracking-tight">Anontalk</span>
         </a>
 
-        <nav className="hidden items-center gap-7 md:flex">
+        <nav className="hidden items-center gap-6 xl:flex">
           {links.map((l) => (
             <a
               key={l.href}
@@ -61,7 +61,7 @@ export function Header() {
               </Button>
             </>
           )}
-          <button className="md:hidden" onClick={() => setOpen((v) => !v)} aria-label="Menu">
+          <button className="xl:hidden" onClick={() => setOpen((v) => !v)} aria-label="Menu">
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
         </div>
