@@ -15,6 +15,13 @@
       "when": 1791573966453,
       "tag": "0001_speed_chat_and_community",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791574089998,
+      "tag": "0002_lock_trigger_functions",
+      "breakpoints": true
     }
   ]
 }
