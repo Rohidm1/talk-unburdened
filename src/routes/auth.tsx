@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { registrationSchema } from "@/lib/account-access";
 
 const title = "Sign in to Anontalk — anonymous, alias-only accounts";
 const description =
@@ -46,9 +47,8 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
-        if (!alias.trim() || password.length < 8) {
-          throw new Error("Choose a nickname and a password with at least 8 characters.");
-        }
+        const registration = registrationSchema.safeParse({ email, alias, password });
+        if (!registration.success) throw new Error(registration.error.issues[0]?.message ?? "Check your registration details.");
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
