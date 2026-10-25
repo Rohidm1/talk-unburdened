@@ -180,23 +180,14 @@ export const sendChatMessage = createServerFn({ method: "POST" })
           : null;
     if (!role) return { ok: false as const, reason: "forbidden" };
 
-    // Nothing is charged until a chat partner has actually joined the chat.
-    if (role === "client" && session.status === "active") {
-      const { data: spent } = await supabaseAdmin.rpc("spend_chat_credit", {
-        _user_id: context.userId,
-        _session_id: data.sessionId,
-      });
-      const row = Array.isArray(spent) ? spent[0] : spent;
-      if (!row?.ok) return { ok: false as const, reason: "no_credit" };
-    }
-
-    const { error } = await supabaseAdmin.from("chat_messages").insert({
-      session_id: data.sessionId,
-      sender_role: role,
-      sender_user_id: context.userId,
-      body: data.body,
+    const { data: outcome, error } = await supabaseAdmin.rpc("send_metered_chat_message", {
+      _user_id: context.userId,
+      _session_id: data.sessionId,
+      _body: data.body,
     });
     if (error) throw new Error(error.message);
+    const result = z.object({ ok: z.boolean(), reason: z.string().nullable(), remaining: z.number().optional() }).parse(outcome);
+    if (!result.ok) return { ok: false as const, reason: result.reason };
 
     // A customer reply is the strongest retention signal for the previous turn.
     if (role === "client") {
@@ -204,7 +195,7 @@ export const sendChatMessage = createServerFn({ method: "POST" })
       await markUserReplied(data.sessionId, context.userId);
     }
 
-    return { ok: true as const, reason: null };
+    return { ok: true as const, reason: null, remaining: result.remaining };
   });
 
 export const listChatMessages = createServerFn({ method: "POST" })

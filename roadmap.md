@@ -1,4 +1,8 @@
 # Roadmap
+- [ ] Uploaded brief: email-only signup, nickname and 8-character password, mandatory verification
+- [ ] Uploaded brief: audit durable five-message quota and protect credit/usage writes
+- [ ] Uploaded brief: exact-price package paywall and verified Stripe fulfillment
+- [ ] Uploaded brief: tests and end-to-end audit
 - [x] 1. Analytics reset (admin metrics baseline from 2026-09-04; visit/engagement logs cleared)
 - [x] 2. SEO overhaul (titles, descriptions, OG/Twitter, canonical, noindex on private routes, alt text)
 - [x] 3. Realistic live visitor counter (daily curve + gentle drift)

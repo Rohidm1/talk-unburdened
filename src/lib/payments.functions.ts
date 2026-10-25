@@ -4,7 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { CREDIT_PACKAGES } from "@/lib/credit-packages";
 import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib/stripe.server";
 
-type CheckoutSessionResult = { clientSecret: string } | { error: string };
+type CheckoutSessionResult = { clientSecret: string; sessionId: string } | { error: string };
 type PortalSessionResult = { url: string } | { error: string };
 type FulfillmentResult = { fulfilled: boolean };
 
@@ -20,12 +20,13 @@ async function resolveOrCreateCustomer(
       query: `metadata['userId']:'${options.userId}'`,
       limit: 1,
     });
-    if (found.data.length) return found.data[0]!.id;
+    const customer = found.data[0];
+    if (customer) return customer.id;
   }
   if (options.email) {
     const existing = await stripe.customers.list({ email: options.email, limit: 1 });
-    if (existing.data.length) {
-      const customer = existing.data[0]!;
+    const customer = existing.data[0];
+    if (customer) {
       if (options.userId && customer.metadata?.["userId"] !== options.userId) {
         await stripe.customers.update(customer.id, {
           metadata: { ...customer.metadata, userId: options.userId },
@@ -74,7 +75,8 @@ export const createCreditCheckout = createServerFn({ method: "POST" })
 
       const prices = await stripe.prices.list({ lookup_keys: [pkg.priceId] });
       if (!prices.data.length) throw new Error("Price not found");
-      const stripePrice = prices.data[0]!;
+      const stripePrice = prices.data[0];
+      if (!stripePrice) throw new Error("Price not found");
 
       // Guard against the Stripe dashboard price drifting from the app's own
       // catalogue — we must never charge an amount we did not display.
@@ -105,6 +107,8 @@ export const createCreditCheckout = createServerFn({ method: "POST" })
         line_items: [{ price: stripePrice.id, quantity: 1 }],
         mode: "payment",
         ui_mode: "embedded_page",
+        redirect_on_completion: "never",
+        payment_method_types: ["card"],
         return_url: data.returnUrl,
         customer: customerId,
         automatic_tax: { enabled: true },
@@ -117,12 +121,13 @@ export const createCreditCheckout = createServerFn({ method: "POST" })
         },
         metadata: {
           userId: context.userId,
+          user_id: context.userId,
           packageKey: pkg.key,
           managed_payments: "false",
         },
       });
 
-      return { clientSecret: session.client_secret ?? "" };
+      return { clientSecret: session.client_secret ?? "", sessionId: session.id };
     } catch (error) {
       return { error: getStripeErrorMessage(error) };
     }
@@ -158,7 +163,7 @@ export const createPortalSession = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }): Promise<PortalSessionResult> => {
     try {
-      const stripe = createStripeClient(data.environment as StripeEnv);
+      const stripe = createStripeClient(data.environment);
 
       const {
         data: { user },

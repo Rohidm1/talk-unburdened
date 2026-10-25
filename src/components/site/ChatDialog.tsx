@@ -14,6 +14,7 @@ import { isMuted, playSfx, setMuted } from "@/lib/sfx";
 import { addChatSeconds, awardXp, completeQuest } from "@/lib/gamification";
 import { logEngagement } from "@/lib/engagement";
 import type { Listener } from "@/data/listeners";
+import { TopUpDialog } from "@/components/site/TopUpDialog";
 
 export function ChatDialog({
   listener,
@@ -44,6 +45,8 @@ export function ChatDialog({
   const [notice, setNotice] = useState<string | null>(null);
   const [muted, setMutedState] = useState(false);
   const [sent, setSent] = useState(0);
+  const [paywall, setPaywall] = useState(false);
+  const exhausted = useRef(false);
   const turnRef = useRef(0);
   const bottomRef = useRef<HTMLDivElement>(null);
   const open = !!listener && !!sessionId;
@@ -55,7 +58,7 @@ export function ChatDialog({
 
   const messages = useQuery({
     queryKey: ["chat-messages", sessionId],
-    queryFn: () => fetchMessages({ data: { sessionId: sessionId! } }),
+    queryFn: () => sessionId ? fetchMessages({ data: { sessionId } }) : Promise.resolve([]),
     enabled: open,
     refetchInterval: 2000,
   });
@@ -68,6 +71,8 @@ export function ChatDialog({
     setNotice(null);
     setConnected(false);
     setUserSpoke(false);
+    exhausted.current = false;
+    setPaywall(false);
     turnRef.current += 1;
   }, [sessionId, open, allowance]);
 
@@ -89,7 +94,7 @@ export function ChatDialog({
         setAnswered(status.answered);
         setRemaining(status.remaining);
         if (status.status === "missing" || status.status === "ended") onEnd("closed");
-        else if (status.shouldEnd) onEnd("out_of_credit");
+        else if (status.shouldEnd && !exhausted.current) { exhausted.current = true; setPaywall(true); }
       } catch {
         /* a dropped beat is retried on the next interval */
       }
@@ -160,7 +165,8 @@ export function ChatDialog({
       }
 
       for (let i = 0; i < result.chunks.length; i += 1) {
-        const chunk = result.chunks[i]!;
+        const chunk = result.chunks[i];
+        if (!chunk) continue;
         if (i > 0) setPartnerTyping(true);
         // longer messages visibly take longer to "type"; the time already
         // spent generating counts towards the first chunk's typing window.
@@ -199,7 +205,7 @@ export function ChatDialog({
 
   const submit = async () => {
     const body = draft.trim();
-    if (!body || !sessionId || sending) return;
+    if (!body || !sessionId || sending || remaining <= 0) return;
     setSending(true);
     setDraft("");
     setUserSpoke(true);
@@ -210,7 +216,9 @@ export function ChatDialog({
         setDraft(body);
         if (result.reason === "no_credit") {
           toast.error("You're out of credits. Top up to keep chatting.");
-          onEnd("out_of_credit");
+          setRemaining(0);
+          exhausted.current = true;
+          setPaywall(true);
         } else if (result.reason === "closed") {
           toast.error("This chat has ended.");
           onEnd("closed");
@@ -220,6 +228,10 @@ export function ChatDialog({
         return;
       }
       await messages.refetch();
+      if (typeof result.remaining === "number") {
+        setRemaining(result.remaining);
+        if (result.remaining <= 0) { exhausted.current = true; setPaywall(true); }
+      }
       setNotice(null);
       setSent((n) => {
         const next = n + 1;
@@ -241,6 +253,7 @@ export function ChatDialog({
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={(v) => !v && onEnd("user")}>
       <DialogContent className="glass-strong flex max-h-[85vh] flex-col gap-0 p-0 sm:max-w-lg">
         <DialogHeader className="border-b border-border p-5">
@@ -356,7 +369,13 @@ export function ChatDialog({
             End
           </Button>
         </div>
+        {remaining <= 0 ? <Button variant="outline" className="m-4 mt-0" onClick={() => setPaywall(true)}>Buy credits to continue</Button> : null}
       </DialogContent>
     </Dialog>
+    <TopUpDialog open={paywall} reason={mode === "free" ? "free_used" : "no_credit"} onClose={() => setPaywall(false)} onPurchased={() => {
+      if (!sessionId) return;
+      void beat({ data: { sessionId } }).then((status) => { setRemaining(status.remaining); exhausted.current = status.remaining <= 0; });
+    }} />
+    </>
   );
 }
