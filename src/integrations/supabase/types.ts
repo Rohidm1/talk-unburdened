@@ -932,6 +932,7 @@ export type Database = {
           id: string
           is_blocked: boolean
           locale: string
+          sent_message_count: number
           signup_country: string | null
           updated_at: string
         }
@@ -945,6 +946,7 @@ export type Database = {
           id: string
           is_blocked?: boolean
           locale?: string
+          sent_message_count?: number
           signup_country?: string | null
           updated_at?: string
         }
@@ -958,6 +960,7 @@ export type Database = {
           id?: string
           is_blocked?: boolean
           locale?: string
+          sent_message_count?: number
           signup_country?: string | null
           updated_at?: string
         }
@@ -1244,6 +1247,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      send_metered_chat_message: {
+        Args: { _body: string; _session_id: string; _user_id: string }
+        Returns: Json
       }
       set_agent_availability: {
         Args: { _agent_user_id: string; _availability: string }
