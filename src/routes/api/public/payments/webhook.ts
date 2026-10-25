@@ -16,7 +16,7 @@ function getSupabase() {
 }
 
 async function grantCredits(session: any) {
-  const userId = session?.metadata?.userId as string | undefined;
+  const userId = (session?.metadata?.userId ?? session?.metadata?.user_id) as string | undefined;
   const packageKey = session?.metadata?.packageKey as CreditPackageKey | undefined;
   const sessionId = session?.id as string | undefined;
 
@@ -29,6 +29,9 @@ async function grantCredits(session: any) {
     console.error("[payments] unknown package key", packageKey);
     return;
   }
+  if (session.mode !== "payment" || session.currency !== "usd" || session.amount_subtotal !== pkg.cents || !["paid", "no_payment_required"].includes(session.payment_status)) {
+    throw new Error("Checkout package or payment verification failed");
+  }
 
   const { data: granted, error } = await getSupabase().rpc("grant_chat_credits", {
     _user_id: userId,
@@ -37,7 +40,7 @@ async function grantCredits(session: any) {
     _session: sessionId,
   });
 
-  if (error) console.error("[payments] could not grant credits", error);
+  if (error) throw new Error(error.message);
   else if (!granted) console.log("[payments] session already fulfilled", sessionId);
 }
 
