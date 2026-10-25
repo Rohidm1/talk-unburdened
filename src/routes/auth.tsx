@@ -3,7 +3,6 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Loader2, Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,8 +36,8 @@ function AuthPage() {
   const [sent, setSent] = useState(false);
 
   useEffect(() => {
-    void supabase.auth.getSession().then(({ data }) => {
-      if (data.session) void navigate({ to: "/account", replace: true });
+    void supabase.auth.getUser().then(({ data }) => {
+      if (data.user?.email_confirmed_at) void navigate({ to: "/account", replace: true });
     });
   }, [navigate]);
 
@@ -47,12 +46,15 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
+        if (!alias.trim() || password.length < 8) {
+          throw new Error("Choose a nickname and a password with at least 8 characters.");
+        }
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: window.location.origin,
-            data: { alias: alias || "Anon" },
+            data: { alias: alias.trim() },
           },
         });
         if (error) throw error;
@@ -72,20 +74,6 @@ function AuthPage() {
     }
   };
 
-  const google = async () => {
-    setBusy(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      setBusy(false);
-      toast.error("Google sign-in failed. Please try again.");
-      return;
-    }
-    if (result.redirected) return;
-    void navigate({ to: "/account", replace: true });
-  };
-
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-5 py-16 font-body">
       <div className="w-full max-w-md">
@@ -101,8 +89,7 @@ function AuthPage() {
             <div className="text-center">
               <h1 className="font-display text-xl font-semibold">Check your email</h1>
               <p className="mt-3 text-sm text-muted-foreground">
-                We sent a confirmation link to {email}. Open it to activate your alias and claim
-                your 5 free messages.
+                We have sent a verification link to your email. Please check your inbox and verify your account to continue.
               </p>
             </div>
           ) : (
@@ -114,30 +101,18 @@ function AuthPage() {
                 No real names. Only your alias is ever shown to a chat partner.
               </p>
 
-              <Button
-                variant="outline"
-                className="mt-6 w-full"
-                onClick={() => void google()}
-                disabled={busy}
-              >
-                Continue with Google
-              </Button>
-
-              <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
-                <span className="h-px flex-1 bg-border" /> or{" "}
-                <span className="h-px flex-1 bg-border" />
-              </div>
-
-              <form onSubmit={(e) => void submit(e)} className="flex flex-col gap-4">
+              <form onSubmit={(e) => void submit(e)} className="mt-6 flex flex-col gap-4">
                 {mode === "signup" ? (
                   <div className="flex flex-col gap-2">
-                    <Label htmlFor="alias">Alias</Label>
+                    <Label htmlFor="alias">Nickname</Label>
                     <Input
                       id="alias"
                       value={alias}
                       onChange={(e) => setAlias(e.target.value)}
                       placeholder="e.g. Sam"
                       maxLength={24}
+                      required
+                      minLength={2}
                     />
                   </div>
                 ) : null}
@@ -157,7 +132,8 @@ function AuthPage() {
                     id="password"
                     type="password"
                     required
-                    minLength={6}
+                    minLength={mode === "signup" ? 8 : undefined}
+                    autoComplete={mode === "signup" ? "new-password" : "current-password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
@@ -168,12 +144,12 @@ function AuthPage() {
                 </Button>
               </form>
 
-              <button
+              <Button variant="ghost"
                 onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
                 className="mt-5 w-full text-center text-sm text-muted-foreground hover:text-foreground"
               >
                 {mode === "signin" ? "No account yet? Sign up" : "Already have an alias? Log in"}
-              </button>
+              </Button>
             </>
           )}
         </div>
