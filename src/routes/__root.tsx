@@ -200,6 +200,13 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        <script type="text/javascript" src="https://cdn.weglot.com/weglot.min.js" />
+        <script
+          type="text/javascript"
+          dangerouslySetInnerHTML={{
+            __html: "Weglot.initialize({ api_key: 'wg_3d2a5891af587e2610ff12a0d894db5c5' });",
+          }}
+        />
       </head>
       <body>
         {children}
