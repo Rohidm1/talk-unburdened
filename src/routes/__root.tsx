@@ -10,6 +10,7 @@ import {
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { SupportWidget } from "@/components/site/SupportWidget";
+import { jsonLd, organizationSchema } from "@/lib/seo";
 import { dailyTheme } from "@/lib/daily-theme";
 
 import appCss from "../styles.css?url";
@@ -84,12 +85,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Anontalk – Anonymous Chat With Real People, 5 Free Messages" },
-      {
-        name: "description",
-        content:
-          "Talk to someone anonymously right now. Anontalk is a private 1-on-1 live chat with warm chat partners: no name, no card, no waiting room. Your first 5 messages are free.",
-      },
       { name: "author", content: "Anontalk" },
       { name: "robots", content: "index, follow, max-image-preview:large" },
       { name: "theme-color", content: "#0b1220" },
@@ -103,30 +98,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "google-site-verification",
         content: "ZPvCJoja56guGnmJfVoQXXyRuSJL283iMVQXMdgu3Ho",
       },
-      { property: "og:title", content: "Anontalk - 100% Private & Anonymous Chat Platform." },
-      {
-        property: "og:description",
-        content:
-          "Anontalk: 100% private, anonymous live chat. Sign up to receive 5 free messages and chat instantly with real people, no forms, no waiting room. No subscription.",
-      },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Anontalk - 100% Private & Anonymous Chat Platform." },
-      {
-        name: "twitter:description",
-        content:
-          "Anontalk: 100% private, anonymous live chat. Sign up to receive 5 free messages and chat instantly with real people, no forms, no waiting room. No subscription.",
-      },
-      {
-        property: "og:image",
-        content:
-          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a2394223-0946-404c-a57f-b2764dcc03b5/id-preview-e7f6bd87--4ade52c4-7d06-41dc-9617-883591d786a0.lovable.app-1785918908183.png",
-      },
-      {
-        name: "twitter:image",
-        content:
-          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a2394223-0946-404c-a57f-b2764dcc03b5/id-preview-e7f6bd87--4ade52c4-7d06-41dc-9617-883591d786a0.lovable.app-1785918908183.png",
-      },
     ],
     links: [
       {
@@ -143,51 +115,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" },
     ],
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Organization",
-          name: "Anontalk",
-          url: "https://anontalk.online",
-          description:
-            "Anonymous live text chat with warm chat partners. No names, no judgment. First 5 messages free.",
-        }),
-      },
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "WebSite",
-          name: "Anontalk",
-          url: "https://anontalk.online",
-          inLanguage: "en",
-          description:
-            "Anontalk: 100% private, anonymous live chat. Sign up to receive 5 free messages and chat instantly with real people.",
-          publisher: { "@type": "Organization", name: "Anontalk", url: "https://anontalk.online" },
-        }),
-      },
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "SoftwareApplication",
-          name: "Anontalk",
-          url: "https://anontalk.online",
-          applicationCategory: "CommunicationApplication",
-          operatingSystem: "Web browser",
-          description:
-            "Anonymous 1-on-1 live chat platform. No forms, no waiting room, no subscription. New accounts get 5 free messages and pay per message afterwards.",
-          offers: {
-            "@type": "Offer",
-            price: "0",
-            priceCurrency: "USD",
-            description: "5 free messages for every new account, then pay-per-message credits.",
-          },
-        }),
-      },
-    ],
+    scripts: [jsonLd(organizationSchema)],
   }),
   shellComponent: RootShell,
   component: RootComponent,

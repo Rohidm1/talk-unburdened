@@ -14,6 +14,8 @@ export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
+        const { readPublicDilemmas } = await import("@/lib/dilemma-public.server");
+        const dilemmas = await readPublicDilemmas();
         const entries: SitemapEntry[] = [
           { path: "/", changefreq: "weekly", priority: "1.0" },
           { path: "/talk-to-strangers", changefreq: "weekly", priority: "0.9" },
@@ -29,7 +31,7 @@ export const Route = createFileRoute("/sitemap.xml")({
             changefreq: "monthly" as const,
             priority: "0.6",
           })),
-          { path: "/auth", changefreq: "monthly", priority: "0.3" },
+          ...dilemmas.map((dilemma) => ({ path: `/dilemma/${dilemma.id}`, changefreq: "monthly" as const, priority: "0.6" })),
         ];
 
         const urls = entries.map((e) =>
