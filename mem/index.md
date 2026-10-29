@@ -7,6 +7,7 @@ Team logins are username-based; usernames map to <username>@anontalk.local in au
 No demo calls: all calls route to a real live agent, free minutes included.
 
 ## Memories
+- [SEO and direct answers](mem://features/seo-aeo) — Dutch search positioning, public content URLs, accurate privacy and account answers
 - [Verified accounts and credits](mem://features/auth-credits) — email-only customers, verified email, five free messages, secure paywall
 - [CRM team management](mem://features/crm) — admin account, worker login creation, roles
 - [Call routing and free minutes](mem://features/call-routing) — sticky agent routing, agent↔profile mapping, free-minute paywall
