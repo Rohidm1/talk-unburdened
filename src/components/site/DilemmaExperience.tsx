@@ -93,11 +93,12 @@ export function DilemmaExperience({ dilemma: d, archive = [] }: { dilemma: Publi
               const n = side === "a" ? results.data?.votes_a ?? 0 : results.data?.votes_b ?? 0;
               return (
                 <Button
+                  variant="outline"
                   key={side}
                   type="button"
                   disabled={!!voted || !user}
                   onClick={() => void vote(side)}
-                  className={`relative overflow-hidden rounded-3xl border p-6 text-left transition-colors ${voted === side ? "border-primary" : "border-border"} bg-card enabled:hover:border-primary`}
+                  className={`relative h-auto min-h-24 flex-col items-start overflow-hidden whitespace-normal rounded-lg border p-6 text-left text-foreground transition-colors disabled:opacity-100 ${voted === side ? "border-primary" : "border-border"} bg-card enabled:hover:border-primary`}
                 >
                   {voted ? <span className="absolute inset-y-0 left-0 bg-primary/15 transition-all duration-700" style={{ width: `${pct(n)}%` }} /> : null}
                   <span className="relative font-display text-lg font-semibold">{label}</span>
@@ -127,9 +128,9 @@ export function DilemmaExperience({ dilemma: d, archive = [] }: { dilemma: Publi
                   {(args.data ?? []).filter((a) => a.side === side).map((a) => (
                     <div key={a.id} className="flex gap-3 rounded-2xl border border-border bg-card p-3">
                       <div className="flex flex-col items-center text-xs">
-                        <Button type="button" aria-label="Upvote" onClick={() => void rate(a.id, 1)}><ArrowBigUp className="size-5" /></Button>
+                        <Button variant="ghost" size="icon" type="button" aria-label="Upvote" onClick={() => void rate(a.id, 1)}><ArrowBigUp className="size-5" /></Button>
                         <span className="tabular-nums">{a.score}</span>
-                        <Button type="button" aria-label="Downvote" onClick={() => void rate(a.id, -1)}><ArrowBigDown className="size-5" /></Button>
+                        <Button variant="ghost" size="icon" type="button" aria-label="Downvote" onClick={() => void rate(a.id, -1)}><ArrowBigDown className="size-5" /></Button>
                       </div>
                       <p className="text-sm">{a.body}</p>
                     </div>

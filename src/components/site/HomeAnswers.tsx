@@ -22,7 +22,7 @@ export function HomeFaq() {
   return (
     <section id="faq" lang="nl" aria-labelledby="home-faq-title" className="mx-auto w-full max-w-3xl px-5 py-16">
       <h2 id="home-faq-title" className="font-display text-2xl font-semibold md:text-3xl">Veelgestelde vragen over Anontalk</h2>
-      <Accordion type="single" collapsible className="mt-6">
+      <Accordion type="single" collapsible className="mt-6 [&_[role=region][data-state=closed]]:hidden">
         {homeAnswers.map(({ question, answer }, index) => (
           <AccordionItem key={question} value={`answer-${index}`}>
             <AccordionTrigger className="font-display text-base">{question}</AccordionTrigger>

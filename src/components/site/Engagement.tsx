@@ -42,10 +42,10 @@ export function LiveChatTicker() {
   }, []);
 
   return (
-    <div className="glass flex items-center gap-3 rounded-2xl px-4 py-3 text-sm">
+    <div className="glass flex min-w-0 max-w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm">
       <Sparkle className="size-4 shrink-0 text-neon-cyan" />
       <span
-        className={`truncate text-muted-foreground transition-opacity duration-200 ${
+        className={`min-w-0 truncate text-muted-foreground transition-opacity duration-200 ${
           visible ? "opacity-100" : "opacity-0"
         }`}
       >
