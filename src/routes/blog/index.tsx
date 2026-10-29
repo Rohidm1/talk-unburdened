@@ -43,7 +43,7 @@ function BlogIndex() {
             Honest reading on the things people rarely say out loud
           </h1>
           <p className="mt-4 max-w-2xl text-muted-foreground">
-            No jargon, no lectures. Short pieces on mental health, loneliness and personal growth —
+            No jargon, no lectures. Short pieces on everyday worries, loneliness and personal growth —
             written to be useful in the ten minutes you actually have.
           </p>
         </Reveal>
@@ -83,7 +83,9 @@ function BlogIndex() {
           </Reveal>
         ) : null}
 
-        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <section aria-labelledby="more-blog-posts" className="mt-8">
+        <h2 id="more-blog-posts" className="font-display text-2xl font-semibold">More articles</h2>
+        <div className="mt-5 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {rest.map((post, i) => (
             <Reveal key={post.slug} delay={0.04 * i}>
               <Link
@@ -94,7 +96,7 @@ function BlogIndex() {
                 <p className="text-xs font-semibold tracking-widest text-primary uppercase">
                   {post.category}
                 </p>
-                <h2 className="mt-3 font-display text-lg font-semibold">{post.title}</h2>
+                <h3 className="mt-3 font-display text-lg font-semibold">{post.title}</h3>
                 <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
                   {post.excerpt}
                 </p>
@@ -105,6 +107,7 @@ function BlogIndex() {
             </Reveal>
           ))}
         </div>
+        </section>
 
         <Reveal>
           <div className="mt-16 rounded-3xl border border-primary/30 bg-primary/5 p-8 text-center">

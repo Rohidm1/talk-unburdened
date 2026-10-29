@@ -5,6 +5,7 @@ import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Sections";
 import { Reveal } from "@/components/site/Reveal";
 import { FloatingChat } from "@/components/site/FloatingChat";
+import { pageHead, jsonLd, blogSchema } from "@/lib/seo";
 import { blogPosts, getPost } from "@/data/blog";
 
 export const Route = createFileRoute("/blog/$slug")({
@@ -18,31 +19,8 @@ export const Route = createFileRoute("/blog/$slug")({
     const description = loaderData?.excerpt ?? "An article from the Anontalk journal.";
     const url = `https://anontalk.online/blog/${params.slug}`;
     return {
-      meta: [
-        { title },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { property: "og:type", content: "article" },
-        { property: "og:url", content: url },
-        { name: "twitter:card", content: "summary_large_image" },
-      ],
-      links: [{ rel: "canonical", href: url }],
-      scripts: [
-        {
-          type: "application/ld+json",
-          children: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Article",
-            headline: loaderData?.title ?? "Anontalk article",
-            description,
-            ...(loaderData?.date ? { datePublished: loaderData.date } : {}),
-            author: { "@type": "Organization", name: "Anontalk" },
-            publisher: { "@type": "Organization", name: "Anontalk", url: "https://anontalk.online" },
-            mainEntityOfPage: url,
-          }),
-        },
-      ],
+      ...pageHead({ title, description, path: url, type: "article", noindex: !loaderData }),
+      scripts: loaderData ? [jsonLd(blogSchema(loaderData))] : [],
     };
   },
   errorComponent: () => <Fallback message="This article could not be loaded." />,
@@ -124,6 +102,7 @@ function BlogPostPage() {
           <ArrowLeft className="size-4" /> All articles
         </Link>
 
+        <article>
         <Reveal>
           <p className="mt-8 text-xs font-semibold tracking-widest text-primary uppercase">
             {post.category}
@@ -141,6 +120,7 @@ function BlogPostPage() {
           </p>
           <Body body={post.body} />
         </Reveal>
+        </article>
 
         <div className="mt-14 rounded-3xl border border-primary/30 bg-primary/5 p-7 text-center">
           <h2 className="font-display text-xl font-semibold">Want to talk it through?</h2>
@@ -166,7 +146,7 @@ function BlogPostPage() {
                   params={{ slug: p.slug }}
                   className="card-lift block rounded-2xl border border-border bg-card p-5"
                 >
-                  <p className="font-display font-semibold">{p.title}</p>
+                  <h3 className="font-display font-semibold">{p.title}</h3>
                   <p className="mt-1 text-sm text-muted-foreground">{p.excerpt}</p>
                 </Link>
               </li>

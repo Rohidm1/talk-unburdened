@@ -13,7 +13,6 @@ import { TopUpDialog } from "@/components/site/TopUpDialog";
 import {
   ChatIntro,
   ContactSection,
-  Faq,
   Footer,
   HowItWorks,
   Pricing,
@@ -48,100 +47,18 @@ import { useAuth } from "@/hooks/useAuth";
 import { CreditCheckoutDialog } from "@/components/site/CreditCheckoutDialog";
 import { AdSenseSlot } from "@/components/site/AdSenseSlot";
 
-import type { CreditPackageKey } from "@/lib/credit-packages";
+import { DirectAnswer, HomeFaq } from "@/components/site/HomeAnswers";
+import { homeTitle, homeDescription, homeAnswers } from "@/data/home-answers";
+import { pageHead, jsonLd, faqSchema, websiteSchema } from "@/lib/seo";
 
-const title = "Anontalk – Anonymous Chat With Real People, 5 Free Messages";
-const description =
-  "Talk to someone anonymously right now. Anontalk is a private 1-on-1 live chat with warm chat partners: no name, no card, no waiting room. Your first 5 messages are free.";
+import type { CreditPackageKey } from "@/lib/credit-packages";
 
 export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>): { chat?: 1 } =>
     search["chat"] === 1 || search["chat"] === "1" ? { chat: 1 } : {},
   head: () => ({
-    meta: [
-      { title },
-      { name: "description", content: description },
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
-      { property: "og:url", content: "https://anontalk.online/" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: title },
-      { name: "twitter:description", content: description },
-      {
-        name: "keywords",
-        content:
-          "anonymous chat, talk to someone, talk to strangers, private chat, vent anonymously, chat with real people, omegle alternative",
-      },
-    ],
-    links: [{ rel: "canonical", href: "https://anontalk.online/" }],
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          mainEntity: [
-            {
-              "@type": "Question",
-              name: "Is it really anonymous?",
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: "Yes. You choose an alias, and that's the only thing your chat partner ever sees. We never ask for your real name, address or phone number.",
-              },
-            },
-            {
-              "@type": "Question",
-              name: "Are your chat partners professionals?",
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: "No — and we're upfront about that. Our chat partners are warm, attentive people who take the time to read and reply. They offer everyday perspective, not professional advice.",
-              },
-            },
-            {
-              "@type": "Question",
-              name: "How do the 5 free messages work?",
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: "Every new account gets 5 free messages on the very first chat. No credit card needed. When they run out you can top up or simply close the chat.",
-              },
-            },
-            {
-              "@type": "Question",
-              name: "How am I billed?",
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: "Each message you send costs 1 credit. Agent replies are always free. Bundles bring the price per message down.",
-              },
-            },
-            {
-              "@type": "Question",
-              name: "Who can see that I chatted?",
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: "Nobody. Your payment description is neutral, chats run in the browser, and we never share anything with third parties.",
-              },
-            },
-            {
-              "@type": "Question",
-              name: "How does chatting work?",
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: "Open a profile and press Chat. Your chat partner accepts the request and from that moment you type back and forth in real time. You can end the chat whenever you like.",
-              },
-            },
-            {
-              "@type": "Question",
-              name: "Do my credits expire?",
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: "No. Once purchased, your credits stay on your account until you use them.",
-              },
-            },
-          ],
-        }),
-      },
-    ],
+    ...pageHead({ title: homeTitle, description: homeDescription, path: "/", language: "nl" }),
+    scripts: [jsonLd(faqSchema(homeAnswers)), jsonLd(websiteSchema(homeDescription))],
   }),
   component: HomePage,
 });
@@ -300,6 +217,8 @@ function HomePage() {
           }
         />
 
+        <DirectAnswer />
+
         <section id="listeners" className="mx-auto max-w-6xl px-5 py-16">
           <div className="mb-8 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
             <div>
@@ -372,7 +291,7 @@ function HomePage() {
           </div>
         </section>
         <Pricing />
-        <Faq />
+        <HomeFaq />
         <ContactSection />
       </main>
       <Footer />

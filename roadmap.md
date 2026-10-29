@@ -1,4 +1,7 @@
 # Roadmap
+- [x] SEO/AEO: shared metadata/schema helpers, homepage direct answers and FAQ
+- [x] SEO/AEO: public dilemma detail pages and dynamic sitemap coverage
+- [x] SEO/AEO: crawler privacy rules, semantic audit and end-to-end checks
 - [ ] Uploaded brief: email-only signup, nickname and 8-character password, mandatory verification
 - [ ] Uploaded brief: audit durable five-message quota and protect credit/usage writes
 - [ ] Uploaded brief: exact-price package paywall and verified Stripe fulfillment
