@@ -30,6 +30,7 @@ import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout/return'
 import { Route as CrmIndexRouteImport } from './routes/crm/index'
+import { Route as DilemmaIdRouteImport } from './routes/dilemma_.$id'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
@@ -138,6 +139,11 @@ const CrmIndexRoute = CrmIndexRouteImport.update({
   path: '/',
   getParentRoute: () => CrmRouteRoute,
 } as any)
+const DilemmaIdRoute = DilemmaIdRouteImport.update({
+  id: '/dilemma_/$id',
+  path: '/dilemma/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTrackRoute = ApiPublicTrackRouteImport.update({
   id: '/api/public/track',
   path: '/api/public/track',
@@ -169,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/staff': typeof AuthenticatedStaffRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/dilemma/$id': typeof DilemmaIdRoute
   '/blog/': typeof BlogIndexRoute
   '/crm/': typeof CrmIndexRoute
   '/api/public/track': typeof ApiPublicTrackRoute
@@ -192,6 +199,7 @@ export interface FileRoutesByTo {
   '/staff': typeof AuthenticatedStaffRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/dilemma/$id': typeof DilemmaIdRoute
   '/blog': typeof BlogIndexRoute
   '/crm': typeof CrmIndexRoute
   '/api/public/track': typeof ApiPublicTrackRoute
@@ -218,6 +226,7 @@ export interface FileRoutesById {
   '/_authenticated/staff': typeof AuthenticatedStaffRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/dilemma_/$id': typeof DilemmaIdRoute
   '/blog/': typeof BlogIndexRoute
   '/crm/': typeof CrmIndexRoute
   '/api/public/track': typeof ApiPublicTrackRoute
@@ -244,6 +253,7 @@ export interface FileRouteTypes {
     | '/staff'
     | '/blog/$slug'
     | '/checkout/return'
+    | '/dilemma/$id'
     | '/blog/'
     | '/crm/'
     | '/api/public/track'
@@ -267,6 +277,7 @@ export interface FileRouteTypes {
     | '/staff'
     | '/blog/$slug'
     | '/checkout/return'
+    | '/dilemma/$id'
     | '/blog'
     | '/crm'
     | '/api/public/track'
@@ -292,6 +303,7 @@ export interface FileRouteTypes {
     | '/_authenticated/staff'
     | '/blog/$slug'
     | '/checkout/return'
+    | '/dilemma_/$id'
     | '/blog/'
     | '/crm/'
     | '/api/public/track'
@@ -315,6 +327,7 @@ export interface RootRouteChildren {
   DotwellKnownAssetlinksDotjsonRoute: typeof DotwellKnownAssetlinksDotjsonRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
+  DilemmaIdRoute: typeof DilemmaIdRoute
   BlogIndexRoute: typeof BlogIndexRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -469,6 +482,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CrmIndexRouteImport
       parentRoute: typeof CrmRouteRoute
     }
+    '/dilemma_/$id': {
+      id: '/dilemma_/$id'
+      path: '/dilemma/$id'
+      fullPath: '/dilemma/$id'
+      preLoaderRoute: typeof DilemmaIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/track': {
       id: '/api/public/track'
       path: '/api/public/track'
@@ -530,6 +550,7 @@ const rootRouteChildren: RootRouteChildren = {
   DotwellKnownAssetlinksDotjsonRoute: DotwellKnownAssetlinksDotjsonRoute,
   BlogSlugRoute: BlogSlugRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
+  DilemmaIdRoute: DilemmaIdRoute,
   BlogIndexRoute: BlogIndexRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
