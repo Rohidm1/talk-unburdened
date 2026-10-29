@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { isDilemmaId } from "@/lib/dilemma-public";
+import { isDilemmaId, publishedDilemmas } from "@/lib/dilemma-public";
 
 function publicClient() {
   const key = process.env["SUPABASE_PUBLISHABLE_KEY"];
@@ -31,7 +31,7 @@ export async function readPublicDilemmas() {
     rows.push(...(data ?? []));
     if (!data || data.length < pageSize) break;
   }
-  return rows;
+  return publishedDilemmas(rows, today);
 }
 
 export async function readPublicDilemma(id: string) {
