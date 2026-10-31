@@ -71,7 +71,7 @@ export const createCreditCheckout = createServerFn({ method: "POST" })
     z
       .object({
         packageKey: z.enum(["starter", "popular", "pro_value", "vip_club"]),
-        returnUrl: z.string().url().max(500),
+        returnUrl: z.string().url(),
         environment: z.enum(["sandbox", "live"]),
       })
       .parse(input),
@@ -179,7 +179,7 @@ export const createPortalSession = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z
       .object({
-        returnUrl: z.string().url(),
+        returnUrl: z.string().url().max(500),
         environment: z.enum(["sandbox", "live"]),
       })
       .parse(input),
