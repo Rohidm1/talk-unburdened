@@ -8,6 +8,29 @@ type CheckoutSessionResult = { clientSecret: string; sessionId: string } | { err
 type PortalSessionResult = { url: string } | { error: string };
 type FulfillmentResult = { fulfilled: boolean };
 
+const PRIMARY_ORIGIN = "https://anontalk.online";
+const ALLOWED_ORIGINS = new Set([
+  PRIMARY_ORIGIN,
+  "https://www.anontalk.online",
+  "https://talk-unburdened.lovable.app",
+]);
+const PROJECT_PREVIEW_HOST = /^[a-z0-9-]*4ade52c4-7d06-41dc-9617-883591d786a0\.lovable(project\.com|\.app)$/;
+
+// Only send buyers back to this site's own account page, never a caller-chosen site.
+function safePortalReturnUrl(requested: string): string {
+  try {
+    const url = new URL(requested);
+    const trusted =
+      ALLOWED_ORIGINS.has(url.origin) ||
+      (url.protocol === "https:" && PROJECT_PREVIEW_HOST.test(url.hostname)) ||
+      (url.protocol === "http:" && url.hostname === "localhost");
+    if (trusted) return `${url.origin}/account`;
+  } catch {
+    // fall through to the default
+  }
+  return `${PRIMARY_ORIGIN}/account`;
+}
+
 async function resolveOrCreateCustomer(
   stripe: ReturnType<typeof createStripeClient>,
   options: { email?: string | undefined; userId?: string | undefined },
@@ -109,7 +132,7 @@ export const createCreditCheckout = createServerFn({ method: "POST" })
         ui_mode: "embedded_page",
         redirect_on_completion: "never",
         payment_method_types: ["card"],
-        return_url: data.returnUrl,
+        return_url: safePortalReturnUrl(data.returnUrl),
         customer: customerId,
         automatic_tax: { enabled: true },
         customer_update: { address: "auto" },
@@ -156,7 +179,7 @@ export const createPortalSession = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z
       .object({
-        returnUrl: z.string().url(),
+        returnUrl: z.string().url().max(500),
         environment: z.enum(["sandbox", "live"]),
       })
       .parse(input),
@@ -176,7 +199,7 @@ export const createPortalSession = createServerFn({ method: "POST" })
 
       const portal = await stripe.billingPortal.sessions.create({
         customer: customerId,
-        return_url: data.returnUrl,
+        return_url: safePortalReturnUrl(data.returnUrl),
       });
 
       return { url: portal.url };
