@@ -62,7 +62,7 @@ export const startChat = createServerFn({ method: "POST" })
     }
 
     const { logChatEvent } = await import("@/lib/chat.server");
-    await logChatEvent(session.id, "request_received", "client", "Nieuwe aanvraag ontvangen");
+    await logChatEvent(session.id, "request_received", "client", "New request received");
 
     return {
       ok: true as const,
@@ -88,7 +88,7 @@ export const endChat = createServerFn({ method: "POST" })
       .is("ended_at", null);
     if (error) throw new Error(error.message);
 
-    await logChatEvent(data.sessionId, "ended", "client", "Gesprek beëindigd door klant");
+    await logChatEvent(data.sessionId, "ended", "client", "Conversation ended by client");
     await supabaseAdmin.rpc("sync_listener_status", { _listener_id: session.listener_id ?? "" });
 
     const { data: profile } = await supabaseAdmin
@@ -296,7 +296,7 @@ export const listMyChats = createServerFn({ method: "GET" })
       requiresLogbook: Boolean(r.ended_at && r.answered_at),
       clientAway: Date.parse(r.last_heartbeat_at) < Date.now() - 30000,
       profileName: name.get(r.listener_id ?? "") ?? "Anontalk",
-      clientAlias: alias.get(r.client_id ?? "") ?? "Anoniem",
+      clientAlias: alias.get(r.client_id ?? "") ?? "Anonymous",
       clientSince: since.get(r.client_id ?? "") ?? null,
     }));
   });
@@ -429,7 +429,7 @@ export const closeChatAsAgent = createServerFn({ method: "POST" })
       .from("chat_sessions")
       .update({ status: "ended", ended_at: new Date().toISOString() })
       .eq("id", data.sessionId);
-    await logChatEvent(data.sessionId, "ended", "agent", "Gesprek beëindigd");
+    await logChatEvent(data.sessionId, "ended", "agent", "Conversation ended");
     await supabaseAdmin.rpc("sync_listener_status", { _listener_id: session.listener_id ?? "" });
     return { ok: true as const };
   });
@@ -533,9 +533,9 @@ export const saveChatNote = createServerFn({ method: "POST" })
       .eq("id", inserted.id)
       .maybeSingle();
     if (verifyError) throw new Error(verifyError.message);
-    if (!verified) throw new Error("Notitie kon niet worden bevestigd");
+    if (!verified) throw new Error("Note could not be confirmed");
 
-    await logChatEvent(data.sessionId, "note_added", "agent", "Notitie toegevoegd aan logboek");
+    await logChatEvent(data.sessionId, "note_added", "agent", "Note added to log");
     return { ok: true as const, noteId: verified.id, createdAt: verified.created_at };
   });
 

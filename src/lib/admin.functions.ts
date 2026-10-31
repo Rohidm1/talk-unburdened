@@ -95,7 +95,7 @@ export const listLiveConversations = createServerFn({ method: "GET" })
         id: c.id,
         profileName: profileName.get(c.listener_id ?? "") ?? "—",
         agent: agentName(c.agent_user_id),
-        clientAlias: alias.get(c.client_id) ?? "Anoniem",
+        clientAlias: alias.get(c.client_id) ?? "Anonymous",
         status: c.status,
         mode: c.mode,
         startedAt: c.started_at,
