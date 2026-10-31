@@ -65,7 +65,7 @@ function statusLabel(av: Availability) {
     case "available":
       return "Online";
     case "break":
-      return "Pauze";
+      return "Break";
     default:
       return "Offline";
   }
@@ -377,7 +377,7 @@ function StaffPage() {
                   <p className="text-xs text-muted-foreground">{activeChat.profileName}</p>
                 </div>
                 <Button variant="outline" onClick={() => setShowEndConfirm(true)}>
-                  Chat afsluiten
+                  Close chat
                 </Button>
               </div>
               <div className="flex-1 overflow-y-auto p-4">
@@ -396,10 +396,9 @@ function StaffPage() {
       <Dialog open={showEndConfirm} onOpenChange={setShowEndConfirm}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-display">Chat afsluiten?</DialogTitle>
+            <DialogTitle className="font-display">Close chat?</DialogTitle>
             <DialogDescription>
-              Deze actie beëindigt het gesprek en maakt jou direct beschikbaar voor een nieuwe
-              aanvraag.
+              This ends the conversation and makes you available for a new request right away.
             </DialogDescription>
           </DialogHeader>
           <div className="flex gap-2">
@@ -409,10 +408,10 @@ function StaffPage() {
               disabled={closeMutation.isPending}
               onClick={() => selectedChatId && closeMutation.mutate(selectedChatId)}
             >
-              Ja, afsluiten
+              Yes, close
             </Button>
             <Button variant="outline" className="flex-1" onClick={() => setShowEndConfirm(false)}>
-              Annuleren
+              Cancel
             </Button>
           </div>
         </DialogContent>
@@ -428,7 +427,7 @@ function StaffPage() {
             </div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => setShowEndConfirm(true)}>
-                Afsluiten
+                Close
               </Button>
               <Button variant="ghost" size="sm" onClick={() => setSelectedChatId(null)}>
                 Back

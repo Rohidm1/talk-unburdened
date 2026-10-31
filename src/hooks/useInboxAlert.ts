@@ -89,7 +89,7 @@ export function useInboxAlert(pendingCount: number) {
     ) {
       try {
         const n = new Notification("Nieuw berichtverzoek — Anontalk", {
-          body: "Er wacht iemand op een gesprek in je CRM-inbox.",
+          body: "Someone is waiting for a chat in your CRM inbox.",
           tag: "anontalk-inbox",
         });
         n.onclick = () => {

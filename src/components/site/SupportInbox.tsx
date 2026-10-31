@@ -23,7 +23,7 @@ export function SupportInbox() {
   }
 
   if (tickets.isLoading) return <p className="text-sm text-muted-foreground">Laden…</p>;
-  if (!tickets.data?.length) return <p className="text-sm text-muted-foreground">Geen meldingen.</p>;
+  if (!tickets.data?.length) return <p className="text-sm text-muted-foreground">No tickets.</p>;
 
   return (
     <div className="space-y-3">
@@ -51,14 +51,14 @@ export function SupportInbox() {
                 Beantwoorden per e-mail
               </a>
             ) : (
-              <span className="text-muted-foreground">Geen e-mailadres opgegeven</span>
+              <span className="text-muted-foreground">No email address provided</span>
             )}
             <button
               type="button"
               className="rounded-full border border-border px-3 py-1"
               onClick={() => void setStatus(t.id, t.status === "open" ? "closed" : "open")}
             >
-              {t.status === "open" ? "Afsluiten" : "Heropenen"}
+              {t.status === "open" ? "Close" : "Reopen"}
             </button>
           </div>
         </details>

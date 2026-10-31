@@ -33,10 +33,10 @@ export function TopUpDialog({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 font-display">
               <MessageCircle className="size-5 text-primary" />
-              {reason === "free_used" ? "Je gratis berichten zijn op!" : "Je hebt geen credits meer"}
+              {reason === "free_used" ? "Your free messages are used up!" : "You're out of credits"}
             </DialogTitle>
             <DialogDescription>
-              Waardeer je wendbare ondersteuning? Kies een pakket om verder te chatten en alle opties te ontgrendelen.
+              Enjoying the support? Pick a package to keep chatting and unlock every option.
             </DialogDescription>
           </DialogHeader>
 
@@ -47,7 +47,7 @@ export function TopUpDialog({
                 <li key={p.key} className={`flex flex-col gap-3 rounded-lg border p-4 ${p.popular ? "border-primary bg-secondary" : "border-border bg-card"}`}>
                   <h3 className="font-display font-semibold">{{ starter: "Starter", popular: "Popular", pro_value: "Pro Value", vip_club: "VIP Club" }[p.key]}</h3>
                   <p className="font-display text-2xl font-semibold">${(p.cents / 100).toFixed(2)}</p>
-                  <p className="text-sm">{p.credits} berichten</p>
+                  <p className="text-sm">{p.credits} messages</p>
                   <p className="text-xs text-muted-foreground">${perCredit.toFixed(2)} per bericht · exclusief eventuele belasting</p>
                   <Button className="mt-auto w-full" onClick={() => setCheckoutKey(p.key)}>Buy Now</Button>
                 </li>
@@ -55,7 +55,7 @@ export function TopUpDialog({
             })}
           </ul>
 
-          <p className="flex items-center justify-center gap-2 text-center text-xs text-muted-foreground"><ShieldCheck className="size-4 shrink-0" />Veilig betalen via Stripe • Direct je credits bijgeschreven</p>
+          <p className="flex items-center justify-center gap-2 text-center text-xs text-muted-foreground"><ShieldCheck className="size-4 shrink-0" />Secure payment via Stripe • Credits added instantly</p>
 
           <BillingDescriptorNotice className="border-t border-border pt-3" />
 

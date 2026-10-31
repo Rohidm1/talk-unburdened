@@ -38,19 +38,19 @@ import { useInboxAlert } from "@/hooks/useInboxAlert";
 function duration(seconds: number) {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
-  return h > 0 ? `${h} u ${m} min` : `${m} min`;
+  return h > 0 ? `${h} h ${m} min` : `${m} min`;
 }
 
 const eventLabels: Record<string, string> = {
-  request_received: "Nieuwe aanvraag ontvangen",
-  accepted: "Aanvraag geaccepteerd door agent",
-  declined: "Aanvraag geweigerd",
-  expired: "Aanvraag verlopen",
-  connected: "Verbonden",
-  interrupted: "Netwerkonderbreking",
-  reconnected: "Opnieuw verbonden",
-  ended: "Beëindigd",
-  note_added: "Notitie toegevoegd aan logboek",
+  request_received: "New request received",
+  accepted: "Request accepted by agent",
+  declined: "Request declined",
+  expired: "Request expired",
+  connected: "Connected",
+  interrupted: "Network interruption",
+  reconnected: "Reconnected",
+  ended: "Ended",
+  note_added: "Note added to log",
 };
 
 export function AgentChatPanel({ enabled }: { enabled: boolean }) {
@@ -143,9 +143,9 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
       await chats.refetch();
       setOpenId(sessionId);
       setShowNotes(true);
-      toast.success("Chat afgesloten. Sla nu de belangrijke informatie op in het logboek.");
+      toast.success("Chat closed. Now save the important details in the log.");
     } catch {
-      toast.error("Afsluiten mislukt. Probeer het opnieuw.");
+      toast.error("Could not close the chat. Please try again.");
     } finally {
       setClosingId(null);
       refresh();
@@ -182,12 +182,12 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
       const stillListed = (list.data ?? []).some((c) => c.id === sessionId);
       if (wasClosed && !stillListed) {
         setOpenId(null);
-        toast.success("Notitie opgeslagen. De afgesloten chat is uit je overzicht verwijderd.");
+        toast.success("Note saved. The closed chat has been removed from your list.");
       } else {
-        toast.success("Notitie opgeslagen in het logboek.");
+        toast.success("Note saved to the log.");
       }
     } catch {
-      toast.error("Notitie niet bevestigd opgeslagen. De chat blijft open — probeer opnieuw.");
+      toast.error("Note could not be confirmed as saved. The chat stays open — please try again.");
     } finally {
       setSavingNote(false);
     }
@@ -201,7 +201,7 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
       <section className="rounded-3xl border border-border bg-card p-6">
         <div className="flex items-center gap-2">
           <Inbox className="size-5 text-primary" />
-          <h2 className="font-display text-lg font-semibold">Berichtverzoeken</h2>
+          <h2 className="font-display text-lg font-semibold">Message requests</h2>
           {pending.length > 0 ? (
             <span className="inline-flex min-w-6 items-center justify-center rounded-full bg-destructive px-2 py-0.5 text-xs font-bold text-destructive-foreground">
               {pending.length}
@@ -213,28 +213,28 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
             ) : (
               <BellOff className="size-4 text-muted-foreground" />
             )}
-            <span className="text-xs text-muted-foreground">Geluid</span>
+            <span className="text-xs text-muted-foreground">Sound</span>
             <Switch
               checked={alert.soundOn}
               onCheckedChange={(next) => alert.toggleSound(next)}
-              aria-label="Meldingsgeluid"
+              aria-label="Notification sound"
             />
           </div>
         </div>
         {alert.soundOn && alert.permission !== "granted" ? (
           <div className="mt-3 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-secondary/30 p-3">
             <span className="flex-1 text-xs text-muted-foreground">
-              Geef eenmalig toestemming voor geluid en meldingen, dan hoor je nieuwe verzoeken ook
-              met dit tabblad op de achtergrond.
+              Allow sound and notifications once, so you also hear new requests
+              while this tab is in the background.
             </span>
             <Button size="sm" variant="outline" onClick={() => void alert.enableSound()}>
-              Geluid activeren
+              Enable sound
             </Button>
           </div>
         ) : null}
         {pending.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">
-            Geen openstaande berichtverzoeken. Nieuwe verzoeken verschijnen hier vanzelf.
+            No open message requests. New requests will appear here automatically.
           </p>
         ) : (
           <ul className="mt-4 grid gap-3 md:grid-cols-2">
@@ -251,7 +251,7 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Wil chatten met{" "}
+                  Wants to chat with{" "}
                   <span className="font-medium text-foreground">{c.profileName}</span>
                 </p>
                 <div className="mt-3 grid grid-cols-2 gap-2">
@@ -261,10 +261,10 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                       await take({ data: { sessionId: c.id } });
                       setOpenId(c.id);
                       refresh();
-                      toast.success("Berichtverzoek geaccepteerd.");
+                      toast.success("Message request accepted.");
                     }}
                   >
-                    Verzoek accepteren
+                    Accept request
                   </Button>
                   <Button
                     size="sm"
@@ -288,14 +288,14 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
           <MessageCircle className="size-5 text-primary" />
           <h2 className="font-display text-lg font-semibold">Live chats</h2>
           <span className="ml-auto text-xs text-muted-foreground">
-            {activeChats.filter((c) => !c.endedAt).length} actief
+            {activeChats.filter((c) => !c.endedAt).length} active
           </span>
         </div>
 
         <div className="mt-4 grid gap-4 md:grid-cols-[minmax(0,240px)_1fr]">
           <ul className="flex max-h-80 flex-col gap-2 overflow-y-auto">
             {activeChats.length === 0 ? (
-              <li className="text-sm text-muted-foreground">Geen lopende chats.</li>
+              <li className="text-sm text-muted-foreground">No ongoing chats.</li>
             ) : (
               activeChats.map((c) => (
                 <li
@@ -318,12 +318,12 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                             : "animate-pulse bg-emerald-500"
                         }`}
                       />
-                      als {c.profileName} ·{" "}
+                      as {c.profileName} ·{" "}
                       {c.endedAt
-                        ? "logboek invullen"
+                        ? "fill in log"
                         : c.clientAway
-                          ? "klant offline"
-                          : "verbonden"}
+                          ? "client offline"
+                          : "connected"}
                     </span>
                   </button>
                   {!c.endedAt ? (
@@ -334,7 +334,7 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                       disabled={closingId === c.id}
                       onClick={() => void closeSession(c.id)}
                     >
-                      <X className="size-4" /> Chat afsluiten
+                      <X className="size-4" /> Close chat
                     </Button>
                   ) : null}
                 </li>
@@ -349,7 +349,7 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                   <span className="font-semibold">
                     {current.clientAlias}
                     <span className="ml-2 font-normal text-muted-foreground">
-                      als {current.profileName}
+                      as {current.profileName}
                     </span>
                     <span className="ml-2 inline-flex items-center gap-1.5 text-xs font-normal text-muted-foreground">
                       <span
@@ -360,10 +360,10 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                         }`}
                       />
                       {current.endedAt
-                        ? "afgesloten — logboek nog opslaan"
+                        ? "closed — log still to save"
                         : current.clientAway
-                          ? "klant heeft de chat verlaten"
-                          : "live verbonden"}
+                          ? "client has left the chat"
+                          : "live connected"}
                     </span>
                   </span>
                   {!current.endedAt ? (
@@ -373,7 +373,7 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                       disabled={closingId === current.id}
                       onClick={() => void closeSession(current.id)}
                     >
-                      <X className="size-4" /> Chat afsluiten
+                      <X className="size-4" /> Close chat
                     </Button>
                   ) : null}
                 </div>
@@ -402,7 +402,7 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                     <Input
                       value={draft}
                       maxLength={2000}
-                      placeholder="Typ je antwoord…"
+                      placeholder="Type your reply…"
                       onChange={(e) => setDraft(e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.shiftKey) {
@@ -417,8 +417,8 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                   </div>
                 ) : (
                   <p className="border-t border-border px-4 py-3 text-sm text-primary">
-                    Deze chat is afgesloten. Schrijf de belangrijke informatie hieronder en klik op
-                    Opslaan; daarna verdwijnt de chat.
+                    This chat is closed. Write the important details below and click
+                    Save; the chat will then disappear.
                   </p>
                 )}
 
@@ -435,13 +435,13 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                         ) : (
                           <ChevronRight className="size-4" />
                         )}
-                        <History className="size-4 text-primary" /> Voorgeschiedenis vóór overname
+                        <History className="size-4 text-primary" /> History before takeover
                         <span className="ml-1 rounded-full bg-secondary px-2 py-0.5 text-xs text-muted-foreground">
                           {handoff.data.transcript.length}
                         </span>
                         {handoff.data.aiUsed ? (
                           <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs text-primary">
-                            stand-in actief geweest
+                            stand-in was active
                           </span>
                         ) : null}
                       </button>
@@ -451,7 +451,7 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                             <div key={i} className="rounded-xl bg-secondary/40 px-3 py-2 text-sm">
                               <span className="mr-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                                 {m.role === "client"
-                                  ? "Klant"
+                                  ? "Client"
                                   : m.role === "ai"
                                     ? "Stand-in"
                                     : "Agent"}
@@ -473,7 +473,7 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                     ) : (
                       <ChevronRight className="size-4" />
                     )}
-                    <NotebookPen className="size-4 text-primary" /> Logboek
+                    <NotebookPen className="size-4 text-primary" /> Log
                     {(notes.data ?? []).length > 0 ? (
                       <span className="ml-1 rounded-full bg-secondary px-2 py-0.5 text-xs text-muted-foreground">
                         {(notes.data ?? []).length}
@@ -487,7 +487,7 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                           value={noteDraft}
                           maxLength={4000}
                           rows={2}
-                          placeholder="Belangrijke informatie over dit gesprek…"
+                          placeholder="Important details about this conversation…"
                           onChange={(e) => setNoteDraft(e.target.value)}
                           onKeyDown={(e) => {
                             if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
@@ -501,13 +501,13 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                           disabled={!noteDraft.trim() || savingNote}
                           onClick={() => void submitNote()}
                         >
-                          Opslaan
+                          Save
                         </Button>
                       </div>
                       <ul className="mt-3 max-h-48 space-y-2 overflow-y-auto text-sm">
                         {(notes.data ?? []).length === 0 ? (
                           <li className="text-muted-foreground">
-                            Nog geen notities voor deze klant.
+                            No notes for this client yet.
                           </li>
                         ) : (
                           (notes.data ?? []).map((n) => (
@@ -525,11 +525,11 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                                   {n.source === "chat"
                                     ? "chat"
                                     : n.source === "call"
-                                      ? "gesprek"
-                                      : "algemeen"}
+                                      ? "call"
+                                      : "general"}
                                 </span>
                                 {n.thisConversation ? (
-                                  <span className="text-primary">deze chat</span>
+                                  <span className="text-primary">this chat</span>
                                 ) : null}
                               </div>
                               <p className="mt-1 whitespace-pre-wrap">{n.body}</p>
@@ -552,22 +552,22 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                     ) : (
                       <ChevronRight className="size-4" />
                     )}
-                    <BarChart3 className="size-4 text-primary" /> Klantstatistieken
+                    <BarChart3 className="size-4 text-primary" /> Client statistics
                   </button>
                   {showStats ? (
                     <dl className="grid grid-cols-2 gap-3 px-4 pb-4 text-sm sm:grid-cols-3">
                       <div>
-                        <dt className="text-xs text-muted-foreground">Totale gespreksduur</dt>
+                        <dt className="text-xs text-muted-foreground">Total conversation time</dt>
                         <dd className="font-semibold">{duration(stats.data?.totalSeconds ?? 0)}</dd>
                       </div>
                       <div>
-                        <dt className="text-xs text-muted-foreground">Sessies (chat / bel)</dt>
+                        <dt className="text-xs text-muted-foreground">Sessions (chat / call)</dt>
                         <dd className="font-semibold">
                           {stats.data?.chatCount ?? 0} / {stats.data?.callCount ?? 0}
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-xs text-muted-foreground">Lid sinds</dt>
+                        <dt className="text-xs text-muted-foreground">Member since</dt>
                         <dd className="font-semibold">
                           {stats.data?.since
                             ? new Date(stats.data.since).toLocaleDateString("nl-NL")
@@ -575,23 +575,23 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-xs text-muted-foreground">Berichten ontvangen</dt>
+                        <dt className="text-xs text-muted-foreground">Messages received</dt>
                         <dd className="font-semibold">{stats.data?.messagesFromClient ?? 0}</dd>
                       </div>
                       <div>
-                        <dt className="text-xs text-muted-foreground">Berichten verstuurd</dt>
+                        <dt className="text-xs text-muted-foreground">Messages sent</dt>
                         <dd className="font-semibold">{stats.data?.messagesFromAgent ?? 0}</dd>
                       </div>
                       <div>
-                        <dt className="text-xs text-muted-foreground">Gem. responstijd</dt>
+                        <dt className="text-xs text-muted-foreground">Avg. response time</dt>
                         <dd className="font-semibold">
                           {stats.data?.avgAgentReplySeconds != null
-                            ? `jij ${stats.data.avgAgentReplySeconds}s`
-                            : "jij —"}
+                            ? `you ${stats.data.avgAgentReplySeconds}s`
+                            : "you —"}
                           {" · "}
                           {stats.data?.avgClientReplySeconds != null
-                            ? `klant ${stats.data.avgClientReplySeconds}s`
-                            : "klant —"}
+                            ? `client ${stats.data.avgClientReplySeconds}s`
+                            : "client —"}
                         </dd>
                       </div>
                     </dl>
@@ -614,7 +614,7 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                   {showAudit ? (
                     <ol className="max-h-48 space-y-2 overflow-y-auto px-4 pb-4 text-sm">
                       {(events.data ?? []).length === 0 ? (
-                        <li className="text-muted-foreground">Nog geen gebeurtenissen.</li>
+                        <li className="text-muted-foreground">No events yet.</li>
                       ) : (
                         (events.data ?? []).map((e) => (
                           <li key={e.id} className="flex gap-3">
@@ -640,7 +640,7 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
               </>
             ) : (
               <p className="m-auto p-6 text-sm text-muted-foreground">
-                Accepteer een berichtverzoek of kies een lopende chat om te antwoorden.
+                Accept a message request or pick an ongoing chat to reply.
               </p>
             )}
           </div>
