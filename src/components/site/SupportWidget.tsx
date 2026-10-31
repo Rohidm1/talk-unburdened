@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { LifeBuoy, Send, X } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { askSupport } from "@/lib/support.functions";
+import { useAuth } from "@/hooks/useAuth";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
 export function SupportWidget() {
   const ask = useServerFn(askSupport);
+  const { user, loading } = useAuth();
   const [open, setOpen] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([
     { role: "assistant", content: "Hi! Questions about credits, privacy or a complaint? I'm here to help." },
@@ -17,7 +20,7 @@ export function SupportWidget() {
 
   async function send() {
     const content = text.trim();
-    if (!content || busy) return;
+    if (!content || busy || !user) return;
     const next = [...msgs, { role: "user" as const, content }];
     setMsgs(next);
     setText("");
@@ -78,6 +81,25 @@ export function SupportWidget() {
         ))}
         {busy ? <p className="text-muted-foreground">Typing…</p> : null}
       </div>
+      {!user ? (
+        <div className="border-t border-border p-3 text-sm">
+          {loading ? (
+            <p className="text-muted-foreground">Loading…</p>
+          ) : (
+            <p className="text-muted-foreground">
+              Please{" "}
+              <Link to="/auth" className="font-medium text-primary underline" onClick={() => setOpen(false)}>
+                sign in
+              </Link>{" "}
+              to chat with support, or use the{" "}
+              <Link to="/contact" className="font-medium text-primary underline" onClick={() => setOpen(false)}>
+                contact form
+              </Link>
+              .
+            </p>
+          )}
+        </div>
+      ) : (
       <div className="space-y-2 border-t border-border p-3">
         <input
           value={email}
@@ -109,6 +131,7 @@ export function SupportWidget() {
           </button>
         </form>
       </div>
+      )}
     </div>
   );
 }
