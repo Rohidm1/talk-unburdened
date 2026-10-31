@@ -43,6 +43,13 @@
       "when": 1792921513860,
       "tag": "0005_secure_atomic_chat_message_credits",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793445182394,
+      "tag": "0006_tighten_engagement_insert",
+      "breakpoints": true
     }
   ]
 }
