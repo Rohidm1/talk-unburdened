@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const SYSTEM = `You are the Anontalk support assistant. Anontalk (anontalk.online) is an anonymous 1-on-1 live chat with warm chat partners (not therapists or professionals).
 Facts: new accounts get 5 free messages; each message a user sends costs 1 credit; replies are free; credits never expire; payment descriptions are neutral; users pick an alias and stay anonymous; chats can be ended at any time. Community features: Message in a Bottle (/bottles, 2 drops per day), Daily Dilemma (/dilemma), Wellness tools (/wellness).
@@ -28,8 +29,9 @@ const input = z.object({
 });
 
 export const askSupport = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => input.parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const key = process.env["LOVABLE_API_KEY"];
     if (!key) return { ok: false as const, error: "Support is unavailable right now." };
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -64,6 +66,7 @@ export const askSupport = createServerFn({ method: "POST" })
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const transcript = data.messages.map((m) => `${m.role}: ${m.content}`).join("\n");
       const { error } = await supabaseAdmin.from("support_tickets").insert({
+        user_id: context.userId,
         email: data.email ?? null,
         category: out.category,
         summary: out.summary || data.messages[data.messages.length - 1]!.content.slice(0, 200),
