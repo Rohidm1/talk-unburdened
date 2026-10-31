@@ -304,6 +304,11 @@ export const listMyChats = createServerFn({ method: "GET" })
 export const claimNextChat = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    const [{ data: isStaff }, { data: isAdmin }] = await Promise.all([
+      context.supabase.rpc("has_role", { _user_id: context.userId, _role: "staff" }),
+      context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" }),
+    ]);
+    if (!isStaff && !isAdmin) throw new Error("Forbidden");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin.rpc("expire_stale_chats");
     const { data: sessionId } = await supabaseAdmin.rpc("claim_next_chat", {
