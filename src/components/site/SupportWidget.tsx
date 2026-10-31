@@ -91,11 +91,7 @@ export function SupportWidget() {
               <Link to="/auth" className="font-medium text-primary underline" onClick={() => setOpen(false)}>
                 sign in
               </Link>{" "}
-              to chat with support, or use the{" "}
-              <Link to="/contact" className="font-medium text-primary underline" onClick={() => setOpen(false)}>
-                contact form
-              </Link>
-              .
+              to chat with support.
             </p>
           )}
         </div>
