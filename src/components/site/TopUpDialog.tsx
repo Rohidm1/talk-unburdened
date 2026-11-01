@@ -48,7 +48,7 @@ export function TopUpDialog({
                   <h3 className="font-display font-semibold">{{ starter: "Starter", popular: "Popular", pro_value: "Pro Value", vip_club: "VIP Club" }[p.key]}</h3>
                   <p className="font-display text-2xl font-semibold">${(p.cents / 100).toFixed(2)}</p>
                   <p className="text-sm">{p.credits} messages</p>
-                  <p className="text-xs text-muted-foreground">${perCredit.toFixed(2)} per bericht · exclusief eventuele belasting</p>
+                  <p className="text-xs text-muted-foreground">${perCredit.toFixed(2)} per message · excluding any applicable tax</p>
                   <Button className="mt-auto w-full" onClick={() => setCheckoutKey(p.key)}>Buy Now</Button>
                 </li>
               );
