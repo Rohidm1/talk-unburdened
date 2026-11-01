@@ -122,25 +122,25 @@ function AdminPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-3xl font-semibold tracking-tight">Admin panel</h1>
         <Button variant="outline" asChild>
-          <Link to="/account">Terug naar account</Link>
+          <Link to="/account">Back to account</Link>
         </Button>
       </div>
 
       {denied ? (
         <p className="mt-8 rounded-3xl border border-border bg-card p-6 text-sm text-muted-foreground">
-          Je hebt beheerdersrechten nodig voor deze pagina.
+          You need admin rights for this page.
         </p>
       ) : (
         <>
           <p className="mt-6 text-xs text-muted-foreground">
-            Statistieken tellen vanaf 4 september 2026 (analytics reset).
+            Statistics count from 4 September 2026 (analytics reset).
           </p>
           <section className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
               { label: "Agents online", value: agents.data?.onlineCount ?? 0 },
               { label: "Live chats", value: live.data?.chats.length ?? 0 },
               { label: "Messages sent", value: stats.data?.messagesSent ?? 0 },
-              { label: "Omzet", value: `$${((stats.data?.revenueCents ?? 0) / 100).toFixed(2)}` },
+              { label: "Revenue", value: `$${((stats.data?.revenueCents ?? 0) / 100).toFixed(2)}` },
             ].map((k) => (
               <div key={k.label} className="rounded-3xl border border-border bg-card p-6">
                 <p className="text-xs tracking-widest text-muted-foreground uppercase">{k.label}</p>
@@ -153,9 +153,9 @@ function AdminPage() {
             <TabsList>
               <TabsTrigger value="live">Live</TabsTrigger>
               <TabsTrigger value="agents">Agents</TabsTrigger>
-              <TabsTrigger value="hours">Werkuren</TabsTrigger>
-              <TabsTrigger value="clients">Klanten</TabsTrigger>
-              <TabsTrigger value="traffic">Bezoekers</TabsTrigger>
+              <TabsTrigger value="hours">Work hours</TabsTrigger>
+              <TabsTrigger value="clients">Clients</TabsTrigger>
+              <TabsTrigger value="traffic">Visitors</TabsTrigger>
               <TabsTrigger value="ai">AI monitor</TabsTrigger>
               <TabsTrigger value="engagement">Engagement</TabsTrigger>
               <TabsTrigger value="inbox">Inbox</TabsTrigger>
@@ -165,7 +165,7 @@ function AdminPage() {
               <section className="rounded-3xl border border-border bg-card p-6">
                 <div className="flex items-center gap-2">
                   <MessageCircle className="size-5 text-primary" />
-                  <h2 className="font-display text-lg font-semibold">Lopende chats</h2>
+                  <h2 className="font-display text-lg font-semibold">Ongoing chats</h2>
                 </div>
                 {live.data && live.data.chats.length > 0 ? (
                   <ul className="mt-4 divide-y divide-border">
@@ -182,7 +182,7 @@ function AdminPage() {
                             </span>
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {c.clientAlias} · {c.status === "active" ? "actief" : "wacht"}
+                            {c.clientAlias} · {c.status === "active" ? "active" : "waiting"}
                           </p>
                         </div>
                         <span className="tabular-nums">
@@ -192,7 +192,7 @@ function AdminPage() {
                     ))}
                   </ul>
                 ) : (
-                  <p className="mt-4 text-sm text-muted-foreground">Geen lopende chats.</p>
+                  <p className="mt-4 text-sm text-muted-foreground">No ongoing chats.</p>
                 )}
               </section>
             </TabsContent>
@@ -214,22 +214,22 @@ function AdminPage() {
                           </span>
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          {a.activeChats} chat(s) actief
+                          {a.activeChats} chat(s) active
                         </span>
                         <Button
                           size="sm"
                           variant="ghost"
-                          aria-label={`Verwijder ${a.username}`}
+                          aria-label={`Delete ${a.username}`}
                           onClick={async () => {
-                            if (!window.confirm(`Account "${a.username}" definitief verwijderen?`))
+                            if (!window.confirm(`Delete account "${a.username}" permanently?`))
                               return;
                             try {
                               await removeAgent({ data: { userId: a.userId } });
-                              toast.success("Agent verwijderd.");
+                              toast.success("Agent deleted.");
                               void queryClient.invalidateQueries({ queryKey: ["admin-agents"] });
                               void queryClient.invalidateQueries({ queryKey: ["admin-hours"] });
                             } catch (e) {
-                              toast.error((e as Error).message || "Verwijderen mislukt.");
+                              toast.error((e as Error).message || "Delete failed.");
                             }
                           }}
                         >
@@ -253,7 +253,7 @@ function AdminPage() {
                     </li>
                   ))}
                   {(agents.data?.agents ?? []).length === 0 ? (
-                    <li className="py-4 text-sm text-muted-foreground">Nog geen agents.</li>
+                    <li className="py-4 text-sm text-muted-foreground">No agents yet.</li>
                   ) : null}
                 </ul>
               </section>
@@ -272,16 +272,16 @@ function AdminPage() {
 
             <TabsContent value="clients" className="mt-6">
               <section className="rounded-3xl border border-border bg-card p-6">
-                <h2 className="font-display text-lg font-semibold">Klanten</h2>
+                <h2 className="font-display text-lg font-semibold">Clients</h2>
                 <div className="mt-4 overflow-x-auto">
                   <table className="w-full min-w-[720px] text-left text-sm">
                     <thead className="text-xs tracking-wide text-muted-foreground uppercase">
                       <tr>
-                        <th className="py-2">Klant</th>
+                        <th className="py-2">Client</th>
                         <th className="py-2">Chats</th>
-                        <th className="py-2">Chattijd</th>
-                        <th className="py-2">Berichten</th>
-                        <th className="py-2">Besteed</th>
+                        <th className="py-2">Chat time</th>
+                        <th className="py-2">Messages</th>
+                        <th className="py-2">Spent</th>
                         <th className="py-2">Credits</th>
                         <th className="py-2">Free</th>
                       </tr>
@@ -293,7 +293,7 @@ function AdminPage() {
                             {c.alias}
                             {c.isBlocked ? (
                               <span className="ml-2 rounded bg-destructive/15 px-1.5 py-0.5 text-[11px] text-destructive">
-                                geblokkeerd
+                                blocked
                               </span>
                             ) : null}
                           </td>
@@ -310,7 +310,7 @@ function AdminPage() {
                     </tbody>
                   </table>
                   {(clients.data ?? []).length === 0 ? (
-                    <p className="mt-4 text-sm text-muted-foreground">Nog geen klanten.</p>
+                    <p className="mt-4 text-sm text-muted-foreground">No clients yet.</p>
                   ) : null}
                 </div>
               </section>
@@ -349,7 +349,7 @@ const countryNames =
     : null;
 
 function countryLabel(code: string) {
-  if (code === "Unknown") return "Onbekend";
+  if (code === "Unknown") return "Unknown";
   try {
     return countryNames?.of(code) ?? code;
   } catch {
@@ -378,16 +378,16 @@ function TrafficPanel() {
             variant={days === n ? "default" : "outline"}
             onClick={() => setDays(n)}
           >
-            Laatste {n} dagen
+            Last {n} days
           </Button>
         ))}
       </div>
 
       <section className="grid gap-4 sm:grid-cols-3">
         {[
-          { label: "Unieke bezoekers", value: d?.uniqueVisitors ?? 0 },
-          { label: "Paginaweergaven", value: d?.pageViews ?? 0 },
-          { label: "Nieuwe accounts", value: d?.signups ?? 0 },
+          { label: "Unique visitors", value: d?.uniqueVisitors ?? 0 },
+          { label: "Page views", value: d?.pageViews ?? 0 },
+          { label: "New accounts", value: d?.signups ?? 0 },
         ].map((k) => (
           <div key={k.label} className="rounded-3xl border border-border bg-card p-6">
             <p className="text-xs tracking-widest text-muted-foreground uppercase">{k.label}</p>
@@ -399,16 +399,16 @@ function TrafficPanel() {
       <section className="rounded-3xl border border-border bg-card p-6">
         <div className="flex items-center gap-2">
           <Globe className="size-5 text-primary" />
-          <h2 className="font-display text-lg font-semibold">Landen</h2>
+          <h2 className="font-display text-lg font-semibold">Countries</h2>
         </div>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[520px] text-left text-sm">
             <thead className="text-xs tracking-wide text-muted-foreground uppercase">
               <tr>
-                <th className="py-2">Land</th>
-                <th className="py-2">Bezoekers</th>
-                <th className="py-2">Weergaven</th>
-                <th className="py-2">Aanmeldingen</th>
+                <th className="py-2">Country</th>
+                <th className="py-2">Visitors</th>
+                <th className="py-2">Views</th>
+                <th className="py-2">Signups</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -424,7 +424,7 @@ function TrafficPanel() {
           </table>
           {(d?.countries ?? []).length === 0 ? (
             <p className="mt-4 text-sm text-muted-foreground">
-              Nog geen bezoekersdata in deze periode.
+              No visitor data in this period yet.
             </p>
           ) : null}
         </div>
@@ -432,14 +432,14 @@ function TrafficPanel() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-3xl border border-border bg-card p-6">
-          <h2 className="font-display text-lg font-semibold">Per dag</h2>
+          <h2 className="font-display text-lg font-semibold">Per day</h2>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="text-xs tracking-wide text-muted-foreground uppercase">
                 <tr>
-                  <th className="py-2">Datum</th>
-                  <th className="py-2">Bezoekers</th>
-                  <th className="py-2">Aanmeldingen</th>
+                  <th className="py-2">Date</th>
+                  <th className="py-2">Visitors</th>
+                  <th className="py-2">Signups</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -453,19 +453,19 @@ function TrafficPanel() {
               </tbody>
             </table>
             {(d?.daily ?? []).length === 0 ? (
-              <p className="mt-4 text-sm text-muted-foreground">Nog geen data.</p>
+              <p className="mt-4 text-sm text-muted-foreground">No data yet.</p>
             ) : null}
           </div>
         </section>
 
         <section className="rounded-3xl border border-border bg-card p-6">
-          <h2 className="font-display text-lg font-semibold">Populairste pagina's</h2>
+          <h2 className="font-display text-lg font-semibold">Most popular pages</h2>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="text-xs tracking-wide text-muted-foreground uppercase">
                 <tr>
-                  <th className="py-2">Pagina</th>
-                  <th className="py-2">Weergaven</th>
+                  <th className="py-2">Page</th>
+                  <th className="py-2">Views</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -478,15 +478,15 @@ function TrafficPanel() {
               </tbody>
             </table>
             {(d?.topPages ?? []).length === 0 ? (
-              <p className="mt-4 text-sm text-muted-foreground">Nog geen data.</p>
+              <p className="mt-4 text-sm text-muted-foreground">No data yet.</p>
             ) : null}
           </div>
         </section>
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Landen worden bepaald via het netwerk van de bezoeker. Aanmeldingen krijgen het land van hun
-        eerste bezoek na registratie.
+        Countries are determined from the visitor's network. Signups get the country of their
+        first visit after registering.
       </p>
     </div>
   );
@@ -505,12 +505,12 @@ function NewAgentForm({ onCreate }: { onCreate: (values: NewAgentValues) => Prom
         displayName: displayName.trim(),
       }),
     onSuccess: () => {
-      toast.success("Agent aangemaakt.");
+      toast.success("Agent created.");
       setUsername("");
       setPassword("");
       setDisplayName("");
     },
-    onError: (e: Error) => toast.error(e.message || "Kon de agent niet aanmaken."),
+    onError: (e: Error) => toast.error(e.message || "Could not create the agent."),
   });
 
   const valid =
@@ -520,7 +520,7 @@ function NewAgentForm({ onCreate }: { onCreate: (values: NewAgentValues) => Prom
     <section className="rounded-3xl border border-border bg-card p-6 lg:col-span-2">
       <div className="flex items-center gap-2">
         <UserPlus className="size-5 text-primary" />
-        <h2 className="font-display text-lg font-semibold">Nieuw agent-account</h2>
+        <h2 className="font-display text-lg font-semibold">New agent account</h2>
       </div>
 
       <form
@@ -531,7 +531,7 @@ function NewAgentForm({ onCreate }: { onCreate: (values: NewAgentValues) => Prom
         }}
       >
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="agent-username">Gebruikersnaam</Label>
+          <Label htmlFor="agent-username">Username</Label>
           <Input
             id="agent-username"
             value={username}
@@ -541,18 +541,18 @@ function NewAgentForm({ onCreate }: { onCreate: (values: NewAgentValues) => Prom
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="agent-password">Wachtwoord</Label>
+          <Label htmlFor="agent-password">Password</Label>
           <Input
             id="agent-password"
             type="password"
             value={password}
             maxLength={72}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Minimaal 8 tekens"
+            placeholder="At least 8 characters"
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="agent-name">Schermnaam</Label>
+          <Label htmlFor="agent-name">Display name</Label>
           <Input
             id="agent-name"
             value={displayName}
@@ -563,7 +563,7 @@ function NewAgentForm({ onCreate }: { onCreate: (values: NewAgentValues) => Prom
         </div>
 
         <Button type="submit" disabled={!valid || mutation.isPending}>
-          {mutation.isPending ? "Bezig…" : "Agent aanmaken"}
+          {mutation.isPending ? "Working…" : "Create agent"}
         </Button>
       </form>
     </section>
@@ -584,7 +584,7 @@ function MonthlyHours() {
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
         <div className="flex min-w-0 items-center gap-2">
           <CalendarClock className="size-5 shrink-0 text-primary" />
-          <h2 className="truncate font-display text-lg font-semibold">Maandstatistieken</h2>
+          <h2 className="truncate font-display text-lg font-semibold">Monthly statistics</h2>
         </div>
         <Input
           type="month"
@@ -594,13 +594,13 @@ function MonthlyHours() {
         />
       </div>
       <p className="mt-2 text-sm text-muted-foreground">
-        Per agent: eerste login, laatste activiteit, pauzeduur en gewerkte uren per dag.
+        Per agent: first login, last activity, break time and hours worked per day.
       </p>
 
       {stats.isLoading ? (
-        <p className="mt-6 text-sm text-muted-foreground">Laden…</p>
+        <p className="mt-6 text-sm text-muted-foreground">Loading…</p>
       ) : (stats.data?.agents ?? []).length === 0 ? (
-        <p className="mt-6 text-sm text-muted-foreground">Geen agents gevonden.</p>
+        <p className="mt-6 text-sm text-muted-foreground">No agents found.</p>
       ) : (
         <div className="mt-6 space-y-6">
           {(stats.data?.agents ?? []).map((a) => (
@@ -608,21 +608,21 @@ function MonthlyHours() {
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
                 <p className="truncate font-semibold">{a.username}</p>
                 <p className="shrink-0 text-sm tabular-nums text-muted-foreground">
-                  {hours(a.totalOnlineSeconds)} gewerkt · {hours(a.totalBreakSeconds)} pauze
+                  {hours(a.totalOnlineSeconds)} worked · {hours(a.totalBreakSeconds)} break
                 </p>
               </div>
               {a.days.length === 0 ? (
-                <p className="mt-3 text-sm text-muted-foreground">Deze maand nog niet ingelogd.</p>
+                <p className="mt-3 text-sm text-muted-foreground">Not logged in this month yet.</p>
               ) : (
                 <div className="mt-3 overflow-x-auto">
                   <table className="w-full min-w-[560px] text-left text-sm">
                     <thead className="text-xs tracking-wide text-muted-foreground uppercase">
                       <tr>
-                        <th className="py-2">Dag</th>
-                        <th className="py-2">Eerste login</th>
-                        <th className="py-2">Laatst actief</th>
-                        <th className="py-2">Pauze</th>
-                        <th className="py-2">Gewerkt</th>
+                        <th className="py-2">Day</th>
+                        <th className="py-2">First login</th>
+                        <th className="py-2">Last active</th>
+                        <th className="py-2">Break</th>
+                        <th className="py-2">Worked</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
@@ -680,10 +680,10 @@ function AiMonitorPanel() {
       <div className="rounded-3xl border border-border bg-card p-6 lg:col-span-2">
         <div className="flex items-center gap-2">
           <Bot className="size-5 text-primary" />
-          <h2 className="font-display text-lg font-semibold">Stand-in gesprekken</h2>
+          <h2 className="font-display text-lg font-semibold">Stand-in conversations</h2>
         </div>
         {rows.length === 0 ? (
-          <p className="mt-4 text-sm text-muted-foreground">Geen actieve stand-in gesprekken.</p>
+          <p className="mt-4 text-sm text-muted-foreground">No active stand-in conversations.</p>
         ) : (
           <ul className="mt-4 divide-y divide-border">
             {rows.map((c) => (
@@ -698,7 +698,7 @@ function AiMonitorPanel() {
                   <span className="text-muted-foreground">· {c.clientAlias}</span>
                   <span className="block text-xs text-muted-foreground">
                     {c.status}
-                    {c.endedAt ? " · beëindigd" : " · live"}
+                    {c.endedAt ? " · ended" : " · live"}
                   </span>
                 </button>
               </li>
@@ -710,7 +710,7 @@ function AiMonitorPanel() {
       <div className="rounded-3xl border border-border bg-card p-6 lg:col-span-3">
         <h2 className="font-display text-lg font-semibold">Transcript</h2>
         {!selected ? (
-          <p className="mt-4 text-sm text-muted-foreground">Kies een gesprek om mee te lezen.</p>
+          <p className="mt-4 text-sm text-muted-foreground">Pick a conversation to read along.</p>
         ) : (
           <div className="mt-4 max-h-[28rem] space-y-2 overflow-y-auto">
             {(transcript.data?.messages ?? []).map((m) => (
@@ -755,7 +755,7 @@ function EngagementPanel() {
             variant={days === n ? "default" : "outline"}
             onClick={() => setDays(n)}
           >
-            {n} dagen
+            {n} days
           </Button>
         ))}
       </div>
@@ -763,10 +763,10 @@ function EngagementPanel() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
           { label: "Match success", value: `${d?.match.successRate ?? 0}%` },
-          { label: "Chats gestart", value: d?.match.started ?? 0 },
-          { label: "Gem. DAU", value: d?.stickiness.avgDau ?? 0 },
+          { label: "Chats started", value: d?.match.started ?? 0 },
+          { label: "Avg. DAU", value: d?.stickiness.avgDau ?? 0 },
           {
-            label: "Gem. chatduur",
+            label: "Avg. chat length",
             value: `${Math.round((d?.stickiness.avgSessionSeconds ?? 0) / 60)} min`,
           },
         ].map((k) => (
@@ -799,9 +799,9 @@ function EngagementPanel() {
         </div>
 
         <div className="rounded-3xl border border-border bg-card p-6">
-          <h2 className="font-display text-lg font-semibold">Stemmingen & diepte</h2>
+          <h2 className="font-display text-lg font-semibold">Moods & depth</h2>
           {(d?.moods ?? []).length === 0 ? (
-            <p className="mt-4 text-sm text-muted-foreground">Nog geen data.</p>
+            <p className="mt-4 text-sm text-muted-foreground">No data yet.</p>
           ) : (
             <ul className="mt-4 space-y-3">
               {(d?.moods ?? []).map((m) => (
@@ -834,13 +834,13 @@ function EngagementPanel() {
       </div>
 
       <div className="rounded-3xl border border-border bg-card p-6">
-        <h2 className="font-display text-lg font-semibold">Dagelijkse activiteit</h2>
+        <h2 className="font-display text-lg font-semibold">Daily activity</h2>
         <ul className="mt-4 space-y-1 text-sm">
           {(d?.daily ?? []).map((row) => (
             <li key={row.date} className="flex justify-between tabular-nums">
               <span className="text-muted-foreground">{row.date}</span>
               <span>
-                {row.dau} bezoekers · {row.chats} chats
+                {row.dau} visitors · {row.chats} chats
               </span>
             </li>
           ))}

@@ -57,7 +57,7 @@ export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>): { chat?: 1 } =>
     search["chat"] === 1 || search["chat"] === "1" ? { chat: 1 } : {},
   head: () => ({
-    ...pageHead({ title: homeTitle, description: homeDescription, path: "/", language: "nl" }),
+    ...pageHead({ title: homeTitle, description: homeDescription, path: "/" }),
     scripts: [jsonLd(faqSchema(homeAnswers)), jsonLd(websiteSchema(homeDescription))],
   }),
   component: HomePage,

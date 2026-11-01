@@ -390,8 +390,8 @@ export const acceptChat = createServerFn({ method: "POST" })
         .from("chat_sessions")
         .update({ answered_at: now, status: "active", last_heartbeat_at: now })
         .eq("id", data.sessionId);
-      await logChatEvent(data.sessionId, "accepted", "agent", "Aanvraag geaccepteerd door agent");
-      await logChatEvent(data.sessionId, "connected", "system", "Verbonden");
+      await logChatEvent(data.sessionId, "accepted", "agent", "Request accepted by agent");
+      await logChatEvent(data.sessionId, "connected", "system", "Connected");
       await supabaseAdmin.rpc("sync_listener_status", { _listener_id: session.listener_id ?? "" });
     }
     return { ok: true as const };
@@ -411,7 +411,7 @@ export const declineChat = createServerFn({ method: "POST" })
       .eq("id", data.sessionId)
       .is("answered_at", null);
 
-    await logChatEvent(data.sessionId, "declined", "agent", "Aanvraag geweigerd");
+    await logChatEvent(data.sessionId, "declined", "agent", "Request declined");
     await supabaseAdmin.rpc("sync_listener_status", { _listener_id: session.listener_id ?? "" });
 
     return { ok: true as const };
