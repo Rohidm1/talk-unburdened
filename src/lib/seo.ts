@@ -30,7 +30,7 @@ export function jsonLd(schema: Record<string, unknown>) {
 
 export function faqSchema(answers: readonly Answer[]) {
   return {
-    "@context": "https://schema.org", "@type": "FAQPage", inLanguage: "nl",
+    "@context": "https://schema.org", "@type": "FAQPage", inLanguage: "en",
     mainEntity: answers.map(({ question, answer }) => ({
       "@type": "Question", name: question, acceptedAnswer: { "@type": "Answer", text: answer },
     })),
@@ -45,7 +45,7 @@ export const organizationSchema = {
 export function websiteSchema(description: string) {
   return {
     "@context": "https://schema.org", "@type": "WebSite", "@id": `${SITE_URL}/#website`,
-    name: "Anontalk", url: SITE_URL, description, inLanguage: ["en", "nl"],
+    name: "Anontalk", url: SITE_URL, description, inLanguage: "en",
     publisher: { "@id": organizationSchema["@id"] },
   };
 }
