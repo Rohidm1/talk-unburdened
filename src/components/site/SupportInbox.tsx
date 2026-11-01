@@ -22,7 +22,7 @@ export function SupportInbox() {
     await qc.invalidateQueries({ queryKey: ["support-tickets"] });
   }
 
-  if (tickets.isLoading) return <p className="text-sm text-muted-foreground">Laden…</p>;
+  if (tickets.isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
   if (!tickets.data?.length) return <p className="text-sm text-muted-foreground">No tickets.</p>;
 
   return (

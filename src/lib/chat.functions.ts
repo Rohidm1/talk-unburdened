@@ -411,7 +411,7 @@ export const declineChat = createServerFn({ method: "POST" })
       .eq("id", data.sessionId)
       .is("answered_at", null);
 
-    await logChatEvent(data.sessionId, "declined", "agent", "Aanvraag geweigerd");
+    await logChatEvent(data.sessionId, "declined", "agent", "Request declined");
     await supabaseAdmin.rpc("sync_listener_status", { _listener_id: session.listener_id ?? "" });
 
     return { ok: true as const };
