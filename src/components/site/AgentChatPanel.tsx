@@ -244,7 +244,7 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                   <UserRound className="size-4 text-primary" />
                   <span className="font-semibold">{c.clientAlias}</span>
                   <span className="ml-auto text-xs text-muted-foreground">
-                    {new Date(c.startedAt).toLocaleTimeString("nl-NL", {
+                    {new Date(c.startedAt).toLocaleTimeString("en-GB", {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
@@ -514,7 +514,7 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                             <li key={n.id} className="rounded-2xl border border-border bg-card p-3">
                               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                 <span>
-                                  {new Date(n.createdAt).toLocaleString("nl-NL", {
+                                  {new Date(n.createdAt).toLocaleString("en-GB", {
                                     day: "2-digit",
                                     month: "2-digit",
                                     hour: "2-digit",
@@ -570,7 +570,7 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                         <dt className="text-xs text-muted-foreground">Member since</dt>
                         <dd className="font-semibold">
                           {stats.data?.since
-                            ? new Date(stats.data.since).toLocaleDateString("nl-NL")
+                            ? new Date(stats.data.since).toLocaleDateString("en-GB")
                             : "—"}
                         </dd>
                       </div>
@@ -619,7 +619,7 @@ export function AgentChatPanel({ enabled }: { enabled: boolean }) {
                         (events.data ?? []).map((e) => (
                           <li key={e.id} className="flex gap-3">
                             <span className="tabular-nums text-xs text-muted-foreground">
-                              {new Date(e.created_at).toLocaleTimeString("nl-NL", {
+                              {new Date(e.created_at).toLocaleTimeString("en-GB", {
                                 hour: "2-digit",
                                 minute: "2-digit",
                                 second: "2-digit",

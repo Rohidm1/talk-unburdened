@@ -36,7 +36,7 @@ export function SupportInbox() {
                 {t.status}
               </span>
               <span className="text-muted-foreground">
-                {new Date(t.created_at).toLocaleString("nl-NL")}
+                {new Date(t.created_at).toLocaleString("en-GB")}
               </span>
             </div>
             <p className="mt-2 text-sm font-medium">{t.summary}</p>
