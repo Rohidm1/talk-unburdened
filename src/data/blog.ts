@@ -5,36 +5,79 @@ export type BlogPost = {
   category: string;
   readMinutes: number;
   date: string;
-  /** Markdown-lite: paragraphs, "## " headings and "- " bullets. */
+  /** Last meaningful content update (YYYY-MM-DD). */
+  updated?: string;
+  /** Search-result title; falls back to `${title} | Anontalk`. */
+  seoTitle?: string;
+  /** Search-result description; falls back to the excerpt. */
+  seoDescription?: string;
+  /**
+   * Markdown-lite: paragraphs, "## " headings, "- " bullets, and a line
+   * containing only "[[chat]]" for an inline chat button.
+   */
   body: string;
 };
 
 export const blogPosts: BlogPost[] = [
   {
     slug: "no-one-to-talk-to",
-    title: "\"I have no one to talk to\" — what to do tonight, not someday",
+    title: "I have no one to talk to: what to do tonight (and after)",
+    seoTitle: "I Have No One to Talk To – What to Do Tonight | Anontalk",
+    seoDescription:
+      "Feel like you have no one to talk to? Simple steps for tonight, why it happens, and where to talk to a real person anonymously. Free to start.",
     excerpt:
-      "It is one of the most searched sentences on the internet at 2am. Here is a short, practical answer that does not involve fixing your whole social life first.",
+      "Feel like you have no one to talk to? You are far from the only one. Here is what helps tonight, why it happens, and small steps for the weeks after.",
     category: "Loneliness",
-    readMinutes: 5,
+    readMinutes: 7,
     date: "2026-09-02",
-    body: `If you typed that sentence into a search bar, you already did the hardest part: you admitted it. Most people never get that far. Now let's make the next step small enough to actually take.
+    updated: "2026-11-02",
+    body: `If you typed "I have no one to talk to" into a search bar, you already did the hardest part: you admitted it. Lots of people feel this way and never say it, not even to a search engine. This page gives you a short answer for tonight and a few small steps for after.
 
-## Separate the two problems
-"No one to talk to" is really two things. One is a long-term question about friendships and community. The other is tonight: a specific thought that needs to leave your head before you can sleep. Trying to solve the first one at midnight is how you end up doom-scrolling until three. Solve the second one.
+## The short answer
+When you have no one to talk to, you do not need a best friend tonight. You need one person who will read what you write and reply like a human. Here are a few options:
+- An anonymous chat with a real person, so you can say the unedited version.
+- A message to someone you have not spoken to in a while, even just "thinking of you, how have you been?"
+- Writing it down first, so the thought is out of your head before you talk to anyone.
 
-## What tonight needs
-- One person who reads properly and replies like a human.
-- No history with you, so you can say the unedited version.
-- No follow-up tomorrow, no worried texts, no "are you okay?" at work.
+If you are in danger or thinking about hurting yourself, call 112 (in Europe) or your local emergency number right now. A chat site is not the right place for that moment.
 
-That is a very different requirement from friendship, and it is much easier to meet. An anonymous chat with a real person does exactly that job.
+## Who can I talk to when I have no one?
+More people than it feels like at 2am:
+- A stranger online who chose to be available. On Anontalk, chat partners are there to listen. They are not there to judge you or try to fix you.
+- An old friend or classmate. People are usually glad to hear from someone again, even after years.
+- A sibling, cousin or other relative you used to get on with.
+- People who share a hobby, like a gym, a running club, a game server or a volunteering group. You talk about the activity first, and real conversations come later.
+- A free helpline in your country if things feel heavy and you would rather speak to someone by phone.
 
-## Say the real sentence first
-Do not warm up. Do not start with "hey, how are you". Start with the thing: "I've been feeling invisible for months and I don't know who to tell." Anonymity removes the cost of saying it, so spend that freedom on honesty.
+## Why do I feel like I have no one to talk to?
+It is rarely because something is wrong with you. Common reasons:
+- Life moved on. A new city, a new job, a breakup or friends having kids can quietly shrink your circle.
+- Your friends are there for fun, not for "real" talk, and switching modes feels awkward.
+- You are usually the one who listens, so nobody thinks to ask how you are.
+- Men in particular often grow up learning to keep things to themselves, so even close friends never hear the real stuff.
 
-## Then, and only then, the bigger question
-Once the pressure is off, the long-term version gets easier to think about. People who practise saying real things to strangers get noticeably better at saying them to people they know. Tonight's conversation is the rehearsal.`,
+None of these mean you are alone for good. Usually you are just missing one place where honest talk is normal.
+
+## What to do tonight
+Split the problem in two. One part is long-term: friendships and community. The other part is tonight: one thought that needs to leave your head before you can sleep. Trying to fix the long-term part at midnight is how you end up scrolling until three. Fix tonight first.
+- Pick one sentence that sums up what is on your mind.
+- Say that sentence to someone first. Skip the "hey, how are you" and start with the thing: "I've been feeling invisible for months and I don't know who to tell."
+- Let them reply. You do not have to solve anything. You just have to stop carrying it alone.
+
+[[chat]]
+
+## Is it okay to talk to a stranger about personal things?
+Yes, and it is often easier. A stranger has no history with you, will not bring it up at work tomorrow, and does not need you to stay "the strong one". Keep it safe: do not share your full name, address, phone number or other personal details. On Anontalk, phone numbers, emails and addresses are blurred automatically in many chats.
+
+## Small steps for the weeks after
+Once tonight is handled, the bigger question gets easier:
+- Message one person a week, even with something small.
+- Say yes to one plan you would usually skip.
+- Join one regular thing, like a class, a team or a club, where you see the same faces every week.
+- Keep practising honest sentences. People who say real things to strangers get noticeably better at saying them to people they know. Tonight's conversation is the rehearsal.
+
+## How Anontalk works
+Anontalk is an anonymous text chat with friendly chat partners. You sign up with just an email and a nickname, with no real name and no photo. Your first five messages are free, and after that you can buy message credits if you want to keep chatting. You choose who to chat with, and you can leave whenever you like.`,
   },
   {
     slug: "omegle-alternative-that-is-not-a-lottery",
