@@ -15,8 +15,11 @@ export const Route = createFileRoute("/blog/$slug")({
     return post;
   },
   head: ({ params, loaderData }) => {
-    const title = loaderData ? `${loaderData.title} | Anontalk` : "Article | Anontalk";
-    const description = loaderData?.excerpt ?? "An article from the Anontalk journal.";
+    const title = loaderData
+      ? (loaderData.seoTitle ?? `${loaderData.title} | Anontalk`)
+      : "Article | Anontalk";
+    const description =
+      loaderData?.seoDescription ?? loaderData?.excerpt ?? "An article from the Anontalk journal.";
     const url = `https://anontalk.online/blog/${params.slug}`;
     return {
       ...pageHead({ title, description, path: url, type: "article", noindex: !loaderData }),
@@ -57,6 +60,25 @@ function Body({ body }: { body: string }) {
   return (
     <div className="mt-10 space-y-5">
       {blocks.map((block, i) => {
+        if (block.trim() === "[[chat]]") {
+          return (
+            <div
+              key={i}
+              className="flex flex-col items-start gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-5 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <p className="text-sm text-foreground">
+                Want to say it to someone right now? Your first 5 messages are free.
+              </p>
+              <Link
+                to="/"
+                search={{ chat: 1 }}
+                className="glow-cta inline-flex shrink-0 items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
+              >
+                Talk to someone now <ArrowRight className="size-4" />
+              </Link>
+            </div>
+          );
+        }
         if (block.startsWith("## ")) {
           return (
             <h2 key={i} className="pt-4 font-display text-xl font-semibold md:text-2xl">
@@ -112,7 +134,8 @@ function BlogPostPage() {
           </h1>
           <p className="mt-4 flex items-center gap-3 text-xs text-muted-foreground">
             <Clock className="size-3.5" /> {post.readMinutes} min read ·{" "}
-            {new Date(post.date).toLocaleDateString("en-GB", {
+            {post.updated ? "Updated " : null}
+            {new Date(post.updated ?? post.date).toLocaleDateString("en-GB", {
               day: "numeric",
               month: "long",
               year: "numeric",
@@ -129,7 +152,7 @@ function BlogPostPage() {
           </p>
           <Link
             to="/"
-            hash="listeners"
+            search={{ chat: 1 }}
             className="glow-cta mt-5 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
           >
             Start chatting <ArrowRight className="size-4" />
