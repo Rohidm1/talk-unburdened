@@ -50,11 +50,11 @@ export function websiteSchema(description: string) {
   };
 }
 
-export function blogSchema(post: { slug: string; title: string; excerpt: string; date: string }) {
+export function blogSchema(post: { slug: string; title: string; excerpt: string; date: string; updated?: string }) {
   const url = `${SITE_URL}/blog/${encodeURIComponent(post.slug)}`;
   return {
     "@context": "https://schema.org", "@type": "BlogPosting", "@id": `${url}#article`,
-    headline: post.title, description: post.excerpt, datePublished: post.date, inLanguage: "en",
+    headline: post.title, description: post.excerpt, datePublished: post.date, dateModified: post.updated ?? post.date, inLanguage: "en",
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
     author: { "@type": "Organization", name: "Anontalk", url: SITE_URL },
     publisher: { "@id": organizationSchema["@id"] },
