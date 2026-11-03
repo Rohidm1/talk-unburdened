@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useTranslation } from "react-i18next";
@@ -287,6 +287,16 @@ function HomePage() {
                   Chat with someone now
                 </button>
               </div>
+              <p className="mt-4 text-sm text-muted-foreground">
+                Feel like you have no one to talk to?{" "}
+                <Link
+                  to="/blog/$slug"
+                  params={{ slug: "no-one-to-talk-to" }}
+                  className="font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  Read what helps when you have no one to talk to
+                </Link>
+              </p>
             </div>
           </div>
         </section>
