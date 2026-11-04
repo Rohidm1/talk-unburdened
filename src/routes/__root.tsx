@@ -31,6 +31,7 @@ import { NetworkStatus } from "@/components/site/NetworkStatus";
 import { AmbientTheme } from "@/components/site/AmbientTheme";
 import { ReportDialog } from "@/components/site/ReportDialog";
 import { ReferralRedeemer } from "@/components/site/ReferralRedeemer";
+import { WellnessReminder } from "@/components/site/WellnessReminder";
 
 function NotFoundComponent() {
   return (
@@ -217,7 +218,7 @@ function RootComponent() {
         <SafeBoundary name="bottom-nav"><BottomNav /></SafeBoundary>
         <SafeBoundary name="safety"><SafetyPrompt /><ReportDialog /><SosOverlay /></SafeBoundary>
         <SafeBoundary name="network"><NetworkStatus /></SafeBoundary>
-        <SafeBoundary name="referral"><ReferralRedeemer /></SafeBoundary>
+        <SafeBoundary name="referral"><ReferralRedeemer /><WellnessReminder /></SafeBoundary>
         <SafeBoundary name="welcome"><WelcomeGate /><ConsentBanner /></SafeBoundary>
       </I18nextProvider>
     </QueryClientProvider>

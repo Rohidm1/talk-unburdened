@@ -41,7 +41,7 @@ function HelpPage() {
               <p className="text-sm text-muted-foreground">{h.contact}{h.note ? ` · ${h.note}` : ""}</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <a href={`tel:${h.tel}`} className="inline-flex min-h-12 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground">
-                  <Phone className="size-4" aria-hidden /> Call {h.tel}
+                  <Phone className="size-4" aria-hidden /> Call {h.display ?? h.tel}
                 </a>
                 {h.sms ? (
                   <a href={`sms:${h.sms}`} className="inline-flex min-h-12 items-center gap-2 rounded-full border border-border px-5 text-sm">

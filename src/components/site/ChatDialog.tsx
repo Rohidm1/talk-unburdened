@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { alertUser } from "@/lib/native";
+import { confirmSafeToSend } from "@/lib/safety";
+import { openReport } from "@/components/site/ReportDialog";
 import { markSeen } from "@/hooks/useBadges";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Dices, SendHorizonal, Volume2, VolumeX } from "lucide-react";
+import { Flag, Dices, SendHorizonal, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -215,6 +217,7 @@ export function ChatDialog({
   const submit = async () => {
     const body = draft.trim();
     if (!body || !sessionId || sending || remaining <= 0) return;
+    if (!(await confirmSafeToSend(body))) return;
     setSending(true);
     setDraft("");
     setUserSpoke(true);
@@ -286,6 +289,16 @@ export function ChatDialog({
               </span>
             </span>
             <span className="flex items-center gap-2">
+              {sessionId ? (
+                <button
+                  type="button"
+                  aria-label="Report this conversation"
+                  onClick={() => openReport({ type: "chat", id: sessionId, canBlock: false })}
+                  className="rounded-full border border-border p-1.5 text-muted-foreground hover:text-destructive"
+                >
+                  <Flag className="size-4" />
+                </button>
+              ) : null}
               <button
                 type="button"
                 aria-label={muted ? "Unmute sounds" : "Mute sounds"}

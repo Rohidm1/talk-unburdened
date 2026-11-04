@@ -48,7 +48,7 @@ export function useBadges(userId: string | null) {
         .gt("created_at", lastSeen("bottles")),
       supabase
         .from("community_posts")
-        .select("id, parent:community_posts!community_posts_parent_id_fkey!inner(user_id)", { count: "exact", head: true })
+        .select("id, parent:parent_id!inner(user_id)", { count: "exact", head: true })
         .eq("parent.user_id", userId)
         .neq("user_id", userId)
         .gt("created_at", lastSeen("community")),

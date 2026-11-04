@@ -21,3 +21,7 @@
 - Optional analytics, engagement logging and ads run only after cookie consent; essential storage is always allowed.
 - The phone bottom bar sets a `--nav-offset` CSS variable; any new fixed-bottom element must offset by it.
 - UI text lives in per-language dictionaries under src/locales (English is the source type); new languages are added there, not inline.
+- Pre-send safety uses the free on-device word filter (`confirmSafeToSend`) on every user-composed message; the database triggers remain the enforcement layer (masking, slur blocking, per-account limits). No AI moderation.
+- Rewards (daily fortune, SOS streaks, referrals) are granted only inside security-definer database functions that are idempotent per day/person and log a credit transaction.
+- Reports and blocks go through one `report_content` function feeding the admin Reports tab; matching, bottles and community views must respect `user_blocks`.
+- Global overlays (SOS, safety prompt, report sheet, welcome, offline, holiday theme) mount once in the root inside `SafeBoundary` and are opened via window events.

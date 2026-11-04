@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { deleteMyAccount, getCreditHistory } from "@/lib/privacy.functions";
 import { enableNotifications, haptic, hapticsEnabled, notificationsSupported, setHapticsEnabled } from "@/lib/native";
 import { isMuted, setMuted } from "@/lib/sfx";
+import { getAlertPrefs, setAlertPref, type AlertKind } from "@/lib/prefs";
 
 const KIND_LABELS: Record<string, string> = {
   purchase: "Credits bought",
@@ -26,6 +27,9 @@ const KIND_LABELS: Record<string, string> = {
   bottle_open: "Bottle opened",
   bottle_reply: "Bottle reply",
   refund: "Refund",
+  daily_fortune: "Daily fortune bonus",
+  sos_streak: "Calm streak reward",
+  referral_bonus: "Invite bonus",
   chargeback: "Chargeback",
 };
 
@@ -75,8 +79,10 @@ export function AppSettings() {
   const [notif, setNotif] = useState<NotificationPermission | "unsupported">("default");
   const [vibrate, setVibrate] = useState(true);
   const [sound, setSound] = useState(true);
+  const [prefs, setPrefs] = useState<Record<AlertKind, boolean> | null>(null);
 
   useEffect(() => {
+    setPrefs(getAlertPrefs());
     setNotif(notificationsSupported() ? Notification.permission : "unsupported");
     setVibrate(hapticsEnabled());
     setSound(!isMuted());
@@ -101,6 +107,23 @@ export function AppSettings() {
             <Button variant="outline" className="min-h-12" onClick={async () => setNotif(await enableNotifications())}>Turn on</Button>
           )}
         </div>
+        {prefs ? (
+          <fieldset className="rounded-2xl border border-border p-4">
+            <legend className="px-1 text-sm font-semibold">Alert me about</legend>
+            {([
+              ["chat", "Chat replies"],
+              ["bottles", "Bottle replies"],
+              ["community", "Community replies"],
+              ["buddies", "Buddy notes"],
+              ["wellness", "Evening wellness check-ins"],
+            ] as const).map(([k, label]) => (
+              <div key={k} className="flex min-h-12 items-center justify-between gap-3">
+                <Label htmlFor={`pref-${k}`}>{label}</Label>
+                <Switch id={`pref-${k}`} checked={prefs[k]} onCheckedChange={(v) => { setAlertPref(k, v); setPrefs({ ...prefs, [k]: v }); }} />
+              </div>
+            ))}
+          </fieldset>
+        ) : null}
         <div className="flex min-h-12 items-center justify-between gap-3">
           <Label htmlFor="sound-switch">Alert sounds</Label>
           <Switch id="sound-switch" checked={sound} onCheckedChange={(v) => { setSound(v); setMuted(!v); }} />

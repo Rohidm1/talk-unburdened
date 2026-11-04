@@ -32,3 +32,13 @@
 - [ ] Background push when app is closed — blocked: needs a push sending service (alerts work while app is open/in background tab)
 - [ ] Add new dilemmas after 2026-10-22
 - [x] Menu fits on all screens; preview label glitch fixed; database trigger functions locked down
+
+## Engagement & safety round (Nov 2026)
+- [x] Speed Chat auto-rotation + Anonymous Buddies (codenames, 1 free note/day)
+- [x] Community topics with titles, threaded replies, up/down votes, report & block
+- [x] Welcome/18+ notice, word-filter safety prompt, report/block everywhere, admin Reports tab, crisis helplines page
+- [x] Bottle Ocean visuals, Support Wings, daily fortune (+1), SOS streak rewards (2/5), invite a friend (5+5)
+- [x] Mood SOS, grounding, journal, affirmations, mood tracker
+- [x] Evening OLED theme, alert preferences, wellness reminders, offline screen + network toasts, holiday themes, self-healing error boundaries
+- [ ] Extra server-side rate limits beyond existing per-account limits — waiting on user OK (no standard rate-limit tool; would be custom)
+- [ ] Buddies from Full Chat — not applicable (Full Chat partners are team members, not users); confirm with user

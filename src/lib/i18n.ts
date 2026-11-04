@@ -11,6 +11,9 @@ if (!i18n.isInitialized) {
     supportedLngs: Object.keys(LOCALES),
     interpolation: { escapeValue: false },
   });
+} else {
+  // Keep a long-lived (server) instance in sync when dictionaries change.
+  for (const [code, dict] of Object.entries(LOCALES)) i18n.addResourceBundle(code, "translation", dict, true, true);
 }
 
 export default i18n;

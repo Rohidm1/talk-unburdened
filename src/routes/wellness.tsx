@@ -4,10 +4,13 @@ import "@/lib/i18n";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Sections";
 import { FloatingChat } from "@/components/site/FloatingChat";
+import { LifeBuoy } from "lucide-react";
+import { Affirmations, Grounding, Journal, MoodTracker } from "@/components/site/WellnessToolkit";
+import { openSos } from "@/lib/safety";
 
-const title = "Wellness Tools – Box Breathing, Vent & Unwind | Anontalk";
+const title = "Wellness Toolkit – Breathing, Grounding, Journal & Mood | Anontalk";
 const description =
-  "Free 2-minute wellness exercises: a guided box breathing circle, a thought shredder to let go of stress, and a quick mood guide.";
+  "Free wellness tools: Mood SOS breathing, 5-4-3-2-1 grounding, journaling prompts, affirmations and a private daily mood tracker.";
 
 export const Route = createFileRoute("/wellness")({
   head: () => ({
@@ -221,6 +224,19 @@ function WellnessPage() {
           <BoxBreathing />
           <Shredder />
           <MindUnwind />
+        </div>
+        <section className="mt-10 rounded-3xl border border-primary/40 bg-primary/10 p-6 text-center">
+          <h2 className="font-display text-2xl font-semibold">Panicking or overwhelmed right now?</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Mood SOS: one guided minute of calm breathing. Do it 3 days in a row for a little surprise.</p>
+          <button type="button" onClick={openSos} className="glow-cta mt-4 inline-flex min-h-12 items-center gap-2 rounded-full bg-primary px-6 font-semibold text-primary-foreground">
+            <LifeBuoy className="size-5" /> Start Mood SOS
+          </button>
+        </section>
+        <div className="mt-10 grid gap-5 lg:grid-cols-3">
+          <Grounding />
+          <Journal />
+          <Affirmations />
+          <MoodTracker />
         </div>
       </main>
       <Footer />

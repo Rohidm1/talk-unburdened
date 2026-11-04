@@ -37,7 +37,7 @@ export function Header() {
           <span className="font-display text-lg font-semibold tracking-tight">Anontalk</span>
         </a>
 
-        <nav className="hidden items-center gap-6 xl:flex">
+        <nav className="hidden items-center gap-5 whitespace-nowrap 2xl:flex">
           {links.map((l) => (
             <a
               key={l.href}
@@ -65,14 +65,14 @@ export function Header() {
               </Button>
             </>
           )}
-          <button className="grid size-12 place-items-center xl:hidden" onClick={() => setOpen((v) => !v)} aria-label="Menu" aria-expanded={open}>
+          <button className="grid size-12 place-items-center 2xl:hidden" onClick={() => setOpen((v) => !v)} aria-label="Menu" aria-expanded={open}>
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
         </div>
       </div>
 
       {open ? (
-        <div className="border-t border-border/60 px-5 py-4 xl:hidden">
+        <div className="border-t border-border/60 px-5 py-4 2xl:hidden">
           <nav className="flex flex-col gap-3">
             {links.map((l) => (
               <a

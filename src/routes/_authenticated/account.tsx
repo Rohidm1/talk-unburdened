@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { getMyAccount, getMyChatSessions, updateAlias } from "@/lib/account.functions";
 import { TopUpDialog } from "@/components/site/TopUpDialog";
 import { AppSettings, CreditHistory, DeleteAccount } from "@/components/site/AccountExtras";
+import { DailyFortune, InviteCard, WingsCard } from "@/components/site/Rewards";
 import { PaymentTestModeBanner } from "@/components/site/PaymentTestModeBanner";
 import { createPortalSession } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
@@ -213,6 +214,11 @@ function AccountPage() {
         ) : (
           <p className="mt-4 text-sm text-muted-foreground">No chats yet.</p>
         )}
+      </section>
+      <section className="mt-8 grid gap-5 md:grid-cols-2">
+        <DailyFortune />
+        <WingsCard />
+        <div className="md:col-span-2"><InviteCard code={profile?.referral_code} /></div>
       </section>
       <CreditHistory />
       <AppSettings />

@@ -49,6 +49,8 @@ import { AdSenseSlot } from "@/components/site/AdSenseSlot";
 
 import { DirectAnswer, HomeFaq } from "@/components/site/HomeAnswers";
 import { TrustBadges } from "@/components/site/TrustBadges";
+import { DailyFortune } from "@/components/site/Rewards";
+import { SosCard } from "@/components/site/SosCard";
 import { homeTitle, homeDescription, homeAnswers } from "@/data/home-answers";
 import { pageHead, jsonLd, faqSchema, websiteSchema } from "@/lib/seo";
 
@@ -220,6 +222,10 @@ function HomePage() {
 
         <DirectAnswer />
         <TrustBadges />
+        <div className="mx-auto grid w-full max-w-6xl gap-5 px-5 md:grid-cols-2">
+          <DailyFortune compact />
+          <SosCard />
+        </div>
 
         <section id="listeners" className="mx-auto max-w-6xl px-5 py-16">
           <div className="mb-8 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">

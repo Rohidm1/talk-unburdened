@@ -136,7 +136,7 @@ export function SosOverlay() {
             <li key={h.country}>
               <a href={`tel:${h.tel}`} className="flex min-h-12 items-center justify-between gap-2 rounded-xl bg-card px-3">
                 <span>{h.flag} {h.name}</span>
-                <span className="font-semibold text-primary">{h.tel}</span>
+                <span className="whitespace-nowrap font-semibold text-primary">{h.display ?? h.tel}</span>
               </a>
             </li>
           ))}

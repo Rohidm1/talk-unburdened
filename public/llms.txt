@@ -13,7 +13,9 @@ Make it easy for anyone who has no one to talk to to be heard, without giving th
 - [Community](https://anontalk.online/community): Topic boards for peer discussion.
 - [Message in a Bottle](https://anontalk.online/bottles): Drop a message and receive replies from strangers.
 - [Speed Chat](https://anontalk.online/speed-chat): 2-minute chats with a random person.
-- [Wellness](https://anontalk.online/wellness): Breathing and grounding activities.
+- [Wellness](https://anontalk.online/wellness): Mood SOS breathing, 5-4-3-2-1 grounding, journaling prompts, affirmations and a private mood tracker.
+- [Anonymous Buddies](https://anontalk.online/buddies): Stay connected with Speed Chat matches using codenames; one free encouragement note per day.
+- [Get help now](https://anontalk.online/help): Crisis helplines for the Netherlands, Belgium, Greece, the US and Germany.
 
 ## Policies
 - [Privacy Policy](https://anontalk.online/privacy): GDPR processing, retention and rights.
@@ -28,6 +30,7 @@ Make it easy for anyone who has no one to talk to to be heard, without giving th
 - Credits are sold in bundles (with bonus credits) via web checkout (card, iDEAL) or Google Play in the Android app. No subscription.
 - Chat partners use profile personas; some replies may be AI-assisted when no team member is available.
 - Messages are stored for safety review and are not end-to-end encrypted. Contact details are masked automatically.
+- Daily wellness fortune: 1 bonus credit per day. Invite a friend: 5 bonus credits each. Mood SOS streaks: 2 credits at 3 days, 5 at 7 days.
 - Not an emergency service. In danger, call 112 or the local emergency number.
 
 ## Optional

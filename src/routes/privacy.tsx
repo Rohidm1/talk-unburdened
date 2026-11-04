@@ -39,7 +39,9 @@ function PrivacyPage() {
             <ul>
               <li>Email address, chosen nickname (no real name is needed), password (stored hashed by our sign-in provider) and approximate signup country.</li>
               <li>Credit balance and purchase history, including whether you paid by card (Stripe) or Google Play.</li>
-              <li>Chat messages, Speed Chat messages, community posts, bottle messages, dilemma votes and arguments, and support tickets.</li>
+              <li>Chat messages, Speed Chat messages, community topics, replies and votes, bottle messages, buddy notes, dilemma votes and arguments, reports and blocks, and support tickets.</li>
+              <li>Reward records: daily fortune claims, Mood SOS completion days and invite referrals.</li>
+              <li>Journal entries and mood check-ins in the Wellness toolkit stay in your browser only and are never sent to us.</li>
               <li>Only after cookie consent: basic visit statistics (page path, referrer, country and a random visitor ID).</li>
             </ul>
           ),

@@ -4,6 +4,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { markSeen } from "@/hooks/useBadges";
 import { haptic, isNoCreditError, openPaywall } from "@/lib/native";
+import { confirmSafeToSend } from "@/lib/safety";
+import { ReportButton } from "@/components/site/ReportDialog";
 import "@/lib/i18n";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Sections";
@@ -33,26 +35,38 @@ export const Route = createFileRoute("/bottles")({
 
 type Fished = { id: string; body: string; echo_count: number; created_at: string };
 
-function Ocean({ onFish, busy }: { onFish: () => void; busy: boolean }) {
+const BOTTLES = ["🍾", "🧴", "🍶", "🍾", "🧴", "🍾", "🍶"];
+
+/** Interactive ocean: tap any floating bottle (or the button) to fish one up. */
+function Ocean({ onFish, busy, casting }: { onFish: () => void; busy: boolean; casting: boolean }) {
   return (
-    <div className="ocean relative h-64 overflow-hidden rounded-3xl border border-border">
-      {Array.from({ length: 7 }).map((_, i) => (
-        <span
+    <div className="ocean relative h-72 overflow-hidden rounded-3xl border border-border sm:h-80">
+      <div aria-hidden className="absolute inset-x-0 top-6 flex justify-center gap-16 text-xl opacity-70">
+        <span>✦</span><span>☾</span><span>✦</span>
+      </div>
+      <div aria-hidden className="ocean-waves absolute inset-x-0 bottom-0 h-1/2 opacity-60" />
+      <div aria-hidden className="ocean-waves absolute inset-x-0 bottom-0 h-1/3 opacity-80 [animation-direction:reverse] [animation-duration:24s]" />
+      {BOTTLES.map((b, i) => (
+        <button
           key={i}
-          aria-hidden
-          className="bottle-float absolute text-3xl"
-          style={{ left: `${8 + i * 13}%`, top: `${30 + ((i * 37) % 40)}%`, animationDelay: `${i * 0.7}s` }}
+          type="button"
+          onClick={onFish}
+          disabled={busy}
+          aria-label="Fish up this bottle"
+          className="bottle-float absolute grid size-12 place-items-center text-3xl"
+          style={{ left: `${6 + i * 13}%`, top: `${42 + ((i * 37) % 30)}%`, animationDelay: `${i * 0.7}s` }}
         >
-          🍾
-        </span>
+          {b}
+        </button>
       ))}
+      {casting ? <span aria-hidden className="bottle-cast absolute bottom-6 left-6 text-4xl">🍾</span> : null}
       <button
         type="button"
         onClick={onFish}
         disabled={busy}
-        className="glow-cta absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+        className="glow-cta absolute bottom-5 left-1/2 min-h-12 -translate-x-1/2 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground disabled:opacity-50"
       >
-        {busy ? "Fishing…" : "Fish up a bottle"}
+        {busy ? "Fishing…" : "Fish up a bottle · 1 credit"}
       </button>
     </div>
   );
@@ -68,6 +82,7 @@ function BottlesPage() {
   const [fished, setFished] = useState<Fished | null>(null);
   const [echo, setEcho] = useState("");
   const [busy, setBusy] = useState(false);
+  const [casting, setCasting] = useState(false);
 
   const mine = useQuery({
     queryKey: ["my-bottles", user?.id],
@@ -87,6 +102,7 @@ function BottlesPage() {
     if (!user) return;
     const body = draft.trim();
     if (body.length < 3) return;
+    if (!(await confirmSafeToSend(body))) return;
     const { error } = await supabase.from("bottles").insert({ user_id: user.id, body });
     if (error) {
       if (isNoCreditError(error.message)) return openPaywall();
@@ -95,6 +111,8 @@ function BottlesPage() {
     }
     setDraft("");
     haptic(15);
+    setCasting(true);
+    window.setTimeout(() => setCasting(false), 1700);
     toast.success("Your bottle is floating out to sea 🌊");
     void qc.invalidateQueries({ queryKey: ["my-bottles"] });
   }
@@ -118,6 +136,7 @@ function BottlesPage() {
     if (!user || !fished) return;
     const body = echo.trim();
     if (body.length < 2) return;
+    if (!(await confirmSafeToSend(body))) return;
     const { error } = await supabase.from("bottle_echoes").insert({ bottle_id: fished.id, user_id: user.id, body });
     if (error) {
       if (isNoCreditError(error.message)) return openPaywall();
@@ -135,7 +154,7 @@ function BottlesPage() {
       <Header />
       <FloatingChat />
       <main className="mx-auto max-w-4xl px-5 py-16">
-        <h1 className="font-display text-4xl font-semibold tracking-tight md:text-5xl">Message in a bottle</h1>
+        <h1 className="font-display text-4xl font-semibold tracking-tight md:text-5xl">The Bottle Ocean</h1>
         <p className="mt-3 max-w-2xl text-muted-foreground">
           Say what you can't say out loud. Someone, somewhere, will read it and send an echo back.
         </p>
@@ -149,7 +168,7 @@ function BottlesPage() {
           </div>
         ) : (
           <>
-            <div className="mt-8"><Ocean onFish={fish} busy={busy} /></div>
+            <div className="mt-8"><Ocean onFish={fish} busy={busy} casting={casting} /></div>
 
             {fished ? (
               <section className="glass mt-6 rounded-3xl p-6">
@@ -163,9 +182,10 @@ function BottlesPage() {
                   className="mt-4 w-full rounded-2xl border border-input bg-background/50 p-3 text-sm"
                 />
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <button type="button" onClick={sendEcho} className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground">Send echo</button>
+                  <button type="button" onClick={sendEcho} className="min-h-12 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground">Send echo · 1 credit</button>
                   <Link to="/" search={{ chat: 1 }} className="rounded-full border border-border px-5 py-2 text-sm">Start an anonymous chat</Link>
                   <button type="button" onClick={() => setFished(null)} className="px-3 py-2 text-sm text-muted-foreground">Throw back</button>
+                  <ReportButton target={{ type: "bottle", id: fished.id, onDone: () => setFished(null) }} />
                 </div>
               </section>
             ) : null}
@@ -180,7 +200,7 @@ function BottlesPage() {
                 className="mt-3 w-full rounded-2xl border border-input bg-background/50 p-3 text-sm"
               />
               <div className="mt-2 flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">{draft.length}/280 · 2 per day</span>
+                <span className="text-xs text-muted-foreground">{draft.length}/280 · 2 per day · 1 credit</span>
                 <button type="button" onClick={drop} className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground">Drop it in the sea</button>
               </div>
             </section>
