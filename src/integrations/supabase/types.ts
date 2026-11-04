@@ -271,6 +271,74 @@ export type Database = {
         }
         Relationships: []
       }
+      buddies: {
+        Row: {
+          codename_a: string
+          codename_b: string
+          created_at: string
+          id: string
+          requested_by: string
+          source_match_id: string | null
+          status: string
+          user_a: string
+          user_b: string
+        }
+        Insert: {
+          codename_a?: string
+          codename_b?: string
+          created_at?: string
+          id?: string
+          requested_by: string
+          source_match_id?: string | null
+          status?: string
+          user_a: string
+          user_b: string
+        }
+        Update: {
+          codename_a?: string
+          codename_b?: string
+          created_at?: string
+          id?: string
+          requested_by?: string
+          source_match_id?: string | null
+          status?: string
+          user_a?: string
+          user_b?: string
+        }
+        Relationships: []
+      }
+      buddy_notes: {
+        Row: {
+          body: string
+          buddy_id: string
+          created_at: string
+          id: string
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          buddy_id: string
+          created_at?: string
+          id?: string
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          buddy_id?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "buddy_notes_buddy_id_fkey"
+            columns: ["buddy_id"]
+            isOneToOne: false
+            referencedRelation: "buddies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       call_monitor_sessions: {
         Row: {
           admin_user_id: string
@@ -612,6 +680,8 @@ export type Database = {
           id: string
           is_hidden: boolean
           parent_id: string | null
+          score: number
+          title: string | null
           topic: string
           user_id: string
         }
@@ -622,6 +692,8 @@ export type Database = {
           id?: string
           is_hidden?: boolean
           parent_id?: string | null
+          score?: number
+          title?: string | null
           topic: string
           user_id: string
         }
@@ -632,6 +704,8 @@ export type Database = {
           id?: string
           is_hidden?: boolean
           parent_id?: string | null
+          score?: number
+          title?: string | null
           topic?: string
           user_id?: string
         }
@@ -639,6 +713,35 @@ export type Database = {
           {
             foreignKeyName: "community_posts_parent_id_fkey"
             columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_votes: {
+        Row: {
+          created_at: string
+          post_id: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          post_id: string
+          user_id: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          post_id?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_votes_post_id_fkey"
+            columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "community_posts"
             referencedColumns: ["id"]
@@ -844,6 +947,27 @@ export type Database = {
         }
         Relationships: []
       }
+      fortune_claims: {
+        Row: {
+          created_at: string
+          day: string
+          quote_index: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day?: string
+          quote_index: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          day?: string
+          quote_index?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       listener_agents: {
         Row: {
           agent_user_id: string
@@ -938,6 +1062,7 @@ export type Database = {
           id: string
           is_blocked: boolean
           locale: string
+          referral_code: string | null
           sent_message_count: number
           signup_country: string | null
           updated_at: string
@@ -952,6 +1077,7 @@ export type Database = {
           id: string
           is_blocked?: boolean
           locale?: string
+          referral_code?: string | null
           sent_message_count?: number
           signup_country?: string | null
           updated_at?: string
@@ -966,9 +1092,28 @@ export type Database = {
           id?: string
           is_blocked?: boolean
           locale?: string
+          referral_code?: string | null
           sent_message_count?: number
           signup_country?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          referred_id: string
+          referrer_id: string
+        }
+        Insert: {
+          created_at?: string
+          referred_id: string
+          referrer_id: string
+        }
+        Update: {
+          created_at?: string
+          referred_id?: string
+          referrer_id?: string
         }
         Relationships: []
       }
@@ -999,6 +1144,24 @@ export type Database = {
           referrer?: string | null
           user_id?: string | null
           visitor_id?: string
+        }
+        Relationships: []
+      }
+      sos_days: {
+        Row: {
+          created_at: string
+          day: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          day?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1150,6 +1313,63 @@ export type Database = {
         }
         Relationships: []
       }
+      user_blocks: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      user_reports: {
+        Row: {
+          blocked: boolean
+          created_at: string
+          excerpt: string | null
+          id: string
+          reason: string | null
+          reported_id: string | null
+          reporter_id: string
+          status: string
+          target_id: string
+          target_type: string
+        }
+        Insert: {
+          blocked?: boolean
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          reason?: string | null
+          reported_id?: string | null
+          reporter_id: string
+          status?: string
+          target_id: string
+          target_type: string
+        }
+        Update: {
+          blocked?: boolean
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          reason?: string | null
+          reported_id?: string | null
+          reporter_id?: string
+          status?: string
+          target_id?: string
+          target_type?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1176,11 +1396,36 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_resolve_report: {
+        Args: { _action: string; _report_id: string }
+        Returns: undefined
+      }
       assign_chat_agent: {
         Args: { _client_id: string; _listener_id: string }
         Returns: string
       }
+      block_user_by_post: { Args: { _post_id: string }; Returns: undefined }
+      buddy_end: { Args: { _buddy_id: string }; Returns: undefined }
+      buddy_request: { Args: { _match_id: string }; Returns: string }
+      buddy_respond: {
+        Args: { _accept: boolean; _buddy_id: string }
+        Returns: undefined
+      }
+      claim_daily_fortune: {
+        Args: never
+        Returns: {
+          granted: boolean
+          quote_index: number
+        }[]
+      }
       claim_next_chat: { Args: { _agent_user_id: string }; Returns: string }
+      complete_sos: {
+        Args: never
+        Returns: {
+          reward: number
+          streak: number
+        }[]
+      }
       delete_user_content: { Args: { _user_id: string }; Returns: undefined }
       dilemma_results: {
         Args: { _dilemma_id: string }
@@ -1199,6 +1444,7 @@ export type Database = {
           id: string
         }[]
       }
+      gen_codename: { Args: never; Returns: string }
       grant_chat_credits: {
         Args: {
           _cents: number
@@ -1242,6 +1488,17 @@ export type Database = {
           user_prompt: string
         }[]
       }
+      my_wings: { Args: never; Returns: number }
+      redeem_referral: { Args: { _code: string }; Returns: string }
+      report_content: {
+        Args: {
+          _block: boolean
+          _reason: string
+          _target_id: string
+          _target_type: string
+        }
+        Returns: undefined
+      }
       revoke_chat_credits: {
         Args: {
           _block: boolean
@@ -1263,6 +1520,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      send_buddy_note: {
+        Args: { _body: string; _buddy_id: string }
+        Returns: string
       }
       send_metered_chat_message: {
         Args: { _body: string; _session_id: string; _user_id: string }
@@ -1341,6 +1602,7 @@ export type Database = {
         Args: { _argument_id: string; _value: number }
         Returns: number
       }
+      vote_post: { Args: { _post_id: string; _value: number }; Returns: number }
     }
     Enums: {
       app_role: "client" | "staff" | "admin"

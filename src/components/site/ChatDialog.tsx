@@ -131,7 +131,7 @@ export function ChatDialog({
     if (list.length > lastCount.current && lastCount.current > 0) {
       const last = list[list.length - 1];
       if (last && last.sender_role !== "client") {
-        alertUser({ title: "New message", body: "Your chat partner replied.", url: "/?chat=1", tag: "chat" });
+        alertUser({ title: "New message", body: "Your chat partner replied.", url: "/?chat=1", tag: "chat", kind: "chat" });
         markSeen("chat");
       }
     }

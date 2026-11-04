@@ -3,6 +3,7 @@
  * Every function is safe to call during SSR (it just does nothing).
  */
 import { isMuted, playSfx, type SfxName } from "@/lib/sfx";
+import { alertAllowed, type AlertKind } from "@/lib/prefs";
 
 const HAPTICS_KEY = "at.haptics.off";
 
@@ -26,8 +27,8 @@ export function haptic(pattern: number | number[] = 10) {
 }
 
 /** Alert = sound + vibration + system notification when the app is in the background. */
-export function alertUser(opts: { title: string; body: string; url?: string; sound?: SfxName; tag?: string }) {
-  if (typeof window === "undefined") return;
+export function alertUser(opts: { title: string; body: string; url?: string; sound?: SfxName; tag?: string; kind?: AlertKind }) {
+  if (typeof window === "undefined" || !alertAllowed(opts.kind)) return;
   if (!isMuted()) playSfx(opts.sound ?? "receive");
   haptic([30, 40, 30]);
   if (document.visibilityState === "visible") return;

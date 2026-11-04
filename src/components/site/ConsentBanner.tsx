@@ -2,13 +2,17 @@ import { useEffect, useState } from "react";
 import { Cookie } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getConsent, setConsent } from "@/lib/consent";
+import { welcomeAccepted } from "@/components/site/WelcomeGate";
 
 /** GDPR cookie banner: statistics and ads stay off until the visitor accepts. */
 export function ConsentBanner() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    setShow(getConsent() === null);
+    const sync = () => setShow(getConsent() === null && welcomeAccepted());
+    sync();
+    window.addEventListener("at:welcome", sync);
+    return () => window.removeEventListener("at:welcome", sync);
   }, []);
 
   if (!show) return null;

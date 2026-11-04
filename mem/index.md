@@ -10,6 +10,7 @@ No demo calls: all calls route to a real live agent, free minutes included.
 ## Memories
 - [SEO and direct answers](mem://features/seo-aeo) — English search positioning, public content URLs, accurate privacy and account answers
 - [Verified accounts and credits](mem://features/auth-credits) — five welcome credits, 1 credit per sent message everywhere, bundle bonuses, Stripe + Google Play
+- [Engagement rewards and safety](mem://features/engagement-rewards) — referral 5+5, fortune 1/day, SOS streak 2/5, free buddy notes, word filter only, helplines
 - [Privacy promises and legal pages](mem://features/privacy-legal) — honest badges only, Open Ear Collective, entity details still missing
 - [CRM team management](mem://features/crm) — admin account, worker login creation, roles
 - [Call routing and free minutes](mem://features/call-routing) — sticky agent routing, agent↔profile mapping, free-minute paywall

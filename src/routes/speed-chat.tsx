@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { alertUser, haptic, isNoCreditError, openPaywall } from "@/lib/native";
-import { Flag, Send } from "lucide-react";
+import { Flag, Send, Users } from "lucide-react";
+import { confirmSafeToSend } from "@/lib/safety";
+import { openReport } from "@/components/site/ReportDialog";
 import "@/lib/i18n";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Sections";
@@ -72,6 +74,10 @@ function SpeedChatPage() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [text, setText] = useState("");
   const [now, setNow] = useState(Date.now());
+  const [autoRotate, setAutoRotate] = useState(true);
+  const [rotateIn, setRotateIn] = useState<number | null>(null);
+  const [buddyState, setBuddyState] = useState<"none" | "pending" | "active">("none");
+  const [reported, setReported] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
 
   // Searching: retry joining every 3s until matched.
@@ -139,6 +145,29 @@ function SpeedChatPage() {
     if (state === "chat" && match && (left === 0 || match.status !== "active")) setState("ended");
   }, [left, match, state]);
 
+  // Automatic rotation: a few seconds after a chat ends, look for the next stranger.
+  useEffect(() => {
+    if (state !== "ended" || !autoRotate || reported || buddyState !== "none") {
+      setRotateIn(null);
+      return;
+    }
+    setRotateIn(8);
+    const id = window.setInterval(() => {
+      setRotateIn((v) => {
+        if (v === null) return null;
+        if (v <= 1) {
+          window.clearInterval(id);
+          setMatch(null);
+          setMsgs([]);
+          setState("searching");
+          return null;
+        }
+        return v - 1;
+      });
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [state, autoRotate, reported, buddyState]);
+
   useEffect(() => {
     return () => {
       void supabase.rpc("speed_leave_queue");
@@ -152,6 +181,7 @@ function SpeedChatPage() {
   async function send() {
     const body = text.trim();
     if (!body || !match) return;
+    if (!(await confirmSafeToSend(body))) return;
     setText("");
     const { error } = await supabase.rpc("speed_send", { _match_id: match.id, _body: body });
     if (error) {
@@ -166,12 +196,36 @@ function SpeedChatPage() {
     haptic(8);
   }
 
-  async function report() {
+  function report() {
     if (!match) return;
-    const reason = window.prompt("What happened? (optional)") ?? "";
-    await supabase.rpc("speed_report", { _match_id: match.id, _reason: reason });
-    toast.success("Reported. You won't be matched with this person again.");
-    setState("ended");
+    openReport({
+      type: "speed_chat",
+      id: match.id,
+      onDone: () => {
+        setReported(true);
+        setState("ended");
+      },
+    });
+  }
+
+  async function becomeBuddies() {
+    if (!match) return;
+    const { data, error } = await supabase.rpc("buddy_request", { _match_id: match.id });
+    if (error) {
+      toast.error(error.message.includes("buddy_limit") ? "You already have 10 buddies." : "Could not send the buddy request.");
+      return;
+    }
+    haptic(20);
+    setBuddyState(data === "active" ? "active" : "pending");
+    toast.success(data === "active" ? "You're anonymous buddies now 🤝" : "Buddy request sent. If they tap it too, you're connected.");
+  }
+
+  function startSearch() {
+    setMatch(null);
+    setMsgs([]);
+    setReported(false);
+    setBuddyState("none");
+    setState("searching");
   }
 
   return (
@@ -193,18 +247,34 @@ function SpeedChatPage() {
         ) : state === "idle" || state === "ended" ? (
           <div className="glass mt-8 rounded-3xl p-8 text-center">
             {state === "ended" ? <p className="mb-4 text-sm text-muted-foreground">The chat has ended.</p> : null}
+            {state === "ended" && match && !reported && msgs.length > 0 ? (
+              <div className="mx-auto mb-5 max-w-sm rounded-2xl border border-primary/30 bg-primary/10 p-4 text-sm">
+                <p className="font-semibold">Had a good conversation?</p>
+                <p className="mt-1 text-muted-foreground">Become anonymous buddies — codenames only, one kind note a day.</p>
+                <button type="button" disabled={buddyState !== "none"} onClick={() => void becomeBuddies()} className="mt-3 inline-flex min-h-12 items-center gap-2 rounded-full bg-primary px-5 font-semibold text-primary-foreground disabled:opacity-60">
+                  <Users className="size-4" /> {buddyState === "none" ? "Become buddies" : buddyState === "pending" ? "Request sent" : "Buddies ✓"}
+                </button>
+                {buddyState !== "none" ? <p className="mt-2"><Link to="/buddies" className="text-primary underline">Go to your buddies</Link></p> : null}
+              </div>
+            ) : null}
+            {rotateIn !== null ? (
+              <p className="mb-3 text-sm text-muted-foreground" aria-live="polite">
+                Next stranger in {rotateIn}s ·{" "}
+                <button type="button" onClick={() => setAutoRotate(false)} className="text-primary underline">Stop</button>
+              </p>
+            ) : null}
             <button
               type="button"
-              onClick={() => {
-                setMatch(null);
-                setMsgs([]);
-                setState("searching");
-              }}
+              onClick={startSearch}
               className="glow-cta rounded-full bg-primary px-8 py-3 font-semibold text-primary-foreground"
             >
               {state === "ended" ? "Find someone new" : "Find a stranger"}
             </button>
-            <p className="mt-3 text-xs text-muted-foreground">3 speed-chats per day</p>
+            <p className="mt-3 text-xs text-muted-foreground">3 speed-chats per day · 1 credit per message you send</p>
+            <label className="mt-3 inline-flex min-h-10 items-center gap-2 text-xs text-muted-foreground">
+              <input type="checkbox" checked={autoRotate} onChange={(e) => setAutoRotate(e.target.checked)} className="size-4 accent-[var(--primary)]" />
+              Automatically find the next person when time's up
+            </label>
             <p className="mt-4 text-xs text-muted-foreground">
               Prefer someone who's always ready to listen?{" "}
               <Link to="/" search={{ chat: 1 }} className="text-primary underline">Chat with a chat partner</Link>
@@ -232,8 +302,8 @@ function SpeedChatPage() {
                 {String(Math.floor(left / 60)).padStart(2, "0")}:{String(left % 60).padStart(2, "0")}
               </span>
               <div className="flex items-center gap-2">
-                <button type="button" onClick={report} className="inline-flex items-center gap-1.5 rounded-full border border-destructive/50 px-3 py-1 text-sm text-destructive hover:bg-destructive/10">
-                  <Flag className="size-4" /> Report
+                <button type="button" onClick={report} className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-destructive/50 px-3 py-1 text-sm text-destructive hover:bg-destructive/10">
+                  <Flag className="size-4" /> Report / Block
                 </button>
                 <button type="button" onClick={() => match && void supabase.rpc("speed_end", { _match_id: match.id })} className="rounded-full border border-border px-3 py-1 text-sm">
                   Leave

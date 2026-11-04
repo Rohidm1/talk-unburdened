@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BottlesRouteImport } from './routes/bottles'
+import { Route as BuddiesRouteImport } from './routes/buddies'
 import { Route as CommunityRouteImport } from './routes/community'
 import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as CrmRouteRouteImport } from './routes/crm/route'
@@ -20,6 +21,7 @@ import { Route as CrmLoginRouteImport } from './routes/crm-login'
 import { Route as DeleteAccountRouteImport } from './routes/delete-account'
 import { Route as DilemmaRouteImport } from './routes/dilemma'
 import { Route as GuidelinesRouteImport } from './routes/guidelines'
+import { Route as HelpRouteImport } from './routes/help'
 import { Route as HubRouteImport } from './routes/hub'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -36,6 +38,7 @@ import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout/return'
 import { Route as CrmIndexRouteImport } from './routes/crm/index'
 import { Route as DilemmaIdRouteImport } from './routes/dilemma_.$id'
+import { Route as InviteCodeRouteImport } from './routes/invite.$code'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
@@ -56,6 +59,11 @@ const AuthRoute = AuthRouteImport.update({
 const BottlesRoute = BottlesRouteImport.update({
   id: '/bottles',
   path: '/bottles',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BuddiesRoute = BuddiesRouteImport.update({
+  id: '/buddies',
+  path: '/buddies',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CommunityRoute = CommunityRouteImport.update({
@@ -91,6 +99,11 @@ const DilemmaRoute = DilemmaRouteImport.update({
 const GuidelinesRoute = GuidelinesRouteImport.update({
   id: '/guidelines',
   path: '/guidelines',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HubRoute = HubRouteImport.update({
@@ -174,6 +187,11 @@ const DilemmaIdRoute = DilemmaIdRouteImport.update({
   path: '/dilemma/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InviteCodeRoute = InviteCodeRouteImport.update({
+  id: '/invite/$code',
+  path: '/invite/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTrackRoute = ApiPublicTrackRouteImport.update({
   id: '/api/public/track',
   path: '/api/public/track',
@@ -191,12 +209,14 @@ export interface FileRoutesByFullPath {
   '/crm': typeof CrmRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/bottles': typeof BottlesRoute
+  '/buddies': typeof BuddiesRoute
   '/community': typeof CommunityRoute
   '/cookies': typeof CookiesRoute
   '/crm-login': typeof CrmLoginRoute
   '/delete-account': typeof DeleteAccountRoute
   '/dilemma': typeof DilemmaRoute
   '/guidelines': typeof GuidelinesRoute
+  '/help': typeof HelpRoute
   '/hub': typeof HubRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -211,6 +231,7 @@ export interface FileRoutesByFullPath {
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/dilemma/$id': typeof DilemmaIdRoute
+  '/invite/$code': typeof InviteCodeRoute
   '/blog/': typeof BlogIndexRoute
   '/crm/': typeof CrmIndexRoute
   '/api/public/track': typeof ApiPublicTrackRoute
@@ -220,12 +241,14 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/bottles': typeof BottlesRoute
+  '/buddies': typeof BuddiesRoute
   '/community': typeof CommunityRoute
   '/cookies': typeof CookiesRoute
   '/crm-login': typeof CrmLoginRoute
   '/delete-account': typeof DeleteAccountRoute
   '/dilemma': typeof DilemmaRoute
   '/guidelines': typeof GuidelinesRoute
+  '/help': typeof HelpRoute
   '/hub': typeof HubRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -240,6 +263,7 @@ export interface FileRoutesByTo {
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/dilemma/$id': typeof DilemmaIdRoute
+  '/invite/$code': typeof InviteCodeRoute
   '/blog': typeof BlogIndexRoute
   '/crm': typeof CrmIndexRoute
   '/api/public/track': typeof ApiPublicTrackRoute
@@ -252,12 +276,14 @@ export interface FileRoutesById {
   '/crm': typeof CrmRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/bottles': typeof BottlesRoute
+  '/buddies': typeof BuddiesRoute
   '/community': typeof CommunityRoute
   '/cookies': typeof CookiesRoute
   '/crm-login': typeof CrmLoginRoute
   '/delete-account': typeof DeleteAccountRoute
   '/dilemma': typeof DilemmaRoute
   '/guidelines': typeof GuidelinesRoute
+  '/help': typeof HelpRoute
   '/hub': typeof HubRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -272,6 +298,7 @@ export interface FileRoutesById {
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/dilemma_/$id': typeof DilemmaIdRoute
+  '/invite/$code': typeof InviteCodeRoute
   '/blog/': typeof BlogIndexRoute
   '/crm/': typeof CrmIndexRoute
   '/api/public/track': typeof ApiPublicTrackRoute
@@ -284,12 +311,14 @@ export interface FileRouteTypes {
     | '/crm'
     | '/auth'
     | '/bottles'
+    | '/buddies'
     | '/community'
     | '/cookies'
     | '/crm-login'
     | '/delete-account'
     | '/dilemma'
     | '/guidelines'
+    | '/help'
     | '/hub'
     | '/privacy'
     | '/sitemap.xml'
@@ -304,6 +333,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/checkout/return'
     | '/dilemma/$id'
+    | '/invite/$code'
     | '/blog/'
     | '/crm/'
     | '/api/public/track'
@@ -313,12 +343,14 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/bottles'
+    | '/buddies'
     | '/community'
     | '/cookies'
     | '/crm-login'
     | '/delete-account'
     | '/dilemma'
     | '/guidelines'
+    | '/help'
     | '/hub'
     | '/privacy'
     | '/sitemap.xml'
@@ -333,6 +365,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/checkout/return'
     | '/dilemma/$id'
+    | '/invite/$code'
     | '/blog'
     | '/crm'
     | '/api/public/track'
@@ -344,12 +377,14 @@ export interface FileRouteTypes {
     | '/crm'
     | '/auth'
     | '/bottles'
+    | '/buddies'
     | '/community'
     | '/cookies'
     | '/crm-login'
     | '/delete-account'
     | '/dilemma'
     | '/guidelines'
+    | '/help'
     | '/hub'
     | '/privacy'
     | '/sitemap.xml'
@@ -364,6 +399,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/checkout/return'
     | '/dilemma_/$id'
+    | '/invite/$code'
     | '/blog/'
     | '/crm/'
     | '/api/public/track'
@@ -376,12 +412,14 @@ export interface RootRouteChildren {
   CrmRouteRoute: typeof CrmRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   BottlesRoute: typeof BottlesRoute
+  BuddiesRoute: typeof BuddiesRoute
   CommunityRoute: typeof CommunityRoute
   CookiesRoute: typeof CookiesRoute
   CrmLoginRoute: typeof CrmLoginRoute
   DeleteAccountRoute: typeof DeleteAccountRoute
   DilemmaRoute: typeof DilemmaRoute
   GuidelinesRoute: typeof GuidelinesRoute
+  HelpRoute: typeof HelpRoute
   HubRoute: typeof HubRoute
   PrivacyRoute: typeof PrivacyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -393,6 +431,7 @@ export interface RootRouteChildren {
   BlogSlugRoute: typeof BlogSlugRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   DilemmaIdRoute: typeof DilemmaIdRoute
+  InviteCodeRoute: typeof InviteCodeRoute
   BlogIndexRoute: typeof BlogIndexRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -426,6 +465,13 @@ declare module '@tanstack/react-router' {
       path: '/bottles'
       fullPath: '/bottles'
       preLoaderRoute: typeof BottlesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/buddies': {
+      id: '/buddies'
+      path: '/buddies'
+      fullPath: '/buddies'
+      preLoaderRoute: typeof BuddiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/community': {
@@ -475,6 +521,13 @@ declare module '@tanstack/react-router' {
       path: '/guidelines'
       fullPath: '/guidelines'
       preLoaderRoute: typeof GuidelinesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hub': {
@@ -589,6 +642,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DilemmaIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/invite/$code': {
+      id: '/invite/$code'
+      path: '/invite/$code'
+      fullPath: '/invite/$code'
+      preLoaderRoute: typeof InviteCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/track': {
       id: '/api/public/track'
       path: '/api/public/track'
@@ -639,12 +699,14 @@ const rootRouteChildren: RootRouteChildren = {
   CrmRouteRoute: CrmRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   BottlesRoute: BottlesRoute,
+  BuddiesRoute: BuddiesRoute,
   CommunityRoute: CommunityRoute,
   CookiesRoute: CookiesRoute,
   CrmLoginRoute: CrmLoginRoute,
   DeleteAccountRoute: DeleteAccountRoute,
   DilemmaRoute: DilemmaRoute,
   GuidelinesRoute: GuidelinesRoute,
+  HelpRoute: HelpRoute,
   HubRoute: HubRoute,
   PrivacyRoute: PrivacyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
@@ -656,6 +718,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogSlugRoute: BlogSlugRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   DilemmaIdRoute: DilemmaIdRoute,
+  InviteCodeRoute: InviteCodeRoute,
   BlogIndexRoute: BlogIndexRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,

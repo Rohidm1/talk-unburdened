@@ -425,3 +425,99 @@
 .wg-default .country-selector {
   bottom: calc(var(--nav-offset) + 0.5rem) !important;
 }
+
+/* ===== Holiday themes (override the daily palette) ===== */
+html[data-holiday="christmas"] {
+  --primary: oklch(0.7 0.17 150);
+  --accent: oklch(0.65 0.2 25);
+  --ring: oklch(0.7 0.17 150);
+  --neon-purple: oklch(0.6 0.17 150);
+  --neon-rose: oklch(0.62 0.2 25);
+}
+html[data-holiday="newyear"] {
+  --primary: oklch(0.82 0.14 85);
+  --accent: oklch(0.75 0.12 250);
+  --ring: oklch(0.82 0.14 85);
+  --neon-purple: oklch(0.6 0.15 270);
+  --neon-rose: oklch(0.8 0.14 85);
+}
+html[data-holiday="easter"] {
+  --primary: oklch(0.8 0.12 140);
+  --accent: oklch(0.8 0.1 330);
+  --ring: oklch(0.8 0.12 140);
+  --neon-purple: oklch(0.75 0.1 300);
+  --neon-rose: oklch(0.8 0.1 340);
+}
+html[data-holiday="halloween"] {
+  --primary: oklch(0.74 0.17 55);
+  --accent: oklch(0.6 0.2 300);
+  --ring: oklch(0.74 0.17 55);
+  --neon-purple: oklch(0.55 0.2 300);
+  --neon-rose: oklch(0.7 0.17 55);
+}
+html[data-holiday="valentine"] {
+  --primary: oklch(0.72 0.18 10);
+  --accent: oklch(0.8 0.12 60);
+  --ring: oklch(0.72 0.18 10);
+  --neon-purple: oklch(0.6 0.18 350);
+  --neon-rose: oklch(0.72 0.18 10);
+}
+.holiday-strip {
+  background: color-mix(in oklab, var(--primary) 18%, var(--background));
+  color: var(--foreground);
+  border-bottom: 1px solid color-mix(in oklab, var(--primary) 35%, transparent);
+}
+
+/* ===== Evening: deeper OLED black, softer glow ===== */
+html[data-evening="1"] {
+  --background: oklch(0.03 0.005 260);
+}
+html[data-evening="1"] body {
+  background-image: linear-gradient(180deg, #000 0%, #020104 100%);
+}
+
+/* ===== Calm screens (SOS, offline) ===== */
+.sos-sky {
+  background:
+    radial-gradient(40rem 30rem at 50% 30%, color-mix(in oklab, var(--primary) 22%, transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in oklab, var(--background) 92%, var(--primary)) 0%, var(--background) 100%);
+}
+@keyframes breathe-loop {
+  0%, 100% { transform: scale(0.55); }
+  33% { transform: scale(1); }
+  50% { transform: scale(1); }
+}
+.breathe-loop {
+  animation: breathe-loop 12s ease-in-out infinite;
+}
+@keyframes celebrate-float {
+  0% { transform: translateY(0) scale(0.6); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: translateY(-90vh) scale(1.2); opacity: 0; }
+}
+.celebrate-float {
+  animation: celebrate-float 3.2s ease-out forwards;
+}
+
+/* Bottle ocean */
+@keyframes wave-drift {
+  from { background-position-x: 0; }
+  to { background-position-x: 600px; }
+}
+.ocean-waves {
+  background-image: radial-gradient(circle at 20px -8px, transparent 22px, color-mix(in oklab, var(--primary) 25%, transparent) 23px);
+  background-size: 40px 24px;
+  animation: wave-drift 18s linear infinite;
+}
+@keyframes bottle-cast {
+  0% { transform: translate(0, 0) rotate(0); opacity: 1; }
+  60% { transform: translate(40vw, -30vh) rotate(260deg); opacity: 1; }
+  100% { transform: translate(55vw, -10vh) rotate(380deg) scale(0.4); opacity: 0; }
+}
+.bottle-cast {
+  animation: bottle-cast 1.6s ease-in forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .breathe-loop, .celebrate-float, .ocean-waves, .bottle-cast, .bottle-float { animation: none !important; }
+}

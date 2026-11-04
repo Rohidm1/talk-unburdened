@@ -23,6 +23,14 @@ import { BottomNav } from "@/components/site/BottomNav";
 import { ConsentBanner } from "@/components/site/ConsentBanner";
 import { GlobalPaywall } from "@/components/site/GlobalPaywall";
 import { getConsent } from "@/lib/consent";
+import { SafeBoundary } from "@/components/site/SafeBoundary";
+import { SosOverlay } from "@/components/site/SosOverlay";
+import { SafetyPrompt } from "@/components/site/SafetyPrompt";
+import { WelcomeGate } from "@/components/site/WelcomeGate";
+import { NetworkStatus } from "@/components/site/NetworkStatus";
+import { AmbientTheme } from "@/components/site/AmbientTheme";
+import { ReportDialog } from "@/components/site/ReportDialog";
+import { ReferralRedeemer } from "@/components/site/ReferralRedeemer";
 
 function NotFoundComponent() {
   return (
@@ -51,7 +59,26 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   const router = useRouter();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
+    // Self-heal: a stale app version (missing file after an update) reloads once.
+    const msg = String((error as Error)?.message ?? "");
+    if (/dynamically imported module|Loading chunk|Importing a module script failed/i.test(msg)) {
+      if (sessionStorage.getItem("at.healed") !== "1") {
+        sessionStorage.setItem("at.healed", "1");
+        window.location.reload();
+      }
+      return undefined;
+    }
+    // Otherwise retry the page automatically once after a short pause.
+    if (sessionStorage.getItem("at.retried") !== window.location.pathname) {
+      sessionStorage.setItem("at.retried", window.location.pathname);
+      const t = window.setTimeout(() => {
+        router.invalidate();
+        reset();
+      }, 1500);
+      return () => window.clearTimeout(t);
+    }
+    return undefined;
+  }, [error, reset, router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -181,13 +208,17 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <I18nextProvider i18n={i18n}>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <SafeBoundary name="ambient"><AmbientTheme /></SafeBoundary>
         <Outlet />
         <Toaster />
-        <VisitTracker />
-        <SupportWidget />
-        <GlobalPaywall />
-        <BottomNav />
-        <ConsentBanner />
+        <SafeBoundary name="visit-tracker"><VisitTracker /></SafeBoundary>
+        <SafeBoundary name="support-widget"><SupportWidget /></SafeBoundary>
+        <SafeBoundary name="paywall"><GlobalPaywall /></SafeBoundary>
+        <SafeBoundary name="bottom-nav"><BottomNav /></SafeBoundary>
+        <SafeBoundary name="safety"><SafetyPrompt /><ReportDialog /><SosOverlay /></SafeBoundary>
+        <SafeBoundary name="network"><NetworkStatus /></SafeBoundary>
+        <SafeBoundary name="referral"><ReferralRedeemer /></SafeBoundary>
+        <SafeBoundary name="welcome"><WelcomeGate /><ConsentBanner /></SafeBoundary>
       </I18nextProvider>
     </QueryClientProvider>
   );

@@ -71,6 +71,13 @@
       "when": 1793834579254,
       "tag": "0009_account_deletion_playbook_cleanup",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793835485864,
+      "tag": "0010_engagement_safety_buddies_rewards",
+      "breakpoints": true
     }
   ]
 }

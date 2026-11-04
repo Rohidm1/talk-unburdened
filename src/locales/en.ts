@@ -14,6 +14,8 @@ export const en = {
     bottles: "Bottles",
     dilemma: "Dilemma",
     wellness: "Wellness",
+    buddies: "Buddies",
+    help: "Get help now",
     faq: "FAQ",
     contact: "Contact",
     login: "Log in",

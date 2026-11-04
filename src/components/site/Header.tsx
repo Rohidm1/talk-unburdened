@@ -4,6 +4,7 @@ import { MessageCircle, Menu, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { SosButton } from "@/components/site/SosOverlay";
 
 const links = [
   { href: "/#listeners", key: "nav.profiles" },
@@ -15,6 +16,8 @@ const links = [
   { href: "/bottles", key: "nav.bottles" },
   { href: "/dilemma", key: "nav.dilemma" },
   { href: "/wellness", key: "nav.wellness" },
+  { href: "/buddies", key: "nav.buddies" },
+  { href: "/help", key: "nav.help" },
   { href: "/#faq", key: "nav.faq" },
   { href: "/#contact", key: "nav.contact" },
 ];
@@ -47,6 +50,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <SosButton />
           {loading ? null : session ? (
             <Button size="sm" className="hidden sm:inline-flex" asChild>
               <Link to="/account">{t("nav.account")}</Link>
@@ -61,7 +65,7 @@ export function Header() {
               </Button>
             </>
           )}
-          <button className="xl:hidden" onClick={() => setOpen((v) => !v)} aria-label="Menu">
+          <button className="grid size-12 place-items-center xl:hidden" onClick={() => setOpen((v) => !v)} aria-label="Menu" aria-expanded={open}>
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
         </div>
@@ -75,7 +79,7 @@ export function Header() {
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
-                className="text-sm text-muted-foreground"
+                className="flex min-h-10 items-center text-sm text-muted-foreground"
               >
                 {t(l.key)}
               </a>
