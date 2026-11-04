@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { alertUser } from "@/lib/native";
+import { markSeen } from "@/hooks/useBadges";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Dices, SendHorizonal, Volume2, VolumeX } from "lucide-react";
@@ -113,6 +115,10 @@ export function ChatDialog({
 
   // Time spent chatting today feeds the mystery box progress.
   useEffect(() => {
+    if (open) markSeen("chat");
+  }, [open]);
+
+  useEffect(() => {
     if (!open) return;
     const id = window.setInterval(() => addChatSeconds(15), 15000);
     return () => window.clearInterval(id);
@@ -124,7 +130,10 @@ export function ChatDialog({
     const list = messages.data ?? [];
     if (list.length > lastCount.current && lastCount.current > 0) {
       const last = list[list.length - 1];
-      if (last && last.sender_role !== "client") playSfx("receive");
+      if (last && last.sender_role !== "client") {
+        alertUser({ title: "New message", body: "Your chat partner replied.", url: "/?chat=1", tag: "chat" });
+        markSeen("chat");
+      }
     }
     lastCount.current = list.length;
   }, [messages.data]);
@@ -255,7 +264,7 @@ export function ChatDialog({
   return (
     <>
     <Dialog open={open} onOpenChange={(v) => !v && onEnd("user")}>
-      <DialogContent className="glass-strong flex max-h-[85vh] flex-col gap-0 p-0 sm:max-w-lg">
+      <DialogContent className="glass-strong flex max-h-[85vh] flex-col gap-0 p-0 sm:max-w-lg max-sm:inset-0 max-sm:top-0 max-sm:left-0 max-sm:h-dvh max-sm:max-h-dvh max-sm:w-full max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none max-sm:border-0 max-sm:pt-[env(safe-area-inset-top)] max-sm:pb-[env(safe-area-inset-bottom)]">
         <DialogHeader className="border-b border-border p-5">
           <DialogTitle className="flex items-center justify-between gap-3 font-display">
             <span className="flex items-center gap-2">

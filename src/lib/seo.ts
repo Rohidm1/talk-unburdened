@@ -60,3 +60,15 @@ export function blogSchema(post: { slug: string; title: string; excerpt: string;
     publisher: { "@id": organizationSchema["@id"] },
   };
 }
+export function breadcrumbSchema(items: { name: string; path: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map(({ name, path }, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name,
+      item: new URL(path, SITE_URL).href,
+    })),
+  };
+}

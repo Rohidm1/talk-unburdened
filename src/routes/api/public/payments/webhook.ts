@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { CREDIT_PACKAGES, type CreditPackageKey } from "@/lib/credit-packages";
+import { CREDIT_PACKAGES, totalCredits, type CreditPackageKey } from "@/lib/credit-packages";
 import { type StripeEnv, createStripeClient, verifyWebhook } from "@/lib/stripe.server";
 
 let _supabase: ReturnType<typeof createClient<Database>> | null = null;
@@ -35,7 +35,7 @@ async function grantCredits(session: any) {
 
   const { data: granted, error } = await getSupabase().rpc("grant_chat_credits", {
     _user_id: userId,
-    _credits: pkg.credits,
+    _credits: totalCredits(pkg),
     _cents: pkg.cents,
     _session: sessionId,
   });
@@ -76,7 +76,7 @@ async function clawBack(
   }
 
   const ratio = Math.min(Math.max(opts.amountCents / pkg.cents, 0), 1);
-  const credits = Math.round(pkg.credits * ratio);
+  const credits = Math.round(totalCredits(pkg) * ratio);
 
   const { error } = await getSupabase().rpc("revoke_chat_credits", {
     _user_id: userId,

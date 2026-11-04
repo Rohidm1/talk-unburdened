@@ -1,6 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { getConsent } from "@/lib/consent";
 
 const KEY = "anontalk_visitor_id";
 
@@ -16,9 +17,17 @@ function visitorId() {
 /** Records anonymous page visits (country comes from the edge request headers). */
 export function VisitTracker() {
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const [consented, setConsented] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    const sync = () => setConsented(getConsent() === "accepted");
+    sync();
+    window.addEventListener("at:consent", sync);
+    return () => window.removeEventListener("at:consent", sync);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !consented) return;
     if (path.startsWith("/api")) return;
     let cancelled = false;
 
@@ -48,7 +57,7 @@ export function VisitTracker() {
     return () => {
       cancelled = true;
     };
-  }, [path]);
+  }, [path, consented]);
 
   return null;
 }

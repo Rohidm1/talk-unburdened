@@ -680,8 +680,10 @@ export type Database = {
           amount_cents: number
           created_at: string
           credits_delta: number
+          external_ref: string | null
           id: string
           kind: string
+          payment_source: string | null
           seconds_delta: number
           stripe_session_id: string | null
           user_id: string
@@ -690,8 +692,10 @@ export type Database = {
           amount_cents?: number
           created_at?: string
           credits_delta?: number
+          external_ref?: string | null
           id?: string
           kind?: string
+          payment_source?: string | null
           seconds_delta: number
           stripe_session_id?: string | null
           user_id: string
@@ -700,8 +704,10 @@ export type Database = {
           amount_cents?: number
           created_at?: string
           credits_delta?: number
+          external_ref?: string | null
           id?: string
           kind?: string
+          payment_source?: string | null
           seconds_delta?: number
           stripe_session_id?: string | null
           user_id?: string
@@ -1175,6 +1181,7 @@ export type Database = {
         Returns: string
       }
       claim_next_chat: { Args: { _agent_user_id: string }; Returns: string }
+      delete_user_content: { Args: { _user_id: string }; Returns: undefined }
       dilemma_results: {
         Args: { _dilemma_id: string }
         Returns: {
@@ -1206,6 +1213,15 @@ export type Database = {
           _cents: number
           _seconds: number
           _session: string
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      grant_google_play_credits: {
+        Args: {
+          _cents: number
+          _credits: number
+          _purchase_token: string
           _user_id: string
         }
         Returns: boolean
@@ -1312,6 +1328,10 @@ export type Database = {
           ok: boolean
           paid_left: number
         }[]
+      }
+      spend_message_credit: {
+        Args: { _kind: string; _user_id: string }
+        Returns: number
       }
       sync_listener_status: {
         Args: { _listener_id: string }

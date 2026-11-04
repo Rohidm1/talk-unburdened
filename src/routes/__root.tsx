@@ -19,6 +19,10 @@ import { I18nextProvider } from "react-i18next";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { VisitTracker } from "@/components/site/VisitTracker";
+import { BottomNav } from "@/components/site/BottomNav";
+import { ConsentBanner } from "@/components/site/ConsentBanner";
+import { GlobalPaywall } from "@/components/site/GlobalPaywall";
+import { getConsent } from "@/lib/consent";
 
 function NotFoundComponent() {
   return (
@@ -84,7 +88,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "author", content: "Anontalk" },
       { name: "robots", content: "index, follow, max-image-preview:large" },
       { name: "theme-color", content: "#0b1220" },
@@ -152,13 +156,20 @@ function RootComponent() {
 
   // AdSense auto-ads inject markup into <body>; loading the script only after
   // hydration keeps the server HTML and the first client render identical.
+  // Ads load only after the visitor accepts cookies (GDPR).
   useEffect(() => {
-    if (document.querySelector(`script[src="${ADSENSE_SRC}"]`)) return;
-    const s = document.createElement("script");
-    s.src = ADSENSE_SRC;
-    s.async = true;
-    s.crossOrigin = "anonymous";
-    document.head.appendChild(s);
+    const load = () => {
+      if (getConsent() !== "accepted") return;
+      if (document.querySelector(`script[src="${ADSENSE_SRC}"]`)) return;
+      const s = document.createElement("script");
+      s.src = ADSENSE_SRC;
+      s.async = true;
+      s.crossOrigin = "anonymous";
+      document.head.appendChild(s);
+    };
+    load();
+    window.addEventListener("at:consent", load);
+    return () => window.removeEventListener("at:consent", load);
   }, []);
 
   useEffect(() => {
@@ -174,6 +185,9 @@ function RootComponent() {
         <Toaster />
         <VisitTracker />
         <SupportWidget />
+        <GlobalPaywall />
+        <BottomNav />
+        <ConsentBanner />
       </I18nextProvider>
     </QueryClientProvider>
   );

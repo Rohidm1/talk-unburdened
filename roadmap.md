@@ -21,6 +21,14 @@
 - [x] AI support assistant + admin Inbox tab (reply via email link)
 - [x] Speed-Chat (/speed-chat): user-to-user matching, 120s timer, both-must-extend, 3/day, report + word filter + contact-detail hiding
 - [x] Community (/community): 4 topics, nested replies, live updates, word filter
-- [ ] Daily limits paywall / micro-purchases (Stripe) — next phase
+- [x] Credits everywhere: 1 credit per sent message across chat, Speed Chat, community and bottles
+- [x] Native phone feel: bottom bar with badges, full-screen chat, alerts, sounds, vibration, safe areas
+- [x] Legal suite (privacy, terms, cookies, guidelines, delete account), cookie consent, honest trust badges
+- [x] Account: credit history, app settings, delete account & data
+- [x] Buy sheet: web checkout + Google Play with restore; bundle bonuses; payment source logged
+- [x] llms.txt refresh, breadcrumbs, translation-ready dictionaries
+- [ ] Google Play payments live — blocked: Play Console products + service-account key from user
+- [ ] Legal entity details (address, registration no., privacy email) — blocked: user to provide
+- [ ] Background push when app is closed — blocked: needs a push sending service (alerts work while app is open/in background tab)
 - [ ] Add new dilemmas after 2026-10-22
 - [x] Menu fits on all screens; preview label glitch fixed; database trigger functions locked down

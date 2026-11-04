@@ -28,7 +28,7 @@ export function XpLayer() {
   }, []);
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-24 z-[60] flex flex-col items-center gap-1">
+    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--nav-offset)+6rem)] z-[60] flex flex-col items-center gap-1">
       {pops.map((p) => (
         <span
           key={p.id}

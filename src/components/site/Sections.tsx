@@ -192,10 +192,10 @@ export function Pricing() {
 
       <div className="mt-10 grid gap-5 lg:grid-cols-4">
         {creditPackages.map((p) => {
-          const perCredit = p.priceEur / p.credits;
+          const perCredit = p.priceEur / (p.credits + p.bonus);
           const base = creditPackages[0];
           const savePct = base
-            ? Math.round((1 - perCredit / (base.priceEur / base.credits)) * 100)
+            ? Math.round((1 - perCredit / (base.priceEur / (base.credits + base.bonus))) * 100)
             : 0;
           return (
             <Reveal key={p.id}>
@@ -215,6 +215,7 @@ export function Pricing() {
                 <p className="mt-4 font-display text-4xl font-semibold">${p.priceEur.toFixed(2)}</p>
                 <p className="text-sm text-muted-foreground">
                   {p.credits} {t("pricing.credits")}
+                  {p.bonus > 0 ? <span className="ml-1 font-semibold text-primary">+ {p.bonus} free</span> : null}
                 </p>
                 <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
                   <li className="flex items-center gap-2">
@@ -374,8 +375,24 @@ export function Footer() {
           </a>
         </nav>
       </div>
+      <nav aria-label="Legal" className="mx-auto mt-8 w-full max-w-6xl px-5 text-sm text-muted-foreground">
+        <h2 className="font-semibold text-foreground">Legal</h2>
+        <ul className="mt-3 flex flex-wrap gap-x-6 gap-y-3">
+          {[
+            { href: "/privacy", label: "Privacy Policy" },
+            { href: "/terms", label: "Terms of Service" },
+            { href: "/cookies", label: "Cookie & Data Statement" },
+            { href: "/guidelines", label: "Community Guidelines" },
+            { href: "/delete-account", label: "Delete account & data" },
+          ].map(({ href, label }) => (
+            <li key={href}>
+              <a href={href} className="inline-flex min-h-12 items-center transition-colors hover:text-foreground">{label}</a>
+            </li>
+          ))}
+        </ul>
+      </nav>
       <div className="mx-auto mt-8 w-full max-w-6xl px-5 text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Anontalk. {t("footer.rights")}
+        © {new Date().getFullYear()} Anontalk · operated by Open Ear Collective. {t("footer.rights")}
       </div>
     </footer>
   );

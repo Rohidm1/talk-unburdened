@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { markSeen } from "@/hooks/useBadges";
+import { haptic, isNoCreditError, openPaywall } from "@/lib/native";
 import "@/lib/i18n";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Sections";
@@ -58,6 +60,9 @@ function Ocean({ onFish, busy }: { onFish: () => void; busy: boolean }) {
 
 function BottlesPage() {
   const { user } = useAuth();
+  useEffect(() => {
+    markSeen("bottles");
+  }, []);
   const qc = useQueryClient();
   const [draft, setDraft] = useState("");
   const [fished, setFished] = useState<Fished | null>(null);
@@ -84,10 +89,12 @@ function BottlesPage() {
     if (body.length < 3) return;
     const { error } = await supabase.from("bottles").insert({ user_id: user.id, body });
     if (error) {
+      if (isNoCreditError(error.message)) return openPaywall();
       toast.error(error.message.includes("daily_limit") ? "You can drop 2 bottles a day. Come back tomorrow!" : "Could not drop your bottle.");
       return;
     }
     setDraft("");
+    haptic(15);
     toast.success("Your bottle is floating out to sea 🌊");
     void qc.invalidateQueries({ queryKey: ["my-bottles"] });
   }
@@ -95,8 +102,13 @@ function BottlesPage() {
   async function fish() {
     if (!user) return;
     setBusy(true);
-    const { data } = await supabase.rpc("fish_bottle");
+    const { data, error } = await supabase.rpc("fish_bottle");
     setBusy(false);
+    if (error) {
+      if (isNoCreditError(error.message)) return openPaywall();
+      toast.error("Could not open a bottle. Please try again.");
+      return;
+    }
     const b = (data as Fished[] | null)?.[0];
     if (!b) toast.info("The sea is quiet right now. Drop the first bottle!");
     setFished(b ?? null);
@@ -107,7 +119,12 @@ function BottlesPage() {
     const body = echo.trim();
     if (body.length < 2) return;
     const { error } = await supabase.from("bottle_echoes").insert({ bottle_id: fished.id, user_id: user.id, body });
-    if (error) { toast.error("Could not send your echo."); return; }
+    if (error) {
+      if (isNoCreditError(error.message)) return openPaywall();
+      toast.error("Could not send your echo.");
+      return;
+    }
+    haptic(15);
     setEcho("");
     setFished(null);
     toast.success("Echo sent. That might make someone's day.");

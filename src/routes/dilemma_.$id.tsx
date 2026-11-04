@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { getPublicDilemma } from "@/lib/dilemma-public.functions";
 import { dilemmaSummary } from "@/lib/dilemma-public";
-import { pageHead, jsonLd, SITE_URL } from "@/lib/seo";
+import { pageHead, jsonLd, SITE_URL, breadcrumbSchema } from "@/lib/seo";
 import { DilemmaExperience } from "@/components/site/DilemmaExperience";
 
 const dilemmaQuery = (id: string) => queryOptions({
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/dilemma_/$id")({
       name: loaderData.question, description: dilemmaSummary(loaderData),
       url: `${SITE_URL}/dilemma/${loaderData.id}`, inLanguage: "en",
       isPartOf: { "@id": `${SITE_URL}/#website` },
-    })] : [],
+    }), jsonLd(breadcrumbSchema([{ name: "Home", path: "/" }, { name: "Dilemmas", path: "/dilemma" }, { name: loaderData.question, path: `/dilemma/${loaderData.id}` }]))] : [],
   }),
   component: DilemmaDetail,
   notFoundComponent: DilemmaUnavailable,

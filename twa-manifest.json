@@ -16,17 +16,23 @@
   "targetSdkVersion": 35,
   "fallbackType": "customtabs",
   "features": {},
-  "alphaDependencies": { "enabled": false },
-  "enableNotifications": false,
-  "locationDelegation": { "enabled": false },
-  "playBilling": { "enabled": false },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableNotifications": true,
+  "locationDelegation": {
+    "enabled": false
+  },
+  "playBilling": {
+    "enabled": true
+  },
   "signingKey": {
     "path": "./android.keystore",
     "alias": "anontalk"
   },
   "shortcuts": [
     {
-      "name": "Start een chat",
+      "name": "Start a chat",
       "shortName": "Chat",
       "url": "/?chat=1&source=pwa",
       "chosenIconUrl": "https://anontalk.online/icons/icon-192.png"

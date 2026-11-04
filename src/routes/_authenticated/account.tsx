@@ -9,9 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getMyAccount, getMyChatSessions, updateAlias } from "@/lib/account.functions";
-import { creditPackages } from "@/data/listeners";
-import type { CreditPackageKey } from "@/lib/credit-packages";
-import { CreditCheckoutDialog } from "@/components/site/CreditCheckoutDialog";
+import { TopUpDialog } from "@/components/site/TopUpDialog";
+import { AppSettings, CreditHistory, DeleteAccount } from "@/components/site/AccountExtras";
 import { PaymentTestModeBanner } from "@/components/site/PaymentTestModeBanner";
 import { createPortalSession } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
@@ -44,7 +43,7 @@ function AccountPage() {
   const rename = useServerFn(updateAlias);
   const openPortal = useServerFn(createPortalSession);
   const [alias, setAlias] = useState("");
-  const [checkoutKey, setCheckoutKey] = useState<CreditPackageKey | null>(null);
+  const [buyOpen, setBuyOpen] = useState(false);
 
   const portalMutation = useMutation({
     mutationFn: async () => {
@@ -100,7 +99,7 @@ function AccountPage() {
             Hey {profile?.alias ?? "there"}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Signed in anonymously. Only your alias is visible to chat partners.
+            Signed in with a nickname. Only your alias is visible to chat partners.
           </p>
         </div>
         <div className="flex gap-2">
@@ -150,20 +149,11 @@ function AccountPage() {
             </p>
           ) : null}
 
-          <div className="mt-5 grid gap-2">
-            {creditPackages.map((p) => (
-              <Button
-                key={p.id}
-                variant={p.popular ? "default" : "outline"}
-                disabled={isBlocked}
-                onClick={() => setCheckoutKey(p.key)}
-              >
-                +{p.credits} credits · ${p.priceEur.toFixed(2)}
-              </Button>
-            ))}
-          </div>
+          <Button className="mt-5 min-h-12 w-full" disabled={isBlocked} onClick={() => setBuyOpen(true)}>
+            Buy credits
+          </Button>
           <p className="mt-3 text-xs text-muted-foreground">
-            Secure card payment. Credits are added automatically once the payment clears.
+            Pay by card or iDEAL, or with Google Play in the Android app. Bundles include free bonus credits.
           </p>
           <BillingDescriptorNotice className="mt-2" />
 
@@ -224,7 +214,15 @@ function AccountPage() {
           <p className="mt-4 text-sm text-muted-foreground">No chats yet.</p>
         )}
       </section>
-      <CreditCheckoutDialog packageKey={checkoutKey} onClose={() => setCheckoutKey(null)} />
+      <CreditHistory />
+      <AppSettings />
+      <DeleteAccount />
+      <TopUpDialog
+        open={buyOpen}
+        reason="buy"
+        onClose={() => setBuyOpen(false)}
+        onPurchased={() => void queryClient.invalidateQueries({ queryKey: ["credit-history"] })}
+      />
     </main>
   );
 }

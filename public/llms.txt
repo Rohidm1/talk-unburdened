@@ -1,20 +1,34 @@
 # Anontalk
 
-> An online place to discuss everyday worries under a nickname, share message-in-a-bottle stories, explore dilemmas and read practical articles.
+> Anontalk (anontalk.online) is an English-language place to talk about everyday worries under a nickname: live 1-on-1 text chat, 2-minute Speed Chat with strangers, message-in-a-bottle stories, daily dilemmas, a community board and simple wellness activities. It offers peer conversation, not professional advice.
 
-## Public content
-- [Home and frequently asked questions](https://anontalk.online/)
-- [Blog and individual articles](https://anontalk.online/blog)
-- [Public dilemmas and archive](https://anontalk.online/dilemma)
-- [Message in a Bottle](https://anontalk.online/bottles)
-- [Wellness activities](https://anontalk.online/wellness)
+## Mission
+Make it easy for anyone who has no one to talk to to be heard, without giving their real name. The focus is everyday mental wellbeing through kind, human conversation. Anontalk is run by Open Ear Collective and is for adults (18+).
+
+## Public pages
+- [Home and FAQ](https://anontalk.online/): What Anontalk is, how chat works, pricing and frequently asked questions.
+- [Talk to strangers](https://anontalk.online/talk-to-strangers): Anonymous chat landing page.
+- [Blog](https://anontalk.online/blog): Practical articles, e.g. [I have no one to talk to](https://anontalk.online/blog/no-one-to-talk-to).
+- [Daily dilemma](https://anontalk.online/dilemma): Today's question and the public archive.
+- [Community](https://anontalk.online/community): Topic boards for peer discussion.
+- [Message in a Bottle](https://anontalk.online/bottles): Drop a message and receive replies from strangers.
+- [Speed Chat](https://anontalk.online/speed-chat): 2-minute chats with a random person.
+- [Wellness](https://anontalk.online/wellness): Breathing and grounding activities.
+
+## Policies
+- [Privacy Policy](https://anontalk.online/privacy): GDPR processing, retention and rights.
+- [Terms of Service](https://anontalk.online/terms): Credits, acceptable use and consumer rights.
+- [Cookie & Data Statement](https://anontalk.online/cookies): Consent-based statistics and ads.
+- [Community Guidelines](https://anontalk.online/guidelines): Code of conduct.
+- [Delete account & data](https://anontalk.online/delete-account): How to remove an account.
+
+## Facts
+- Accounts need an email, a nickname and a password; no real name.
+- New accounts get 5 free credits. 1 credit = 1 sent message across chat, Speed Chat, community posts and replies, and dropping, opening or replying to bottles. Chat partner replies are free.
+- Credits are sold in bundles (with bonus credits) via web checkout (card, iDEAL) or Google Play in the Android app. No subscription.
+- Chat partners use profile personas; some replies may be AI-assisted when no team member is available.
+- Messages are stored for safety review and are not end-to-end encrypted. Contact details are masked automatically.
+- Not an emergency service. In danger, call 112 or the local emergency number.
+
+## Optional
 - [Sitemap](https://anontalk.online/sitemap.xml)
-
-## Account and privacy boundaries
-Public blog articles and dilemma prompts can be read without an account. Chatting, voting, comments and bottles require a verified account. Customer registration uses a nickname, email and a password of at least eight characters. A nickname is not a guarantee of absolute technical anonymity: account data and messages are processed to provide the service. Do not share personal contact details.
-
-## Credits
-A new account receives five free sent chat messages. Each customer message costs one credit; chat partner replies are free. Additional credits are sold in bundles through Stripe. No subscription is required.
-
-## Scope
-Anontalk offers everyday conversation and peer perspective, not professional advice. Private chat transcripts, account records, votes and team screens are not public search content.

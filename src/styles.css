@@ -207,9 +207,28 @@
 
   html {
     scroll-behavior: smooth;
+    /* Native app feel: no rubber-band bounce, no pull-to-refresh, no sideways scroll */
+    overscroll-behavior: none;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    --nav-offset: calc(3.75rem + env(safe-area-inset-bottom));
+  }
+
+  @media (min-width: 768px) {
+    html {
+      --nav-offset: 0px;
+    }
   }
 
   body {
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overscroll-behavior: none;
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: var(--nav-offset);
+    touch-action: manipulation;
     background-color: #000000;
     background-image:
       radial-gradient(60rem 60rem at 12% -10%, color-mix(in oklab, var(--neon-purple) 26%, transparent), transparent 60%),
@@ -388,3 +407,21 @@
   to { transform: translateY(160px) rotate(6deg); opacity: 0; }
 }
 .shred-strip { animation: shred-fall 1.4s ease-in forwards; }
+
+/* Bottom navigation respects the phone's home-indicator area */
+.bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Installed app: respect the status bar / notch */
+@media (display-mode: standalone) {
+  body {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* Keep the language switcher above the bottom navigation on phones */
+.wg-default,
+.wg-default .country-selector {
+  bottom: calc(var(--nav-offset) + 0.5rem) !important;
+}

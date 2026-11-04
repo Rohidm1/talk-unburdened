@@ -45,7 +45,7 @@ export function FloatingChat({ onStart }: { onStart?: () => void }) {
 
   return (
     <div
-      className={`fixed right-4 bottom-4 z-40 flex flex-col items-end gap-3 transition-all duration-500 sm:right-6 sm:bottom-6 ${
+      className={`fixed right-4 bottom-[calc(var(--nav-offset)+1rem)] z-40 flex flex-col items-end gap-3 transition-all duration-500 sm:right-6 md:bottom-6 ${
         show ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
       }`}
     >

@@ -14,13 +14,18 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BottlesRouteImport } from './routes/bottles'
 import { Route as CommunityRouteImport } from './routes/community'
+import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as CrmRouteRouteImport } from './routes/crm/route'
 import { Route as CrmLoginRouteImport } from './routes/crm-login'
+import { Route as DeleteAccountRouteImport } from './routes/delete-account'
 import { Route as DilemmaRouteImport } from './routes/dilemma'
+import { Route as GuidelinesRouteImport } from './routes/guidelines'
 import { Route as HubRouteImport } from './routes/hub'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SpeedChatRouteImport } from './routes/speed-chat'
 import { Route as TalkToStrangersRouteImport } from './routes/talk-to-strangers'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as WellnessRouteImport } from './routes/wellness'
 import { Route as DotwellKnownAssetlinksDotjsonRouteImport } from './routes/[.]well-known.assetlinks[.]json'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
@@ -58,6 +63,11 @@ const CommunityRoute = CommunityRouteImport.update({
   path: '/community',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CookiesRoute = CookiesRouteImport.update({
+  id: '/cookies',
+  path: '/cookies',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CrmRouteRoute = CrmRouteRouteImport.update({
   id: '/crm',
   path: '/crm',
@@ -68,14 +78,29 @@ const CrmLoginRoute = CrmLoginRouteImport.update({
   path: '/crm-login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DeleteAccountRoute = DeleteAccountRouteImport.update({
+  id: '/delete-account',
+  path: '/delete-account',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DilemmaRoute = DilemmaRouteImport.update({
   id: '/dilemma',
   path: '/dilemma',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GuidelinesRoute = GuidelinesRouteImport.update({
+  id: '/guidelines',
+  path: '/guidelines',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HubRoute = HubRouteImport.update({
   id: '/hub',
   path: '/hub',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -91,6 +116,11 @@ const SpeedChatRoute = SpeedChatRouteImport.update({
 const TalkToStrangersRoute = TalkToStrangersRouteImport.update({
   id: '/talk-to-strangers',
   path: '/talk-to-strangers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WellnessRoute = WellnessRouteImport.update({
@@ -162,12 +192,17 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/bottles': typeof BottlesRoute
   '/community': typeof CommunityRoute
+  '/cookies': typeof CookiesRoute
   '/crm-login': typeof CrmLoginRoute
+  '/delete-account': typeof DeleteAccountRoute
   '/dilemma': typeof DilemmaRoute
+  '/guidelines': typeof GuidelinesRoute
   '/hub': typeof HubRoute
+  '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/speed-chat': typeof SpeedChatRoute
   '/talk-to-strangers': typeof TalkToStrangersRoute
+  '/terms': typeof TermsRoute
   '/wellness': typeof WellnessRoute
   '/.well-known/assetlinks.json': typeof DotwellKnownAssetlinksDotjsonRoute
   '/account': typeof AuthenticatedAccountRoute
@@ -186,12 +221,17 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/bottles': typeof BottlesRoute
   '/community': typeof CommunityRoute
+  '/cookies': typeof CookiesRoute
   '/crm-login': typeof CrmLoginRoute
+  '/delete-account': typeof DeleteAccountRoute
   '/dilemma': typeof DilemmaRoute
+  '/guidelines': typeof GuidelinesRoute
   '/hub': typeof HubRoute
+  '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/speed-chat': typeof SpeedChatRoute
   '/talk-to-strangers': typeof TalkToStrangersRoute
+  '/terms': typeof TermsRoute
   '/wellness': typeof WellnessRoute
   '/.well-known/assetlinks.json': typeof DotwellKnownAssetlinksDotjsonRoute
   '/account': typeof AuthenticatedAccountRoute
@@ -213,12 +253,17 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/bottles': typeof BottlesRoute
   '/community': typeof CommunityRoute
+  '/cookies': typeof CookiesRoute
   '/crm-login': typeof CrmLoginRoute
+  '/delete-account': typeof DeleteAccountRoute
   '/dilemma': typeof DilemmaRoute
+  '/guidelines': typeof GuidelinesRoute
   '/hub': typeof HubRoute
+  '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/speed-chat': typeof SpeedChatRoute
   '/talk-to-strangers': typeof TalkToStrangersRoute
+  '/terms': typeof TermsRoute
   '/wellness': typeof WellnessRoute
   '/.well-known/assetlinks.json': typeof DotwellKnownAssetlinksDotjsonRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
@@ -240,12 +285,17 @@ export interface FileRouteTypes {
     | '/auth'
     | '/bottles'
     | '/community'
+    | '/cookies'
     | '/crm-login'
+    | '/delete-account'
     | '/dilemma'
+    | '/guidelines'
     | '/hub'
+    | '/privacy'
     | '/sitemap.xml'
     | '/speed-chat'
     | '/talk-to-strangers'
+    | '/terms'
     | '/wellness'
     | '/.well-known/assetlinks.json'
     | '/account'
@@ -264,12 +314,17 @@ export interface FileRouteTypes {
     | '/auth'
     | '/bottles'
     | '/community'
+    | '/cookies'
     | '/crm-login'
+    | '/delete-account'
     | '/dilemma'
+    | '/guidelines'
     | '/hub'
+    | '/privacy'
     | '/sitemap.xml'
     | '/speed-chat'
     | '/talk-to-strangers'
+    | '/terms'
     | '/wellness'
     | '/.well-known/assetlinks.json'
     | '/account'
@@ -290,12 +345,17 @@ export interface FileRouteTypes {
     | '/auth'
     | '/bottles'
     | '/community'
+    | '/cookies'
     | '/crm-login'
+    | '/delete-account'
     | '/dilemma'
+    | '/guidelines'
     | '/hub'
+    | '/privacy'
     | '/sitemap.xml'
     | '/speed-chat'
     | '/talk-to-strangers'
+    | '/terms'
     | '/wellness'
     | '/.well-known/assetlinks.json'
     | '/_authenticated/account'
@@ -317,12 +377,17 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BottlesRoute: typeof BottlesRoute
   CommunityRoute: typeof CommunityRoute
+  CookiesRoute: typeof CookiesRoute
   CrmLoginRoute: typeof CrmLoginRoute
+  DeleteAccountRoute: typeof DeleteAccountRoute
   DilemmaRoute: typeof DilemmaRoute
+  GuidelinesRoute: typeof GuidelinesRoute
   HubRoute: typeof HubRoute
+  PrivacyRoute: typeof PrivacyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SpeedChatRoute: typeof SpeedChatRoute
   TalkToStrangersRoute: typeof TalkToStrangersRoute
+  TermsRoute: typeof TermsRoute
   WellnessRoute: typeof WellnessRoute
   DotwellKnownAssetlinksDotjsonRoute: typeof DotwellKnownAssetlinksDotjsonRoute
   BlogSlugRoute: typeof BlogSlugRoute
@@ -370,6 +435,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CommunityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cookies': {
+      id: '/cookies'
+      path: '/cookies'
+      fullPath: '/cookies'
+      preLoaderRoute: typeof CookiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/crm': {
       id: '/crm'
       path: '/crm'
@@ -384,6 +456,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CrmLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/delete-account': {
+      id: '/delete-account'
+      path: '/delete-account'
+      fullPath: '/delete-account'
+      preLoaderRoute: typeof DeleteAccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dilemma': {
       id: '/dilemma'
       path: '/dilemma'
@@ -391,11 +470,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DilemmaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/guidelines': {
+      id: '/guidelines'
+      path: '/guidelines'
+      fullPath: '/guidelines'
+      preLoaderRoute: typeof GuidelinesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/hub': {
       id: '/hub'
       path: '/hub'
       fullPath: '/hub'
       preLoaderRoute: typeof HubRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -417,6 +510,13 @@ declare module '@tanstack/react-router' {
       path: '/talk-to-strangers'
       fullPath: '/talk-to-strangers'
       preLoaderRoute: typeof TalkToStrangersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/wellness': {
@@ -540,12 +640,17 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BottlesRoute: BottlesRoute,
   CommunityRoute: CommunityRoute,
+  CookiesRoute: CookiesRoute,
   CrmLoginRoute: CrmLoginRoute,
+  DeleteAccountRoute: DeleteAccountRoute,
   DilemmaRoute: DilemmaRoute,
+  GuidelinesRoute: GuidelinesRoute,
   HubRoute: HubRoute,
+  PrivacyRoute: PrivacyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SpeedChatRoute: SpeedChatRoute,
   TalkToStrangersRoute: TalkToStrangersRoute,
+  TermsRoute: TermsRoute,
   WellnessRoute: WellnessRoute,
   DotwellKnownAssetlinksDotjsonRoute: DotwellKnownAssetlinksDotjsonRoute,
   BlogSlugRoute: BlogSlugRoute,

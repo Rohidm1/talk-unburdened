@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { haptic, isNoCreditError, openPaywall } from "@/lib/native";
 import "@/lib/i18n";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Sections";
@@ -65,10 +66,12 @@ function Composer({ topic, parentId, onDone, placeholder }: { topic: TopicId; pa
     if (body.length < 2) return;
     const { error } = await supabase.from("community_posts").insert({ topic, parent_id: parentId, user_id: user!.id, body });
     if (error) {
+      if (isNoCreditError(error.message)) return openPaywall();
       toast.error(error.message.includes("toxic") ? "That breaks our community rules." : error.message.includes("slow_down") ? "Slow down a little and try again in a minute." : "Could not post.");
       return;
     }
     setText("");
+    haptic(10);
     onDone?.();
     void qc.invalidateQueries({ queryKey: ["community", topic] });
   }

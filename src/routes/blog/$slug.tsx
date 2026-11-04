@@ -5,7 +5,7 @@ import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Sections";
 import { Reveal } from "@/components/site/Reveal";
 import { FloatingChat } from "@/components/site/FloatingChat";
-import { pageHead, jsonLd, blogSchema } from "@/lib/seo";
+import { pageHead, jsonLd, blogSchema, breadcrumbSchema } from "@/lib/seo";
 import { blogPosts, getPost } from "@/data/blog";
 
 export const Route = createFileRoute("/blog/$slug")({
@@ -23,7 +23,12 @@ export const Route = createFileRoute("/blog/$slug")({
     const url = `https://anontalk.online/blog/${params.slug}`;
     return {
       ...pageHead({ title, description, path: url, type: "article", noindex: !loaderData }),
-      scripts: loaderData ? [jsonLd(blogSchema(loaderData))] : [],
+      scripts: loaderData
+        ? [
+            jsonLd(blogSchema(loaderData)),
+            jsonLd(breadcrumbSchema([{ name: "Home", path: "/" }, { name: "Blog", path: "/blog" }, { name: loaderData.title, path: `/blog/${params.slug}` }])),
+          ]
+        : [],
     };
   },
   errorComponent: () => <Fallback message="This article could not be loaded." />,

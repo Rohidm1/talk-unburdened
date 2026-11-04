@@ -1,3 +1,4 @@
+import { getConsent } from "@/lib/consent";
 import { supabase } from "@/integrations/supabase/client";
 
 export type EngagementEvent =
@@ -19,7 +20,7 @@ export function logEngagement(
   event: EngagementEvent,
   extra: { mood?: string | null; depth?: string | null; sessionId?: string | null; detail?: Record<string, unknown> } = {},
 ) {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || getConsent() !== "accepted") return;
   void supabase.auth.getUser().then(({ data }) =>
     supabase.from("engagement_events").insert({
       user_id: data.user?.id ?? null,

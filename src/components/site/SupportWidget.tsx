@@ -51,7 +51,7 @@ export function SupportWidget() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open support"
-        className="fixed bottom-5 left-5 z-40 flex size-12 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-lg backdrop-blur-xl"
+        className="fixed bottom-[calc(var(--nav-offset)+1.25rem)] left-5 z-40 flex size-12 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-lg backdrop-blur-xl"
       >
         <LifeBuoy className="size-5 text-primary" />
       </button>
@@ -59,7 +59,7 @@ export function SupportWidget() {
   }
 
   return (
-    <div className="fixed bottom-5 left-5 z-50 flex h-[28rem] w-[min(22rem,calc(100vw-2.5rem))] flex-col rounded-3xl border border-border bg-popover text-popover-foreground shadow-2xl backdrop-blur-xl">
+    <div className="fixed bottom-[calc(var(--nav-offset)+1.25rem)] left-5 z-50 flex h-[28rem] w-[min(22rem,calc(100vw-2.5rem))] flex-col rounded-3xl border border-border bg-popover text-popover-foreground shadow-2xl backdrop-blur-xl">
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
         <p className="font-display text-sm font-semibold">Anontalk support</p>
         <button type="button" onClick={() => setOpen(false)} aria-label="Close support">

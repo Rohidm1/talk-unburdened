@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { alertUser, haptic, isNoCreditError, openPaywall } from "@/lib/native";
 import { Flag, Send } from "lucide-react";
 import "@/lib/i18n";
 import { Header } from "@/components/site/Header";
@@ -103,6 +104,7 @@ function SpeedChatPage() {
     setMatch(data);
     setMsgs(m ?? []);
     setState("chat");
+    alertUser({ title: "You're matched!", body: "Say hi — your 2 minutes have started.", url: "/speed-chat", sound: "match", tag: "speed" });
   }
 
   // Realtime updates for the active match.
@@ -152,7 +154,16 @@ function SpeedChatPage() {
     if (!body || !match) return;
     setText("");
     const { error } = await supabase.rpc("speed_send", { _match_id: match.id, _body: body });
-    if (error) toast.error(errText(error.message));
+    if (error) {
+      if (isNoCreditError(error.message)) {
+        setText(body);
+        openPaywall();
+        return;
+      }
+      toast.error(errText(error.message));
+      return;
+    }
+    haptic(8);
   }
 
   async function report() {

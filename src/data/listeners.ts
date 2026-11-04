@@ -239,6 +239,8 @@ export type CreditPackage = {
   id: string;
   key: CreditPackageKey;
   credits: number;
+  /** Free bonus credits added on top of `credits`. */
+  bonus: number;
   priceEur: number;
   popular: boolean;
 };
@@ -247,6 +249,7 @@ export const creditPackages: CreditPackage[] = CREDIT_PACKAGE_LIST.map((p) => ({
   id: p.key,
   key: p.key,
   credits: p.credits,
+  bonus: p.bonus,
   priceEur: p.cents / 100,
   popular: p.popular === true,
 }));

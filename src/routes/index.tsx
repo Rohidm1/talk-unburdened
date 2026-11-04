@@ -48,6 +48,7 @@ import { CreditCheckoutDialog } from "@/components/site/CreditCheckoutDialog";
 import { AdSenseSlot } from "@/components/site/AdSenseSlot";
 
 import { DirectAnswer, HomeFaq } from "@/components/site/HomeAnswers";
+import { TrustBadges } from "@/components/site/TrustBadges";
 import { homeTitle, homeDescription, homeAnswers } from "@/data/home-answers";
 import { pageHead, jsonLd, faqSchema, websiteSchema } from "@/lib/seo";
 
@@ -218,6 +219,7 @@ function HomePage() {
         />
 
         <DirectAnswer />
+        <TrustBadges />
 
         <section id="listeners" className="mx-auto max-w-6xl px-5 py-16">
           <div className="mb-8 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">

@@ -15,3 +15,9 @@
 
 - Public content metadata uses route head() and shared SEO/schema helpers; never add a competing head manager or root-level social images.
 - Public dilemma detail pages and the sitemap read only prompt columns through a publishable server client; exclude future prompts and paginate sitemap queries without exposing participant data.
+
+- Every paid user action (chat, Speed Chat, community, bottle drop/open/reply) spends credit in the database via one shared spend function; the UI only reacts to its `no_credit` error by calling `openPaywall()`, never by checking balances itself.
+- Credit purchases go through one sheet offering web checkout or Google Play; Play purchases are verified server-side with Google and granted idempotently per purchase token, and every grant records its payment source.
+- Optional analytics, engagement logging and ads run only after cookie consent; essential storage is always allowed.
+- The phone bottom bar sets a `--nav-offset` CSS variable; any new fixed-bottom element must offset by it.
+- UI text lives in per-language dictionaries under src/locales (English is the source type); new languages are added there, not inline.
