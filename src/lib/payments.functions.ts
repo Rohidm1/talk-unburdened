@@ -132,7 +132,7 @@ export const createCreditCheckout = createServerFn({ method: "POST" })
         ui_mode: "embedded_page",
         redirect_on_completion: "never",
         payment_method_types: ["card"],
-        return_url: safePortalReturnUrl(data.returnUrl),
+        // Completion stays in the payment sheet; Stripe rejects return_url with "never".
         customer: customerId,
         automatic_tax: { enabled: true },
         customer_update: { address: "auto" },
