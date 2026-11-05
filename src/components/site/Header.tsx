@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { MessageCircle, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import logo from "@/assets/anontalk-logo.png";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,11 +31,8 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5">
-        <a href="/#top" className="flex items-center gap-2">
-          <span className="flex size-8 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <MessageCircle className="size-4" />
-          </span>
-          <span className="font-display text-lg font-semibold tracking-tight">Anontalk</span>
+        <a href="/#top" className="flex items-center" aria-label="Anontalk home">
+          <img src={logo} alt="Anontalk" width={640} height={175} className="h-8 w-auto" />
         </a>
 
         <nav className="hidden items-center gap-5 whitespace-nowrap 2xl:flex">

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Loader2, Phone } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import logo from "@/assets/anontalk-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,11 +78,8 @@ function AuthPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-5 py-16 font-body">
       <div className="w-full max-w-md">
-        <Link to="/" className="mb-8 flex items-center justify-center gap-2">
-          <span className="flex size-8 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Phone className="size-4" />
-          </span>
-          <span className="font-display text-lg font-semibold tracking-tight">Anontalk</span>
+        <Link to="/" className="mb-8 flex items-center justify-center" aria-label="Anontalk home">
+          <img src={logo} alt="Anontalk" width={640} height={175} className="h-10 w-auto" />
         </Link>
 
         <div className="rounded-3xl border border-border bg-card p-7 shadow-[var(--shadow-card)]">
