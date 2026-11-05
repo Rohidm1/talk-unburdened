@@ -19,7 +19,7 @@ export const Route = createFileRoute("/cookies")({
 const rows = [
   ["Essential", "Sign-in session, your cookie choice, sound on/off, daily check-in progress, last-seen markers for notification badges.", "Always on — needed for the site to work."],
   ["Statistics", "First-party visit statistics: page path, referrer, country and a random visitor ID.", "Only with consent."],
-  ["Advertising", "Google AdSense cookies and related ad data.", "Only with consent."],
+  ["Advertising", "Google AdSense cookies and related ad data, plus Google Ads measurement: whether a visitor who came from one of our ads went on to create and verify an account (an account ID is sent to Google so it is counted once).", "Only with consent."],
   ["Translation", "Weglot page translation and your language preference.", "Used only for translation."],
 ] as const;
 
@@ -70,7 +70,12 @@ function CookiesPage() {
         {
           id: "details",
           title: "More information",
-          content: <p>Read our <a href="/privacy">Privacy Policy</a> for providers, retention and your rights. Questions? Use our <a href="/#contact">contact form</a>.</p>,
+          content: (
+            <>
+              <p>Read our <a href="/privacy">Privacy Policy</a> for providers, retention and your rights. Questions? Use our <a href="/#contact">contact form</a>.</p>
+              <p>How Google uses data from sites that use its services: <a href="https://business.safety.google/privacy/" target="_blank" rel="noopener noreferrer">business.safety.google/privacy</a>.</p>
+            </>
+          ),
         },
       ]}
     />

@@ -77,7 +77,7 @@ function PrivacyPage() {
               <ul>
                 <li>Lovable Cloud: hosting and database (EU/US).</li>
                 <li>Stripe: card payments.</li>
-                <li>Google: Google Play Billing for in-app purchases, and Google AdSense advertising only with consent.</li>
+                <li>Google: Google Play Billing for in-app purchases; and, only with your consent, Google AdSense advertising and Google Ads measurement (whether a visit from our ads led to a verified account; your account ID is sent so it is counted once). See <a href="https://business.safety.google/privacy/" target="_blank" rel="noopener noreferrer">how Google uses this data</a>. You can withdraw consent any time on the <a href="/cookies">Cookie page</a>.</li>
                 <li>Weglot: page translation.</li>
                 <li>AI model providers through an AI gateway: generating automated replies.</li>
               </ul>

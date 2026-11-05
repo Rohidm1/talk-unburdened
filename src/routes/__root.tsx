@@ -19,6 +19,7 @@ import { I18nextProvider } from "react-i18next";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { VisitTracker } from "@/components/site/VisitTracker";
+import { GoogleAdsTag } from "@/components/site/GoogleAdsTag";
 import { BottomNav } from "@/components/site/BottomNav";
 import { ConsentBanner } from "@/components/site/ConsentBanner";
 import { GlobalPaywall } from "@/components/site/GlobalPaywall";
@@ -213,6 +214,7 @@ function RootComponent() {
         <Outlet />
         <Toaster />
         <SafeBoundary name="visit-tracker"><VisitTracker /></SafeBoundary>
+        <SafeBoundary name="google-ads"><GoogleAdsTag /></SafeBoundary>
         <SafeBoundary name="support-widget"><SupportWidget /></SafeBoundary>
         <SafeBoundary name="paywall"><GlobalPaywall /></SafeBoundary>
         <SafeBoundary name="bottom-nav"><BottomNav /></SafeBoundary>
