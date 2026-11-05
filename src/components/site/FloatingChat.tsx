@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { MessageCircle, X } from "lucide-react";
-import { useLiveCounter } from "@/components/site/MatchFlow";
 import { playSfx } from "@/lib/sfx";
 import { logEngagement } from "@/lib/engagement";
 
@@ -12,7 +11,6 @@ import { logEngagement } from "@/lib/engagement";
  */
 export function FloatingChat({ onStart }: { onStart?: () => void }) {
   const navigate = useNavigate();
-  const online = useLiveCounter();
   const [show, setShow] = useState(false);
   const [bubble, setBubble] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -87,7 +85,7 @@ export function FloatingChat({ onStart }: { onStart?: () => void }) {
           <span className="flex flex-col items-start leading-tight">
             <span>Start chatting free</span>
             <span className="text-[11px] font-normal opacity-80 tabular-nums">
-              {online.toLocaleString("en-US")} online now
+              First 5 messages free
             </span>
           </span>
         </button>

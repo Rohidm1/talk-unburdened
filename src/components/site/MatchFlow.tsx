@@ -23,78 +23,6 @@ export const DEPTHS = [
 export type DepthId = (typeof DEPTHS)[number]["id"];
 
 /** Reassuring, gently drifting average wait time. */
-export function MatchGuarantee({ className = "" }: { className?: string }) {
-  const [seconds, setSeconds] = useState(4);
-  useEffect(() => {
-    const id = window.setInterval(() => {
-      setSeconds(() => Math.round((3 + Math.random() * 3) * 10) / 10);
-    }, 3000);
-    return () => window.clearInterval(id);
-  }, []);
-  return (
-    <span
-      className={`inline-flex items-center gap-2 rounded-full border border-neon-rose/40 bg-black/40 px-3 py-1 text-xs backdrop-blur ${className}`}
-    >
-      <span className="size-2 animate-pulse rounded-full bg-neon-rose shadow-[0_0_12px_var(--neon-rose)]" />
-      <span className="text-muted-foreground">Average match time:</span>
-      <span className="font-semibold tabular-nums text-foreground">{seconds}s</span>
-    </span>
-  );
-}
-
-/**
- * Expected number of people online for a given moment: a smooth daily curve
- * (quiet early morning, busy evenings, a small late-night bump) with a
- * slightly busier weekend. Deterministic, so every visitor sees roughly the
- * same figure at the same time and it never jumps between page loads.
- */
-export function baselineOnline(date = new Date()): number {
-  const h = date.getUTCHours() + 1 + Math.floor(date.getUTCMinutes() / 10) / 6; // ~CET, 10-min steps (SSR-stable)
-  const day = date.getUTCDay();
-  const evening = Math.exp(-((h - 21) ** 2) / 14); // peak around 21:00
-  const midday = 0.45 * Math.exp(-((h - 13) ** 2) / 20); // lunch-break bump
-  const lateNight = 0.35 * Math.exp(-(((h + 24 - 25) % 24) ** 2) / 6); // 01:00
-  const weekend = day === 0 || day === 6 ? 1.12 : 1;
-  return Math.round((160 + 340 * (evening + midday + lateNight)) * weekend);
-}
-
-/**
- * Live activity counter: sits on the daily curve and drifts organically by a
- * few people at a time, at irregular intervals, never spiking or freezing.
- */
-export function useLiveCounter() {
-  const [count, setCount] = useState(() => baselineOnline());
-  useEffect(() => {
-    let timer = 0;
-    const tick = () => {
-      setCount((c) => {
-        const target = baselineOnline();
-        const pull = (target - c) * 0.08; // slow mean reversion
-        const noise = (Math.random() - 0.5) * 6; // ±3 people of wobble
-        const next = Math.round(c + pull + noise);
-        return Math.max(40, next);
-      });
-      timer = window.setTimeout(tick, 3500 + Math.random() * 5000);
-    };
-    timer = window.setTimeout(tick, 2500);
-    return () => window.clearTimeout(timer);
-  }, []);
-  return count;
-}
-
-export function LiveActivityCounter({ className = "" }: { className?: string }) {
-  const count = useLiveCounter();
-  return (
-    <span
-      className={`inline-flex items-center gap-2 rounded-full border border-neon-cyan/40 bg-black/40 px-3 py-1 text-xs backdrop-blur ${className}`}
-    >
-      <span className="size-2 animate-pulse rounded-full bg-neon-cyan shadow-[0_0_12px_var(--neon-cyan)]" />
-      <span className="neon-text font-semibold tabular-nums">{count.toLocaleString("en-US")}</span>
-      <span className="text-muted-foreground">users online chatting</span>
-    </span>
-  );
-}
-
 export function MoodDialog({
   open,
   onCancel,
@@ -160,10 +88,6 @@ export function MoodDialog({
             ))}
           </div>
         )}
-
-        <div className="flex justify-center pt-2">
-          <MatchGuarantee />
-        </div>
       </DialogContent>
     </Dialog>
   );
@@ -213,9 +137,6 @@ export function MatchingRadar({
         <p className="text-center text-sm text-muted-foreground">
           Matching you with {partnerName ?? "someone"} · mood: <span className="text-foreground">{moodLabel}</span>
         </p>
-        <div className="flex justify-center pt-1">
-          <LiveActivityCounter />
-        </div>
         <Button variant="outline" className="mt-3" onClick={onCancel}>
           Cancel search
         </Button>

@@ -66,37 +66,6 @@ export function TrustStrip() {
   );
 }
 
-export function Voices() {
-  const { t } = useTranslation();
-  const quotes = [
-    { quote: t("voices.q1"), author: t("voices.a1") },
-    { quote: t("voices.q2"), author: t("voices.a2") },
-    { quote: t("voices.q3"), author: t("voices.a3") },
-  ];
-
-  return (
-    <section className="mx-auto w-full max-w-6xl px-5 py-16">
-      <Reveal>
-        <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
-          {t("voices.title")}
-        </h2>
-        <p className="mt-3 text-muted-foreground">{t("voices.subtitle")}</p>
-      </Reveal>
-      <div className="mt-10 grid gap-5 md:grid-cols-3">
-        {quotes.map((q, i) => (
-          <Reveal key={q.author} delay={0.06 * i}>
-            <figure className="card-lift h-full rounded-3xl border border-border bg-card p-6">
-              <Quote className="size-5 text-primary" />
-              <blockquote className="mt-4 text-sm leading-relaxed">“{q.quote}”</blockquote>
-              <figcaption className="mt-4 text-xs text-muted-foreground">{q.author}</figcaption>
-            </figure>
-          </Reveal>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 export function HowItWorks() {
   const { t } = useTranslation();
   const steps = [

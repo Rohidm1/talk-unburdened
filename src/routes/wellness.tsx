@@ -157,7 +157,7 @@ const TREE: Record<string, Node> = {
   lonely: {
     q: "Would talking to someone help?",
     options: [
-      { label: "Yes", tip: "A chat partner is online now — your first 5 messages are free." },
+      { label: "Yes", tip: "A chat partner is available 24/7 — your first 5 messages are free." },
       { label: "Not yet", tip: "Drop a message in a bottle. Someone will send an echo back." },
     ],
   },

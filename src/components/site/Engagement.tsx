@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Flame, Gift, Lock, Sparkle } from "lucide-react";
+import { Flame, Gift, Lock } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -13,47 +13,6 @@ import {
   useProgress,
 } from "@/lib/gamification";
 import { logEngagement } from "@/lib/engagement";
-
-const SNIPPETS = [
-  "Someone from Amsterdam is looking for a Deep Talk…",
-  "A user is sharing a funny story about their commute…",
-  "Someone just unlocked a 4-day streak 🔥",
-  "A visitor picked “Venting” and found a match in 3s",
-  "Someone is asking: what does rest actually look like?",
-  "A user just sent their first icebreaker 🎲",
-  "Someone from Berlin wants a Cosy Chat tonight…",
-  "A conversation just passed the 20-minute mark",
-];
-
-/** Anonymised live ticker of what's happening on the platform right now. */
-export function LiveChatTicker() {
-  const [index, setIndex] = useState(0);
-  const [visible, setVisible] = useState(true);
-
-  useEffect(() => {
-    const id = window.setInterval(() => {
-      setVisible(false);
-      window.setTimeout(() => {
-        setIndex((i) => (i + 1) % SNIPPETS.length);
-        setVisible(true);
-      }, 260);
-    }, 3800);
-    return () => window.clearInterval(id);
-  }, []);
-
-  return (
-    <div className="glass flex min-w-0 max-w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm">
-      <Sparkle className="size-4 shrink-0 text-neon-cyan" />
-      <span
-        className={`min-w-0 truncate text-muted-foreground transition-opacity duration-200 ${
-          visible ? "opacity-100" : "opacity-0"
-        }`}
-      >
-        {SNIPPETS[index]}
-      </span>
-    </div>
-  );
-}
 
 /** Glowing daily flame that grows with the streak. */
 export function StreakFlame({ streak }: { streak: number }) {

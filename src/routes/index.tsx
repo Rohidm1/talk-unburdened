@@ -18,7 +18,6 @@ import {
   Pricing,
   TrustStrip,
 } from "@/components/site/Sections";
-import { ReviewsCarousel } from "@/components/site/Reviews";
 import { FloatingChat } from "@/components/site/FloatingChat";
 import { DailyCheckIn, SessionMilestones } from "@/components/site/Retention";
 import { Reveal } from "@/components/site/Reveal";
@@ -29,13 +28,11 @@ import { ComplimentDialog } from "@/components/site/ComplimentDialog";
 import {
   MatchingRadar,
   MoodDialog,
-  LiveActivityCounter,
-  MatchGuarantee,
   type DepthId,
   type MoodId,
 } from "@/components/site/MatchFlow";
 import { IcebreakerQuiz } from "@/components/site/IcebreakerQuiz";
-import { FirstMatchBonus, LiveChatTicker } from "@/components/site/Engagement";
+import { FirstMatchBonus } from "@/components/site/Engagement";
 import { logEngagement } from "@/lib/engagement";
 import { playSfx } from "@/lib/sfx";
 import { awardXp } from "@/lib/gamification";
@@ -242,15 +239,6 @@ function HomePage() {
             ) : null}
           </div>
 
-          <div className="mb-6">
-            <LiveActivityCounter />
-          </div>
-
-          <div className="mb-6 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-            <LiveChatTicker />
-            <MatchGuarantee className="justify-self-start sm:justify-self-end" />
-          </div>
-
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {listenersOnline.map((l: Listener, i: number) => (
               <Reveal key={l.id} delay={0.05 * (i % 3)}>
@@ -276,7 +264,6 @@ function HomePage() {
         </section>
 
         <TrustStrip />
-        <ReviewsCarousel />
         <section className="mx-auto w-full max-w-6xl px-5 pb-6">
           <div className="grid gap-5 md:grid-cols-[1fr_1.4fr] md:items-stretch">
             <DailyCheckIn />

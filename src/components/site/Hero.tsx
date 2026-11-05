@@ -15,9 +15,9 @@ export function Hero({ onStart }: { onStart: () => void }) {
   ];
 
   const stats = [
-    { value: "12,400+", label: t("hero.statPeople") },
-    { value: "< 60 sec", label: t("hero.statWait") },
-    { value: "100%", label: t("hero.statPrivate") },
+    { value: "5", label: t("hero.statPeople") },
+    { value: "24/7", label: t("hero.statWait") },
+    { value: "0", label: t("hero.statPrivate") },
   ];
 
   return (
