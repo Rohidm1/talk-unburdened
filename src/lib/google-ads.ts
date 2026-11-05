@@ -1,4 +1,4 @@
-import { getConsent } from "@/lib/consent";
+import { getConsent, getConsentRecord } from "@/lib/consent";
 
 /** Google Ads account tag and the "Verified sign-up" conversion. */
 export const GOOGLE_ADS_ID = "AW-18556889359";
@@ -16,12 +16,25 @@ declare global {
 }
 
 export function adsAllowed(): boolean {
-  return getConsent() === "accepted";
+  const record = getConsentRecord();
+  return getConsent() === "accepted" && record?.choice === "accepted";
+}
+
+/** Update an already loaded tag on every change, including re-acceptance. */
+export function syncGoogleAdsConsent(): void {
+  if (typeof window === "undefined") return;
+  const decision = adsAllowed() ? "granted" : "denied";
+  if (decision === "denied") window.gtag?.("set", "user_data", null);
+  window.gtag?.("consent", "update", {
+    ad_storage: decision, ad_user_data: decision, ad_personalization: decision,
+  });
 }
 
 /** Loads the Google tag once, only after the visitor accepted ad cookies. */
 export function loadGoogleAds(): boolean {
-  if (typeof window === "undefined" || !adsAllowed()) return false;
+  if (typeof window === "undefined") return false;
+  syncGoogleAdsConsent();
+  if (!adsAllowed()) return false;
   window.dataLayer = window.dataLayer || [];
   window.gtag =
     window.gtag ||
@@ -64,5 +77,10 @@ export function reportVerifiedSignup(user: SignupUser): void {
   if (!isFreshVerifiedSignup(user, Date.now(), handled)) return;
   window.localStorage.setItem(key, "1");
   if (!loadGoogleAds()) return;
+  const consent = getConsentRecord();
+  window.localStorage.setItem(`${key}.consent`, JSON.stringify({
+    recordId: consent?.id, choice: consent?.choice, region: consent?.region,
+    occurredAt: new Date().toISOString(),
+  }));
   window.gtag?.("event", "conversion", { send_to: SIGNUP_SEND_TO, transaction_id: user.id });
 }

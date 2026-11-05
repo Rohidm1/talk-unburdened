@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import "@/lib/i18n";
 import { LegalPage } from "@/components/site/LegalPage";
 import { breadcrumbSchema, jsonLd, pageHead } from "@/lib/seo";
-import { CONSENT_KEY } from "@/lib/consent";
+import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/cookies")({
   head: () => ({
@@ -24,6 +25,7 @@ const rows = [
 ] as const;
 
 function CookiesPage() {
+  const { t } = useTranslation();
   return (
     <LegalPage
       title="Cookie & Data Statement"
@@ -53,17 +55,17 @@ function CookiesPage() {
           title: "Change your choice",
           content: (
             <>
-              <p>This clears your saved choice and reloads the page so you can choose again. It does not sign you out.</p>
-              <button
+              <p>{t("consent.settings")}</p>
+              <p>{t("consent.evidence")}</p>
+              <Button
                 type="button"
-                className="min-h-12 rounded-xl bg-primary px-5 font-semibold text-primary-foreground"
+                className="min-h-12"
                 onClick={() => {
-                  window.localStorage.removeItem(CONSENT_KEY);
-                  window.location.reload();
+                  window.dispatchEvent(new CustomEvent("at:cookie-settings"));
                 }}
               >
-                Change cookie choice
-              </button>
+                {t("consent.change")}
+              </Button>
             </>
           ),
         },

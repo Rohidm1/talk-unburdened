@@ -1,4 +1,6 @@
 # Roadmap
+- [x] Ads consent: record choices, preserve withdrawal evidence, synchronize Google signals and open-tab changes; tests and two-tab browser checks passed.
+- [ ] Ads launch: publish consent fixes and verify live sign-up conversion; awaiting publication and Google policy classification/certification determination.
 - [x] SEO/AEO: shared metadata/schema helpers, homepage direct answers and FAQ
 - [x] SEO/AEO: public dilemma detail pages and dynamic sitemap coverage
 - [x] SEO/AEO: crawler privacy rules, semantic audit and end-to-end checks

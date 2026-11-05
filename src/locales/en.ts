@@ -4,6 +4,14 @@
  * values (keep the keys), and register it in `src/locales/index.ts`.
  */
 export const en = {
+  consent: {
+    title: "Your privacy choice",
+    text: "We use essential storage to keep you signed in. With your OK we also use visit statistics and Google ads cookies.",
+    more: "Read more", accept: "Accept all", reject: "Essential only", close: "Keep current choice",
+    change: "Change cookie choice",
+    settings: "Review your cookie choice without changing it. Essential only withdraws permission for statistics and advertising; you stay signed in.",
+    evidence: "Your browser keeps a dated record of your choices and the notice shown, including previous acceptance when you withdraw. Older choices without this record need confirmation before Google Ads tracking resumes.",
+  },
   nav: {
     profiles: "Chat partners",
     how: "How it works",
