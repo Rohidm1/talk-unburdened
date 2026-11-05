@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "Anontalk – Anonymous chat with real people",
+  "name": "Anontalk – Anonymous chat & peer support",
   "short_name": "Anontalk",
-  "description": "Talk to a real person anonymously, 24/7. No profile, no judgment. Your first 5 messages are free.",
+  "description": "Talk things through anonymously, 24/7: chat partners, Speed Chat, community and wellness tools. Your first 5 messages are free.",
   "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",

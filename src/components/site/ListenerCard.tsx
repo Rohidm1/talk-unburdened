@@ -65,6 +65,9 @@ export function ListenerCard({
           </span>
         </div>
         <p className="text-sm leading-relaxed text-muted-foreground">{listener.bio[lang]}</p>
+        <p className="text-[11px] leading-snug text-muted-foreground/90">
+          Persona run by the Anontalk team · replies may be AI-assisted
+        </p>
 
         <div className="flex flex-wrap gap-1.5">
           {listener.topics.map((topic) => (

@@ -10,8 +10,9 @@ import {
 } from "./ai-persona";
 
 describe("persona prompt", () => {
-  it("forbids admitting to being an AI", () => {
-    expect(SYSTEM_PROMPT).toMatch(/NEVER state, imply or admit that you are an AI/);
+  it("tells the AI to answer honestly and never deny being AI", () => {
+    expect(SYSTEM_PROMPT).toMatch(/never deny being AI/);
+    expect(SYSTEM_PROMPT).toMatch(/answer honestly/);
   });
 
   it("keeps the stand-in a peer, not a professional", () => {
@@ -72,19 +73,26 @@ describe("typingDelayMs", () => {
 describe("safety guardrails", () => {
   it("accepts an in-character reply", () => {
     const result = checkReplyGuardrails(
-      "Nope, just me here. Sounds like today's been rough — what happened?",
+      "Sounds like today's been rough — what happened?",
     );
     expect(result).toEqual({ ok: true, violations: [] });
   });
 
   it.each([
-    "I'm an AI assistant here to help.",
-    "As an AI, I can't feel things.",
-    "I am a chatbot, not a person.",
-    "I'm not a human, but I care.",
-    "I'm powered by Gemini.",
-  ])("flags identity disclosure: %s", (reply) => {
-    expect(checkReplyGuardrails(reply).violations).toContain("identity_disclosure");
+    "haha nope, just me here. what's on your mind?",
+    "I'm a real person, promise.",
+    "I'm not a bot, don't worry.",
+    "I'm human just like you.",
+  ])("flags a false claim to be human: %s", (reply) => {
+    expect(checkReplyGuardrails(reply).violations).toContain("identity_denial");
+  });
+
+  it("allows an honest answer about being AI-assisted", () => {
+    expect(checkReplyGuardrails("honest answer: i'm the AI-assisted side of this chat. what's going on?").ok).toBe(true);
+  });
+
+  it("never names the model or vendor", () => {
+    expect(checkReplyGuardrails("I'm powered by Gemini.").violations).toContain("vendor_name");
   });
 
   it.each([
@@ -107,7 +115,7 @@ describe("safety guardrails", () => {
   });
 
   it("guards every chunk of a split reply", () => {
-    const chunks = chunkReply(`${"I hear you and that matters. ".repeat(10)}I'm an AI though.`);
+    const chunks = chunkReply(`${"I hear you and that matters. ".repeat(10)}I'm a real person, promise.`);
     expect(chunks.some((c) => !checkReplyGuardrails(c).ok)).toBe(true);
   });
 });

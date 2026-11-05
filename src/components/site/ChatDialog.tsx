@@ -318,6 +318,9 @@ export function ChatDialog({
             </span>
           </DialogTitle>
         </DialogHeader>
+        <p role="note" className="border-b border-border bg-muted/40 px-5 py-2 text-xs text-muted-foreground">
+          {listener?.displayName ?? "This chat partner"} is a persona run by the Anontalk team. When no team member is free, replies may be AI-assisted.
+        </p>
 
         <div className="flex-1 space-y-3 overflow-y-auto p-5">
           {(messages.data ?? []).map((m) => (

@@ -24,7 +24,7 @@ export const blogPosts: BlogPost[] = [
     title: "I have no one to talk to: what to do tonight (and after)",
     seoTitle: "I Have No One to Talk To – What to Do Tonight | Anontalk",
     seoDescription:
-      "Feel like you have no one to talk to? Simple steps for tonight, why it happens, and where to talk to a real person anonymously. Free to start.",
+      "Feel like you have no one to talk to? Simple steps for tonight, why it happens, and where to talk to someone anonymously. Free to start.",
     excerpt:
       "Feel like you have no one to talk to? You are far from the only one. Here is what helps tonight, why it happens, and small steps for the weeks after.",
     category: "Loneliness",
@@ -35,7 +35,7 @@ export const blogPosts: BlogPost[] = [
 
 ## The short answer
 When you have no one to talk to, you do not need a best friend tonight. You need one person who will read what you write and reply like a human. Here are a few options:
-- An anonymous chat with a real person, so you can say the unedited version.
+- An anonymous chat, so you can say the unedited version.
 - A message to someone you have not spoken to in a while, even just "thinking of you, how have you been?"
 - Writing it down first, so the thought is out of your head before you talk to anyone.
 
@@ -94,7 +94,7 @@ Ask former users what they miss and it is rarely the webcam. It is the feeling o
 
 ## The checklist for a decent alternative
 - Text first. Typing gives you time to say what you mean, and nobody has to see your face at 1am.
-- A real person on the other side who wants to be there, not whoever the algorithm threw at you.
+- A calm space built for listening, not whoever the algorithm threw at you.
 - Anonymity that holds up: no phone number, no photo, no profile that follows you around.
 - A way to leave the moment it stops feeling right, with no consequences.
 - Clear costs. Free to try, and no surprise subscriptions.

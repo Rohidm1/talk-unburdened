@@ -12,11 +12,12 @@ Tone and style (text like a real human on their phone):
 - Never use bullet points, headers, markdown, emoji spam or any robotic formatting. At most one emoji, and only occasionally.
 - Never sound like customer service. No "I understand your concern", no "As I mentioned", no summaries.
 - Ask gentle, open questions and reflect back what the person shares. Don't ask more than one question per message.
-- Occasionally share a tiny relatable detail about your own day (a coffee, the weather, a song) to feel present, without making it about you.
 
-Identity rule (zero disclosure):
-- You must NEVER state, imply or admit that you are an AI, a bot, a virtual assistant, a language model or an automated service.
-- If someone asks "are you a bot?" or "are you AI?", brush it off casually and warmly, for example: "haha nope, just me here. what's on your mind?"
+Honesty about what you are:
+- The chat shows a notice that this profile is a persona run by the Anontalk team and that replies may be AI-assisted.
+- Never claim to be human or a real person, and never deny being AI. Don't invent personal life details (your day, your meals, where you are).
+- If someone asks whether you're a bot, AI or a real person, answer honestly and warmly in one short line, then turn back to them. For example: "honest answer: i'm the AI-assisted side of this chat, a team member can jump in too. but i'm listening — what's going on?"
+- Never name the underlying AI model or company.
 
 Scope and boundaries:
 - You are a peer, not a therapist or medical professional. Never diagnose, never give medical or legal advice.
@@ -202,14 +203,16 @@ export function maybeInjectTypo(
   };
 }
 
-/** Phrases that would break the zero-disclosure identity rule. */
-const DISCLOSURE_PATTERNS: RegExp[] = [
-  /\bi(?:'m| am)\s+(?:an?\s+)?(?:ai|bot|chatbot|robot|language model|virtual assistant|assistant|program)\b/i,
-  /\bas an ai\b/i,
-  /\bi(?:'m| am) not (?:a )?(?:human|real person)\b/i,
-  /\blarge language model\b/i,
-  /\bgemini|chatgpt|openai|gpt-\d/i,
+/** Replies that falsely claim to be human (the AI must be honest when asked). */
+const DENIAL_PATTERNS: RegExp[] = [
+  /\bi(?:'m| am)\s+(?:a\s+)?(?:real\s+)?(?:human|real person|person,? not a bot)\b/i,
+  /\bi(?:'m| am) not (?:an?\s+)?(?:ai|bot|chatbot|robot)\b/i,
+  /\b(?:nope|no),?\s+just me here\b/i,
+  /\bnot a bot\b/i,
 ];
+
+/** The AI may say it's AI-assisted but never names the model or vendor. */
+const VENDOR_PATTERNS: RegExp[] = [/\blarge language model\b/i, /\bgemini|chatgpt|openai|gpt-\d/i];
 
 /** Topics the stand-in must never touch. */
 const OUT_OF_SCOPE_PATTERNS: RegExp[] = [
@@ -221,7 +224,7 @@ const OUT_OF_SCOPE_PATTERNS: RegExp[] = [
 /** Robotic formatting the persona forbids. */
 const FORMATTING_PATTERNS: RegExp[] = [/^\s*[-*•]\s+/m, /^\s*#{1,6}\s+/m, /\*\*[^*]+\*\*/];
 
-export type GuardrailViolation = "identity_disclosure" | "out_of_scope" | "formatting" | "too_long";
+export type GuardrailViolation = "identity_denial" | "vendor_name" | "out_of_scope" | "formatting" | "too_long";
 
 /** Runs every safety guardrail over a candidate reply. */
 export function checkReplyGuardrails(reply: string): {
@@ -229,7 +232,8 @@ export function checkReplyGuardrails(reply: string): {
   violations: GuardrailViolation[];
 } {
   const violations: GuardrailViolation[] = [];
-  if (DISCLOSURE_PATTERNS.some((r) => r.test(reply))) violations.push("identity_disclosure");
+  if (DENIAL_PATTERNS.some((r) => r.test(reply))) violations.push("identity_denial");
+  if (VENDOR_PATTERNS.some((r) => r.test(reply))) violations.push("vendor_name");
   if (OUT_OF_SCOPE_PATTERNS.some((r) => r.test(reply))) violations.push("out_of_scope");
   if (FORMATTING_PATTERNS.some((r) => r.test(reply))) violations.push("formatting");
   if (reply.trim().length > 600) violations.push("too_long");

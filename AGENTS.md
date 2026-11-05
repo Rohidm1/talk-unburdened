@@ -25,3 +25,4 @@
 - Rewards (daily fortune, SOS streaks, referrals) are granted only inside security-definer database functions that are idempotent per day/person and log a credit transaction.
 - Reports and blocks go through one `report_content` function feeding the admin Reports tab; matching, bottles and community views must respect `user_blocks`.
 - Global overlays (SOS, safety prompt, report sheet, welcome, offline, holiday theme) mount once in the root inside `SafeBoundary` and are opened via window events.
+- Chat-partner personas are disclosed on profile cards, in the chat and in the FAQ; the AI stand-in must answer honestly when asked and never claim to be human (ad platforms and EU AI transparency rules require this).

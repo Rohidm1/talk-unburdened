@@ -9,6 +9,10 @@ export const homeAnswers: readonly Answer[] = [
     answer: "You use a nickname instead of your real name. That does not mean you are technically 100% anonymous: Anontalk processes account details and messages to provide the service. Don't share personal contact details in your conversations.",
   },
   {
+    question: "Am I chatting with a real person?",
+    answer: "Chat partner profiles are personas run by the Anontalk team. When no team member is free, replies may be written with AI assistance, and the chat says so. Speed Chat, the community and message bottles connect you with other real users.",
+  },
+  {
     question: "How does the bottles (message in a bottle) system work?",
     answer: "With a verified account you write a message and leave it as an online message bottle. Another member can find a random bottle and leave a short reply. You can send up to two bottles per day; don't include personal details.",
   },

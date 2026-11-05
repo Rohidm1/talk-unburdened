@@ -28,7 +28,7 @@ const url = "https://anontalk.online/talk-to-strangers";
 const faqs = [
   {
     q: "Is this a good Omegle alternative?",
-    a: "It is text-only and anonymous, but calmer. There is no random video, no cam roulette and no strangers watching you. You pick an alias and start typing with a real person who reads every word.",
+    a: "It is text-only and anonymous, but calmer. There is no random video, no cam roulette and no strangers watching you. You pick an alias and start typing. Speed Chat matches you with another real user; chat partner profiles are personas run by our team, and replies may be AI-assisted when no one is free.",
   },
   {
     q: "Do I have to give my real name?",
@@ -119,7 +119,7 @@ function TalkToStrangersPage() {
             Talk to strangers, without becoming one to yourself
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground">
-            Anontalk is anonymous, text-only chat with real people. Choose an alias, get 5 free
+            Anontalk is anonymous, text-only chat. Choose an alias, get 5 free
             messages, and say the thing you have been carrying around all week.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">

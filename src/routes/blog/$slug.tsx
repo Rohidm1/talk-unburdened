@@ -153,7 +153,7 @@ function BlogPostPage() {
         <div className="mt-14 rounded-3xl border border-primary/30 bg-primary/5 p-7 text-center">
           <h2 className="font-display text-xl font-semibold">Want to talk it through?</h2>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-            Anonymous, judgment-free chat with a real person. First 5 messages on us.
+            Anonymous, judgment-free chat. First 5 messages on us.
           </p>
           <Link
             to="/"
