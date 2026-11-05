@@ -292,6 +292,16 @@ function HomePage() {
                   Read what helps when you have no one to talk to
                 </Link>
               </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Just need to get something off your chest?{" "}
+                <Link
+                  to="/blog/$slug"
+                  params={{ slug: "where-can-i-vent-anonymously" }}
+                  className="font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  Where to vent anonymously, honestly ranked
+                </Link>
+              </p>
             </div>
           </div>
         </section>
