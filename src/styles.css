@@ -522,3 +522,29 @@ html[data-evening="1"] body {
 @media (prefers-reduced-motion: reduce) {
   .breathe-loop, .celebrate-float, .ocean-waves, .bottle-cast, .bottle-float { animation: none !important; }
 }
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+html,
+body {
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 767px) {
+  html {
+    scrollbar-width: none;
+  }
+  html::-webkit-scrollbar {
+    display: none;
+  }
+  button,
+  a {
+    touch-action: manipulation;
+  }
+}

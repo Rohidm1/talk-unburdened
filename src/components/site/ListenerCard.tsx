@@ -29,6 +29,12 @@ export function ListenerCard({
     NL: "Dutch",
     DE: "German",
     EL: "Greek",
+    ES: "Spanish",
+    PT: "Portuguese",
+    FR: "French",
+    IT: "Italian",
+    TR: "Turkish",
+    PL: "Polish",
   };
   const languageLabel = listener.language
     .split("/")
@@ -61,10 +67,12 @@ export function ListenerCard({
             <span className="ml-2 text-sm font-normal text-muted-foreground">{listener.age}</span>
           </h3>
           <span className="rounded-md border border-primary/30 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-primary">
+            <span className="sr-only">Languages spoken: </span>
             {languageLabel}
           </span>
         </div>
         <p className="text-sm leading-relaxed text-muted-foreground">{listener.bio[lang]}</p>
+        <p className="text-sm font-medium text-foreground">“{listener.cta}”</p>
         <p className="text-[11px] leading-snug text-muted-foreground/90">
           Persona run by the Anontalk team · AI-generated photo · replies may be AI-assisted
         </p>

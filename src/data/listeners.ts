@@ -2,8 +2,8 @@ import { CREDIT_PACKAGE_LIST, type CreditPackageKey } from "@/lib/credit-package
 
 export type ListenerStatus = "online" | "busy" | "offline";
 
-/** Primary language badge shown on the card. */
-export type ListenerLanguage = "NL" | "EN" | "EN/EL/NL/DE" | "EN/NL" | "EN/DE" | "EN/EL";
+/** Languages spoken, as slash-separated codes (e.g. "EN/NL"). */
+export type ListenerLanguage = string;
 
 export type Listener = {
   id: string;
@@ -11,7 +11,8 @@ export type Listener = {
   avatar: string;
   age: number;
   bio: { en: string; nl: string };
-  /** Single language — cards never show two badges. */
+  /** Short invitation shown on the card to start a chat. */
+  cta: string;
   language: ListenerLanguage;
   topics: { en: string; nl: string }[];
   status: ListenerStatus;
@@ -20,216 +21,124 @@ export type Listener = {
 
 export const listeners: Listener[] = [
   {
-    id: "l1",
-    displayName: "Amara",
-    avatar: "/avatars/profile-1.jpg",
-    age: 24,
-    bio: {
-      nl: "You can get things off your chest here without anyone judging you. I'm here to read every word calmly.",
-      en: "You can get things off your chest here without anyone judging you. I'm here to read every word calmly.",
-    },
-    language: "EN",
-    topics: [
-      { en: "Getting it off your chest", nl: "Getting it off your chest" },
-      { en: "No judgment", nl: "No judgment" },
-    ],
+    id: "p1",
+    displayName: "Lotte",
+    avatar: "/avatars/partner-1.jpg",
+    age: 27,
+    bio: { en: "Coffee, long bike rides and honest talks. I'm the friend who actually listens.", nl: "Coffee, long bike rides and honest talks. I'm the friend who actually listens." },
+    cta: "Rough day? Tell me about it, I'm all ears.",
+    language: "EN/NL",
+    topics: [{ en: "Everyday stress", nl: "Everyday stress" }, { en: "Cycling", nl: "Cycling" }, { en: "Honest talks", nl: "Honest talks" }],
     status: "online",
     years: 3,
   },
   {
-    id: "l2",
-    displayName: "Grace",
-    avatar: "/avatars/profile-2.jpg",
-    age: 48,
-    bio: {
-      en: "Here to chat calmly whenever life feels overwhelming. You don't have to carry it all alone.",
-      nl: "Here to chat calmly whenever life feels overwhelming. You don't have to carry it all alone.",
-    },
-    language: "EN",
-    topics: [
-      { en: "Feeling overwhelmed", nl: "Feeling overwhelmed" },
-      { en: "Quiet support", nl: "Quiet support" },
-    ],
-    status: "online",
-    years: 12,
-  },
-  {
-    id: "l3",
-    displayName: "Sanne",
-    avatar: "/avatars/profile-3.jpg",
-    age: 42,
-    bio: {
-      nl: "Sometimes it just helps to put everything into words. I give your story my full, unhurried attention.",
-      en: "Sometimes it just helps to put everything into words. I give your story my full, unhurried attention.",
-    },
-    language: "EN",
-    topics: [
-      { en: "Putting it into words", nl: "Putting it into words" },
-      { en: "Full attention", nl: "Full attention" },
-    ],
-    status: "online",
-    years: 8,
-  },
-  {
-    id: "l4",
-    displayName: "Elena",
-    avatar: "/avatars/profile-4.jpg",
-    age: 26,
-    bio: {
-      en: "A safe and peaceful space for a quick vent or sharing whatever is on your mind today.",
-      nl: "A safe and peaceful space for a quick vent or sharing whatever is on your mind today.",
-    },
-    language: "EN",
-    topics: [
-      { en: "Quick vent", nl: "Quick vent" },
-      { en: "Safe space", nl: "Safe space" },
-    ],
-    status: "online",
-    years: 4,
-  },
-  {
-    id: "l5",
-    displayName: "Priya",
-    avatar: "/avatars/profile-5.jpg",
-    age: 52,
-    bio: {
-      nl: "Calm, genuine attention for your story, at your own pace. A quiet moment of support, whenever you need it.",
-      en: "Calm, genuine attention for your story, at your own pace. A quiet moment of support, whenever you need it.",
-    },
-    language: "EN",
-    topics: [
-      { en: "Your own pace", nl: "Your own pace" },
-      { en: "Calm support", nl: "Calm support" },
-    ],
-    status: "online",
-    years: 15,
-  },
-  {
-    id: "l6",
-    displayName: "Maya",
-    avatar: "/avatars/profile-6.jpg",
-    age: 34,
-    bio: {
-      en: "Whenever you need a comforting conversation or just someone to listen quietly, I am here for you.",
-      nl: "Whenever you need a comforting conversation or just someone to listen quietly, I am here for you.",
-    },
-    language: "EN",
-    topics: [
-      { en: "Comforting talk", nl: "Comforting talk" },
-      { en: "Quiet chats", nl: "Quiet chats" },
-    ],
-    status: "online",
-    years: 6,
-  },
-  {
-    id: "l7",
-    displayName: "Yuki",
-    avatar: "/avatars/profile-7.jpg",
-    age: 28,
-    bio: {
-      nl: "For when you want to pause and sit with what you feel, with a steady presence on the other side of the chat.",
-      en: "For when you want to pause and sit with what you feel, with a steady presence on the other side of the chat.",
-    },
-    language: "EN",
-    topics: [
-      { en: "Steady presence", nl: "Steady presence" },
-      { en: "Taking a pause", nl: "Taking a pause" },
-    ],
-    status: "online",
-    years: 5,
-  },
-  {
-    id: "l8",
-    displayName: "Eleni",
-    avatar: "/avatars/profile-8.jpg",
+    id: "p2",
+    displayName: "Hanna",
+    avatar: "/avatars/partner-2.jpg",
     age: 31,
-    bio: {
-      en: "Hi everyone, I'm Eleni. I'm a very empathetic person and a passionate foodie. I love helping people clear their minds. If you need a supportive friend, a virtual shoulder to cry on, or just a fun distraction, I'm your girl.",
-      nl: "Hi everyone, I'm Eleni. I'm a very empathetic person and a passionate foodie. I love helping people clear their minds. If you need a supportive friend, a virtual shoulder to cry on, or just a fun distraction, I'm your girl.",
-    },
-    language: "EN/EL",
-    topics: [
-      { en: "Emotional support", nl: "Emotional support" },
-      { en: "Food & cooking", nl: "Food & cooking" },
-      { en: "Venting about work", nl: "Venting about work" },
-      { en: "Fun distractions", nl: "Fun distractions" },
-    ],
-    status: "online",
-    years: 7,
-  },
-  {
-    id: "l9",
-    displayName: "Marit",
-    avatar: "/avatars/profile-9.jpg",
-    age: 27,
-    bio: {
-      en: "I speak English, Greek, Dutch and German, so switch whenever you like. Just a calm chat about whatever is weighing on you today.",
-      nl: "I speak English, Greek, Dutch and German, so switch whenever you like. Just a calm chat about whatever is weighing on you today.",
-    },
-    language: "EN/EL/NL/DE",
-    topics: [
-      { en: "English, Greek, Dutch, German", nl: "English, Greek, Dutch, German" },
-      { en: "Everyday stress", nl: "Everyday stress" },
-    ],
-    status: "online",
-    years: 5,
-  },
-  {
-    id: "l10",
-    displayName: "Daniela",
-    avatar: "/avatars/profile-10.jpg",
-    age: 36,
-    bio: {
-      en: "Hey there! I'm Daniela. I love deep conversations about life, mindset, and personal growth. Whether you had a stressful day and just need to vent, or want to share your biggest dreams, I'm here to listen without judgment. Let's talk!",
-      nl: "Hey there! I'm Daniela. I love deep conversations about life, mindset, and personal growth. Whether you had a stressful day and just need to vent, or want to share your biggest dreams, I'm here to listen without judgment. Let's talk!",
-    },
-    language: "EN/NL",
-    topics: [
-      { en: "Your day", nl: "Your day" },
-      { en: "Relationship advice", nl: "Relationship advice" },
-      { en: "Stress relief", nl: "Stress relief" },
-      { en: "Future goals", nl: "Future goals" },
-    ],
-    status: "online",
-    years: 11,
-  },
-  {
-    id: "l11",
-    displayName: "Stefan",
-    avatar: "/avatars/profile-11.jpg",
-    age: 33,
-    bio: {
-      en: "Hi, I'm Stefan. I'm a tech enthusiast, love sports, and enjoy discussing everything from daily struggles to deep, late-night thoughts. I'm an open book and a great listener. No topic is off-limits with me.",
-      nl: "Hi, I'm Stefan. I'm a tech enthusiast, love sports, and enjoy discussing everything from daily struggles to deep, late-night thoughts. I'm an open book and a great listener. No topic is off-limits with me.",
-    },
+    bio: { en: "Bookworm and caf\u00e9 regular from Berlin. I love the conversations that start with 'so, the thing is...'", nl: "Bookworm and caf\u00e9 regular from Berlin. I love the conversations that start with 'so, the thing is...'" },
+    cta: "Head full tonight? Message me and let's sort it out.",
     language: "EN/DE",
-    topics: [
-      { en: "Sports", nl: "Sports" },
-      { en: "Career struggles", nl: "Career struggles" },
-      { en: "Casual venting", nl: "Casual venting" },
-      { en: "Late-night thoughts", nl: "Late-night thoughts" },
-    ],
+    topics: [{ en: "Books", nl: "Books" }, { en: "Work pressure", nl: "Work pressure" }, { en: "Late-night thoughts", nl: "Late-night thoughts" }],
     status: "online",
-    years: 6,
+    years: 3,
   },
   {
-    id: "l12",
-    displayName: "Yannis",
-    avatar: "/avatars/profile-12.jpg",
-    age: 29,
-    bio: {
-      en: "Hello! Yannis here. I'm a creative soul who loves music, travel, and good vibes. If you're feeling lonely, bored, or just want a genuine conversation with someone who actually listens, send me a message. Let's connect!",
-      nl: "Hello! Yannis here. I'm a creative soul who loves music, travel, and good vibes. If you're feeling lonely, bored, or just want a genuine conversation with someone who actually listens, send me a message. Let's connect!",
-    },
-    language: "EN/EL",
-    topics: [
-      { en: "Music", nl: "Music" },
-      { en: "Loneliness", nl: "Loneliness" },
-      { en: "Travel stories", nl: "Travel stories" },
-      { en: "Friendly casual chat", nl: "Friendly casual chat" },
-    ],
+    id: "p3",
+    displayName: "Chloe",
+    avatar: "/avatars/partner-3.jpg",
+    age: 25,
+    bio: { en: "Park walks, bad puns and good listening from Manchester. No small talk required.", nl: "Park walks, bad puns and good listening from Manchester. No small talk required." },
+    cta: "Say hi, I'd love to hear what's going on.",
+    language: "EN",
+    topics: [{ en: "Loneliness", nl: "Loneliness" }, { en: "Humour", nl: "Humour" }, { en: "Relationships", nl: "Relationships" }],
     status: "online",
-    years: 4,
+    years: 3,
+  },
+  {
+    id: "p4",
+    displayName: "Katerina",
+    avatar: "/avatars/partner-4.jpg",
+    age: 29,
+    bio: { en: "Athens girl who loves sunsets, cooking and deep chats that go on a bit too long.", nl: "Athens girl who loves sunsets, cooking and deep chats that go on a bit too long." },
+    cta: "Tell me what's on your mind, I've got time.",
+    language: "EN/EL",
+    topics: [{ en: "Food & cooking", nl: "Food & cooking" }, { en: "Deep chats", nl: "Deep chats" }, { en: "Travel", nl: "Travel" }],
+    status: "online",
+    years: 3,
+  },
+  {
+    id: "p5",
+    displayName: "Lucía",
+    avatar: "/avatars/partner-5.jpg",
+    age: 33,
+    bio: { en: "Warm, direct and a little cheeky. From Valencia, and I never judge.", nl: "Warm, direct and a little cheeky. From Valencia, and I never judge." },
+    cta: "Need to vent? Start typing, I'm here.",
+    language: "EN/ES",
+    topics: [{ en: "Venting", nl: "Venting" }, { en: "Family", nl: "Family" }, { en: "Breakups", nl: "Breakups" }],
+    status: "online",
+    years: 3,
+  },
+  {
+    id: "p6",
+    displayName: "Beatriz",
+    avatar: "/avatars/partner-6.jpg",
+    age: 28,
+    bio: { en: "Music, city walks and calm conversations in Lisbon.", nl: "Music, city walks and calm conversations in Lisbon." },
+    cta: "Message me when the night feels long.",
+    language: "EN/PT",
+    topics: [{ en: "Music", nl: "Music" }, { en: "Sleepless nights", nl: "Sleepless nights" }, { en: "Calm chats", nl: "Calm chats" }],
+    status: "online",
+    years: 3,
+  },
+  {
+    id: "p7",
+    displayName: "Camille",
+    avatar: "/avatars/partner-7.jpg",
+    age: 30,
+    bio: { en: "Novels, tea and real conversations from Lyon.", nl: "Novels, tea and real conversations from Lyon." },
+    cta: "Tell me about your day, the good and the messy.",
+    language: "EN/FR",
+    topics: [{ en: "Your day", nl: "Your day" }, { en: "Books", nl: "Books" }, { en: "Self-doubt", nl: "Self-doubt" }],
+    status: "online",
+    years: 3,
+  },
+  {
+    id: "p8",
+    displayName: "Giulia",
+    avatar: "/avatars/partner-8.jpg",
+    age: 26,
+    bio: { en: "Always smiling, always curious. Florence born and raised.", nl: "Always smiling, always curious. Florence born and raised." },
+    cta: "Bored or down? Send me a message and let's chat.",
+    language: "EN/IT",
+    topics: [{ en: "Fun distractions", nl: "Fun distractions" }, { en: "Dating", nl: "Dating" }, { en: "Motivation", nl: "Motivation" }],
+    status: "online",
+    years: 3,
+  },
+  {
+    id: "p9",
+    displayName: "Elif",
+    avatar: "/avatars/partner-9.jpg",
+    age: 32,
+    bio: { en: "Road trips and heart-to-hearts from Istanbul.", nl: "Road trips and heart-to-hearts from Istanbul." },
+    cta: "Whatever you're carrying, you can share it with me.",
+    language: "EN/TR",
+    topics: [{ en: "Heart-to-hearts", nl: "Heart-to-hearts" }, { en: "Career", nl: "Career" }, { en: "Stress relief", nl: "Stress relief" }],
+    status: "online",
+    years: 3,
+  },
+  {
+    id: "p10",
+    displayName: "Zofia",
+    avatar: "/avatars/partner-10.jpg",
+    age: 27,
+    bio: { en: "Winter lover from Krak\u00f3w, good listener, zero judgment.", nl: "Winter lover from Krak\u00f3w, good listener, zero judgment." },
+    cta: "Say hi and tell me what's going on.",
+    language: "EN/PL",
+    topics: [{ en: "No judgment", nl: "No judgment" }, { en: "Feeling stuck", nl: "Feeling stuck" }, { en: "Casual chat", nl: "Casual chat" }],
+    status: "online",
+    years: 3,
   },
 ];
 

@@ -85,6 +85,13 @@
       "when": 1793835850519,
       "tag": "0011_mask_titles_and_bottles",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794006992366,
+      "tag": "0012_replace_chat_partner_profiles",
+      "breakpoints": true
     }
   ]
 }

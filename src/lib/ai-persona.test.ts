@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  personaPromptFor,
   MAX_CHUNK_LENGTH,
   MAX_TYPING_MS,
   MIN_TYPING_MS,
@@ -148,5 +149,17 @@ d2("typo quirk", () => {
   i2("never touches non-Latin text", () => {
     const { typo } = maybeInjectTypo(["Καλησπέρα, τι κάνεις σήμερα;"], () => 0.01);
     e2(typo).toBeNull();
+  });
+});
+
+describe("unsupported language handling", () => {
+  it("tells the persona to act confused and ask for a supported language", () => {
+    const p = personaPromptFor("Lotte", ["EN", "NL"]);
+    expect(p).toContain("English and Dutch");
+    expect(p).toMatch(/don't understand that language/);
+    expect(p).not.toMatch(/Portuguese/);
+  });
+  it("maps all new language codes", () => {
+    expect(personaPromptFor("Zofia", ["EN", "PL"])).toContain("English and Polish");
   });
 });

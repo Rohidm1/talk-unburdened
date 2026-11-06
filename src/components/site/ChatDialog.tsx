@@ -5,7 +5,7 @@ import { openReport } from "@/components/site/ReportDialog";
 import { markSeen } from "@/hooks/useBadges";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Flag, Dices, SendHorizonal, Volume2, VolumeX } from "lucide-react";
+import { ArrowLeft, Flag, Dices, SendHorizonal, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -267,24 +267,33 @@ export function ChatDialog({
   return (
     <>
     <Dialog open={open} onOpenChange={(v) => !v && onEnd("user")}>
-      <DialogContent className="glass-strong flex max-h-[85vh] flex-col gap-0 p-0 sm:max-w-lg max-sm:inset-0 max-sm:top-0 max-sm:left-0 max-sm:h-dvh max-sm:max-h-dvh max-sm:w-full max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none max-sm:border-0 max-sm:pt-[env(safe-area-inset-top)] max-sm:pb-[env(safe-area-inset-bottom)]">
-        <DialogHeader className="border-b border-border p-5">
-          <DialogTitle className="flex items-center justify-between gap-3 font-display">
-            <span className="flex items-center gap-2">
-              <span
-                aria-hidden="true"
-                className={`size-2.5 rounded-full ${
-                  connected
-                    ? "bg-emerald-400 shadow-[0_0_12px_#34d399]"
-                    : "animate-pulse bg-amber-400 shadow-[0_0_12px_#fbbf24]"
-                }`}
-              />
-              <span className="flex flex-col">
-                <span>{partnerName}</span>
+      <DialogContent className="fixed inset-0 left-0 top-0 z-50 flex h-dvh max-h-dvh w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-none border-0 bg-background p-0 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] sm:max-w-none [&>button.absolute]:hidden">
+        <DialogHeader className="sticky top-0 z-10 border-b border-border bg-background/90 px-2 py-2 backdrop-blur">
+          <DialogTitle className="flex items-center justify-between gap-2 font-display">
+            <span className="flex min-w-0 items-center gap-2">
+              <button
+                type="button"
+                aria-label="Back to chat partners"
+                onClick={() => onEnd("user")}
+                className="flex size-11 shrink-0 items-center justify-center rounded-full text-foreground transition active:scale-90 hover:bg-secondary"
+              >
+                <ArrowLeft className="size-5" />
+              </button>
+              <span className="relative shrink-0">
+                {listener?.avatar ? (
+                  <img src={listener.avatar} alt={partnerName} width={40} height={40} className="size-10 rounded-full object-cover" />
+                ) : (
+                  <span className="block size-10 rounded-full bg-secondary" />
+                )}
+                <span
+                  aria-hidden="true"
+                  className={`absolute bottom-0 right-0 size-3 rounded-full border-2 border-background ${connected ? "bg-success" : "animate-pulse bg-primary"}`}
+                />
+              </span>
+              <span className="flex min-w-0 flex-col text-left">
+                <span className="truncate text-base">{partnerName}</span>
                 <span className="text-xs font-normal text-muted-foreground">
-                  {connected
-                    ? `Connected with ${partnerName}`
-                    : `Connecting with ${partnerName}...`}
+                  {connected ? "Online" : "Connecting…"}
                 </span>
               </span>
             </span>
@@ -322,7 +331,7 @@ export function ChatDialog({
           {listener?.displayName ?? "This chat partner"} is a persona run by the Anontalk team. When no team member is free, replies may be AI-assisted.
         </p>
 
-        <div className="flex-1 space-y-3 overflow-y-auto p-5">
+        <div className="no-scrollbar flex-1 space-y-3 overflow-y-auto overscroll-contain p-4">
           {(messages.data ?? []).map((m) => (
             <div
               key={m.id}
