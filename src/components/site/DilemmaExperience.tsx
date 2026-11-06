@@ -81,10 +81,25 @@ export function DilemmaExperience({ dilemma: d, archive = [] }: { dilemma: Publi
       <Header />
       <FloatingChat />
       <main className="mx-auto max-w-4xl px-5 py-16">
-        <p className="text-xs font-semibold tracking-widest text-primary uppercase">Dilemma</p>
-        <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight md:text-4xl">
-          {d?.question ?? "No public dilemma yet"}
-        </h1>
+        {archive.length > 0 ? (
+          <>
+            <h1 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">Daily Dilemmas: everyday choices, both sides</h1>
+            <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">
+              Each day brings one new question about friendship, honesty, work or family. Read it without an account, then sign in to vote under your nickname and share an argument for either side.
+            </p>
+            <p className="mt-10 text-xs font-semibold tracking-widest text-primary uppercase">Today's dilemma</p>
+            <h2 className="mt-3 font-display text-2xl font-semibold tracking-tight md:text-3xl">
+              {d?.question ?? "No public dilemma yet"}
+            </h2>
+          </>
+        ) : (
+          <>
+            <p className="text-xs font-semibold tracking-widest text-primary uppercase">Dilemma</p>
+            <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight md:text-4xl">
+              {d?.question ?? "No public dilemma yet"}
+            </h1>
+          </>
+        )}
 
         {d ? (
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
