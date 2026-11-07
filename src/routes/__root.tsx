@@ -9,7 +9,6 @@ import {
 } from "@tanstack/react-router";
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
-import { SupportWidget } from "@/components/site/SupportWidget";
 import { jsonLd, organizationSchema } from "@/lib/seo";
 import { dailyTheme } from "@/lib/daily-theme";
 
@@ -215,7 +214,6 @@ function RootComponent() {
         <Toaster />
         <SafeBoundary name="visit-tracker"><VisitTracker /></SafeBoundary>
         <SafeBoundary name="google-ads"><GoogleAdsTag /></SafeBoundary>
-        <SafeBoundary name="support-widget"><SupportWidget /></SafeBoundary>
         <SafeBoundary name="paywall"><GlobalPaywall /></SafeBoundary>
         <SafeBoundary name="bottom-nav"><BottomNav /></SafeBoundary>
         <SafeBoundary name="safety"><SafetyPrompt /><ReportDialog /><SosOverlay /></SafeBoundary>

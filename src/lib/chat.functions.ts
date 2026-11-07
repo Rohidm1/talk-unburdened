@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { NOTE_CATEGORIES } from "@/lib/portal-rules";
 import { FREE_TRIAL_MESSAGES, LOW_BALANCE_WARNING_CREDITS } from "@/lib/credit-packages";
 
 const sessionInput = (input: unknown) => z.object({ sessionId: z.string().uuid() }).parse(input);
@@ -476,7 +477,7 @@ export const listChatNotes = createServerFn({ method: "POST" })
 
     const { data: rows, error } = await supabaseAdmin
       .from("call_notes")
-      .select("id, body, created_at, chat_session_id, call_id")
+      .select("id, body, category, created_at, chat_session_id, call_id")
       .eq("client_id", session.client_id)
       .eq("listener_user_id", context.userId)
       .order("created_at", { ascending: false })
@@ -486,6 +487,7 @@ export const listChatNotes = createServerFn({ method: "POST" })
     return (rows ?? []).map((r) => ({
       id: r.id,
       body: r.body,
+      category: r.category ?? null,
       createdAt: r.created_at,
       source: r.chat_session_id
         ? ("chat" as const)
@@ -500,7 +502,11 @@ export const saveChatNote = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
     z
-      .object({ sessionId: z.string().uuid(), body: z.string().trim().min(1).max(4000) })
+      .object({
+        sessionId: z.string().uuid(),
+        body: z.string().trim().min(1).max(4000),
+        category: z.enum(NOTE_CATEGORIES).optional(),
+      })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
@@ -522,6 +528,7 @@ export const saveChatNote = createServerFn({ method: "POST" })
         listener_user_id: context.userId,
         client_alias: profile?.alias ?? null,
         body: data.body,
+        category: data.category ?? null,
       })
       .select("id, created_at")
       .single();

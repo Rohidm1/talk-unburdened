@@ -92,6 +92,13 @@
       "when": 1794006992366,
       "tag": "0012_replace_chat_partner_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794009979088,
+      "tag": "0013_open_ear_portal",
+      "breakpoints": true
     }
   ]
 }

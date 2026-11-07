@@ -378,6 +378,7 @@ export type Database = {
         Row: {
           body: string
           call_id: string | null
+          category: string | null
           chat_session_id: string | null
           client_alias: string | null
           client_id: string | null
@@ -388,6 +389,7 @@ export type Database = {
         Insert: {
           body: string
           call_id?: string | null
+          category?: string | null
           chat_session_id?: string | null
           client_alias?: string | null
           client_id?: string | null
@@ -398,6 +400,7 @@ export type Database = {
         Update: {
           body?: string
           call_id?: string | null
+          category?: string | null
           chat_session_id?: string | null
           client_alias?: string | null
           client_id?: string | null
@@ -1279,6 +1282,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      staff_announcements: {
+        Row: {
+          author_id: string
+          author_name: string
+          body: string
+          created_at: string
+          id: string
+          title: string
+        }
+        Insert: {
+          author_id: string
+          author_name?: string
+          body: string
+          created_at?: string
+          id?: string
+          title: string
+        }
+        Update: {
+          author_id?: string
+          author_name?: string
+          body?: string
+          created_at?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
       }
       support_tickets: {
         Row: {

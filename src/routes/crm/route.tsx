@@ -7,15 +7,13 @@ export const Route = createFileRoute("/crm")({
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user) throw redirect({ to: "/crm-login" });
 
-    // Workers only ever see their own agent dashboard — team management,
-    // revenue and system settings stay with admins.
-    const { data: isAdmin } = await supabase.rpc("has_role", {
-      _user_id: data.user.id,
-      _role: "admin",
-    });
-    if (!isAdmin) throw redirect({ to: "/staff" });
+    const [{ data: isAdmin }, { data: isStaff }] = await Promise.all([
+      supabase.rpc("has_role", { _user_id: data.user.id, _role: "admin" }),
+      supabase.rpc("has_role", { _user_id: data.user.id, _role: "staff" }),
+    ]);
+    if (!isAdmin && !isStaff) throw redirect({ to: "/crm-login" });
 
-    return { user: data.user };
+    return { user: data.user, isAdmin: Boolean(isAdmin) };
   },
   component: () => <Outlet />,
 });

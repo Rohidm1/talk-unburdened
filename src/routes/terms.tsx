@@ -37,7 +37,7 @@ function TermsPage() {
           content: (
             <>
               <p>Use a verified email address and keep one account per person. A nickname is enough; no real name is needed. Keep your sign-in details safe.</p>
-              <p>Chat partners use profile personas, which are not verified identities. Every chat partner reply is written by a member of our team. The separate help assistant on the support page is automated. See our <a href="/privacy">Privacy Policy</a> for how messages are stored.</p>
+              <p>Chat partners use profile personas, which are not verified identities. Every chat partner reply is written by a real member of our team. Anontalk does not use automated replies. See our <a href="/privacy">Privacy Policy</a> for how messages are stored.</p>
             </>
           ),
         },

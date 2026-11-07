@@ -31,8 +31,6 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as WellnessRouteImport } from './routes/wellness'
 import { Route as DotwellKnownAssetlinksDotjsonRouteImport } from './routes/[.]well-known.assetlinks[.]json'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
-import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
-import { Route as AuthenticatedStaffRouteImport } from './routes/_authenticated/staff'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout/return'
@@ -152,16 +150,6 @@ const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedStaffRoute = AuthenticatedStaffRouteImport.update({
-  id: '/staff',
-  path: '/staff',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/blog/',
   path: '/blog/',
@@ -226,8 +214,6 @@ export interface FileRoutesByFullPath {
   '/wellness': typeof WellnessRoute
   '/.well-known/assetlinks.json': typeof DotwellKnownAssetlinksDotjsonRoute
   '/account': typeof AuthenticatedAccountRoute
-  '/admin': typeof AuthenticatedAdminRoute
-  '/staff': typeof AuthenticatedStaffRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/dilemma/$id': typeof DilemmaIdRoute
@@ -258,8 +244,6 @@ export interface FileRoutesByTo {
   '/wellness': typeof WellnessRoute
   '/.well-known/assetlinks.json': typeof DotwellKnownAssetlinksDotjsonRoute
   '/account': typeof AuthenticatedAccountRoute
-  '/admin': typeof AuthenticatedAdminRoute
-  '/staff': typeof AuthenticatedStaffRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/dilemma/$id': typeof DilemmaIdRoute
@@ -293,8 +277,6 @@ export interface FileRoutesById {
   '/wellness': typeof WellnessRoute
   '/.well-known/assetlinks.json': typeof DotwellKnownAssetlinksDotjsonRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRoute
-  '/_authenticated/staff': typeof AuthenticatedStaffRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/dilemma_/$id': typeof DilemmaIdRoute
@@ -328,8 +310,6 @@ export interface FileRouteTypes {
     | '/wellness'
     | '/.well-known/assetlinks.json'
     | '/account'
-    | '/admin'
-    | '/staff'
     | '/blog/$slug'
     | '/checkout/return'
     | '/dilemma/$id'
@@ -360,8 +340,6 @@ export interface FileRouteTypes {
     | '/wellness'
     | '/.well-known/assetlinks.json'
     | '/account'
-    | '/admin'
-    | '/staff'
     | '/blog/$slug'
     | '/checkout/return'
     | '/dilemma/$id'
@@ -394,8 +372,6 @@ export interface FileRouteTypes {
     | '/wellness'
     | '/.well-known/assetlinks.json'
     | '/_authenticated/account'
-    | '/_authenticated/admin'
-    | '/_authenticated/staff'
     | '/blog/$slug'
     | '/checkout/return'
     | '/dilemma_/$id'
@@ -593,20 +569,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/admin': {
-      id: '/_authenticated/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/staff': {
-      id: '/_authenticated/staff'
-      path: '/staff'
-      fullPath: '/staff'
-      preLoaderRoute: typeof AuthenticatedStaffRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/blog/': {
       id: '/blog/'
       path: '/blog'
@@ -668,14 +630,10 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
-  AuthenticatedStaffRoute: typeof AuthenticatedStaffRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
-  AuthenticatedStaffRoute: AuthenticatedStaffRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

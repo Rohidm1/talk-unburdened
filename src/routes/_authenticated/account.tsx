@@ -107,14 +107,9 @@ function AccountPage() {
           <Button variant="outline" asChild>
             <Link to="/">Find a chat partner</Link>
           </Button>
-          {roles.includes("staff") ? (
+          {roles.includes("staff") || roles.includes("admin") ? (
             <Button variant="outline" asChild>
-              <Link to="/staff">Agent desk</Link>
-            </Button>
-          ) : null}
-          {roles.includes("admin") ? (
-            <Button variant="outline" asChild>
-              <Link to="/admin">Admin</Link>
+              <Link to="/crm">Open Ear Portal</Link>
             </Button>
           ) : null}
           <Button variant="ghost" onClick={() => void signOut()}>

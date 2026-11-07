@@ -53,7 +53,7 @@ function PrivacyPage() {
             <>
               <p>Chat messages are stored so our team can review conversations for safety, handle abuse reports and improve reply quality. Phone numbers, email addresses, links, social handles and street addresses are automatically masked before messages are saved. Masking may not catch everything, so please do not share identifying details about yourself or others.</p>
               <p>Chats are not end-to-end encrypted. A nickname means other users do not see who you are; it does not make you anonymous to the service or its providers.</p>
-              <p>Chat partner replies are written by members of our team. Only the separate help assistant on the support page is automated; questions you ask it are sent to an AI model provider to generate its answer.</p>
+              <p>Chat partner replies are written by real members of our team; no automated replies are used. Team members may keep short notes about details you share in chat (for example your first name, situation, family or health) so they can follow up in later chats. These notes are visible only to our team and are deleted when you delete your account.</p>
             </>
           ),
         },
@@ -79,7 +79,6 @@ function PrivacyPage() {
                 <li>Stripe: card payments.</li>
                 <li>Google: Google Play Billing for in-app purchases; and, only with your consent, Google AdSense advertising and Google Ads measurement (whether a visit from our ads led to a verified account; your account ID is sent so it is counted once). See <a href="https://business.safety.google/privacy/" target="_blank" rel="noopener noreferrer">how Google uses this data</a>. You can withdraw consent any time on the <a href="/cookies">Cookie page</a>.</li>
                 <li>Weglot: page translation.</li>
-                <li>AI model providers through an AI gateway: answering questions sent to the support help assistant.</li>
               </ul>
               <p>Where personal data is transferred outside the EEA, we rely on Standard Contractual Clauses. We do not sell personal data.</p>
             </>
