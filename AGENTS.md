@@ -28,3 +28,5 @@
 - Reports and blocks go through one `report_content` function feeding the admin Reports tab; matching, bottles and community views must respect `user_blocks`.
 - Global overlays (SOS, safety prompt, report sheet, welcome, offline, holiday theme) mount once in the root inside `SafeBoundary` and are opened via window events.
 - Chat-partner personas are disclosed on profile cards, in the chat and in the FAQ. Automatic chat replies are off (`AI_REPLIES_ENABLED = false`, enforced server-side); re-enabling them requires restoring AI disclosures site-wide first, because EU AI transparency and ad rules forbid undisclosed AI replies.
+
+- The team/admin workspace lives only at `/crm` (Open Ear portal, components in `src/components/portal`); chat routing rules live in `src/lib/portal-rules.ts` and the `assign_chat_agent`/`claim_next_chat` database functions, so keep both in sync.

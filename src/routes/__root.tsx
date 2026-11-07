@@ -6,6 +6,7 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  useRouterState,
 } from "@tanstack/react-router";
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
@@ -214,13 +215,23 @@ function RootComponent() {
         <Toaster />
         <SafeBoundary name="visit-tracker"><VisitTracker /></SafeBoundary>
         <SafeBoundary name="google-ads"><GoogleAdsTag /></SafeBoundary>
-        <SafeBoundary name="paywall"><GlobalPaywall /></SafeBoundary>
-        <SafeBoundary name="bottom-nav"><BottomNav /></SafeBoundary>
-        <SafeBoundary name="safety"><SafetyPrompt /><ReportDialog /><SosOverlay /></SafeBoundary>
+        <PublicOnly>
+          <SafeBoundary name="paywall"><GlobalPaywall /></SafeBoundary>
+          <SafeBoundary name="bottom-nav"><BottomNav /></SafeBoundary>
+          <SafeBoundary name="safety"><SafetyPrompt /><ReportDialog /><SosOverlay /></SafeBoundary>
+          <SafeBoundary name="referral"><ReferralRedeemer /><WellnessReminder /></SafeBoundary>
+          <SafeBoundary name="welcome"><WelcomeGate /></SafeBoundary>
+        </PublicOnly>
         <SafeBoundary name="network"><NetworkStatus /></SafeBoundary>
-        <SafeBoundary name="referral"><ReferralRedeemer /><WellnessReminder /></SafeBoundary>
-        <SafeBoundary name="welcome"><WelcomeGate /><ConsentBanner /></SafeBoundary>
+        <SafeBoundary name="consent"><ConsentBanner /></SafeBoundary>
       </I18nextProvider>
     </QueryClientProvider>
   );
+}
+
+/** Customer pop-ups (welcome, paywall, SOS, bottom bar) never show inside the team portal. */
+function PublicOnly({ children }: { children: import("react").ReactNode }) {
+  const pathname = useRouterState({ select: (st) => st.location.pathname });
+  if (pathname.startsWith("/crm")) return null;
+  return <>{children}</>;
 }
