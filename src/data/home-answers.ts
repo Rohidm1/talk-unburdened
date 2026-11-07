@@ -10,7 +10,7 @@ export const homeAnswers: readonly Answer[] = [
   },
   {
     question: "Am I chatting with a real person?",
-    answer: "Chat partner profiles are personas run by the Anontalk team. When no team member is free, replies may be written with AI assistance, and the chat says so. Speed Chat, the community and message bottles connect you with other real users.",
+    answer: "Chat partner profiles are personas run by the Anontalk team. Every reply is written by a member of the team. Speed Chat, the community and message bottles connect you with other real users.",
   },
   {
     question: "How does the bottles (message in a bottle) system work?",

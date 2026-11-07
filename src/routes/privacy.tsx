@@ -19,7 +19,7 @@ function PrivacyPage() {
   return (
     <LegalPage
       title="Privacy Policy"
-      summary="Open Ear Collective processes your information to run Anontalk, provide credits and conversations, and keep the community safe. You only need an email and a nickname. Chat messages are stored, are not end-to-end encrypted, and may be reviewed by our team or sent to an AI model provider to generate replies. Optional statistics and advertising cookies need your consent, and we never sell your data."
+      summary="Open Ear Collective processes your information to run Anontalk, provide credits and conversations, and keep the community safe. You only need an email and a nickname. Chat messages are stored, are not end-to-end encrypted, and may be reviewed by our team for safety. Optional statistics and advertising cookies need your consent, and we never sell your data."
       sections={[
         {
           id: "controller",
@@ -48,12 +48,12 @@ function PrivacyPage() {
         },
         {
           id: "messages",
-          title: "Stored conversations and automated replies",
+          title: "Stored conversations",
           content: (
             <>
               <p>Chat messages are stored so our team can review conversations for safety, handle abuse reports and improve reply quality. Phone numbers, email addresses, links, social handles and street addresses are automatically masked before messages are saved. Masking may not catch everything, so please do not share identifying details about yourself or others.</p>
               <p>Chats are not end-to-end encrypted. A nickname means other users do not see who you are; it does not make you anonymous to the service or its providers.</p>
-              <p>When no team member is available, some chat replies may be written or assisted by automated systems (AI). The support assistant is AI. Message text is sent to an AI model provider for this purpose.</p>
+              <p>Chat partner replies are written by members of our team. Only the separate help assistant on the support page is automated; questions you ask it are sent to an AI model provider to generate its answer.</p>
             </>
           ),
         },
@@ -79,7 +79,7 @@ function PrivacyPage() {
                 <li>Stripe: card payments.</li>
                 <li>Google: Google Play Billing for in-app purchases; and, only with your consent, Google AdSense advertising and Google Ads measurement (whether a visit from our ads led to a verified account; your account ID is sent so it is counted once). See <a href="https://business.safety.google/privacy/" target="_blank" rel="noopener noreferrer">how Google uses this data</a>. You can withdraw consent any time on the <a href="/cookies">Cookie page</a>.</li>
                 <li>Weglot: page translation.</li>
-                <li>AI model providers through an AI gateway: generating automated replies.</li>
+                <li>AI model providers through an AI gateway: answering questions sent to the support help assistant.</li>
               </ul>
               <p>Where personal data is transferred outside the EEA, we rely on Standard Contractual Clauses. We do not sell personal data.</p>
             </>

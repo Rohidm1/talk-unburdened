@@ -51,14 +51,14 @@ export const en = {
     p2t: "Discreet on your statement",
     p2d: "Payments show up under a neutral descriptor. Nobody at home learns anything from your bank app.",
     p3t: "Honest about who's chatting",
-    p3d: "Chat partner profiles are personas run by our team. When no one is free, replies may be AI-assisted. Speed Chat, the community and bottles are always other real users.",
+    p3d: "Chat partner profiles are personas run by our team. Every reply is written by a team member. Speed Chat, the community and bottles are always other real users.",
     p4t: "Leave whenever",
     p4d: "No subscription, no cancellation calls. Close the tab and it's over.",
   },
   listeners: {
     title: "Someone is free right now",
     subtitle:
-      "Pick whoever feels right. Chat partner profiles are personas run by the Anontalk team; when no one is free, replies may be AI-assisted. Never a professional in a white coat.",
+      "Pick whoever feels right. Chat partner profiles are personas run by the Anontalk team; every reply is written by a team member. Never a professional in a white coat.",
     chat: "Start chat",
     online: "Available",
     busy: "In a chat",

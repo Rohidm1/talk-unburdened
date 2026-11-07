@@ -6,6 +6,7 @@ Anontalk: peer listeners, never medical/therapy wording. Dark midnight-blue + am
 Internal CRM lives at /crm-login + /crm (team screen), separate from the public site and /account.
 Team logins are username-based; usernames map to <username>@anontalk.local in auth.
 No demo calls: all calls route to a real live agent, free minutes included.
+User chose AI chat replies OFF completely (Nov 2026): only team members reply; no AI-reply wording on the site.
 
 ## Memories
 - [SEO and direct answers](mem://features/seo-aeo) — English search positioning, public content URLs, accurate privacy and account answers

@@ -19,7 +19,7 @@ function TermsPage() {
   return (
     <LegalPage
       title="Terms of Service"
-      summary="Anontalk is an 18+ peer conversation service run by Open Ear Collective, not professional advice or an emergency service. You get 5 free welcome credits, and every message you send costs 1 credit; partner replies are free. Be respectful, and know that chat partners use profile personas and some replies may be AI-assisted."
+      summary="Anontalk is an 18+ peer conversation service run by Open Ear Collective, not professional advice or an emergency service. You get 5 free welcome credits, and every message you send costs 1 credit; partner replies are free. Be respectful, and know that chat partners use profile personas run by our team."
       sections={[
         {
           id: "service",
@@ -37,7 +37,7 @@ function TermsPage() {
           content: (
             <>
               <p>Use a verified email address and keep one account per person. A nickname is enough; no real name is needed. Keep your sign-in details safe.</p>
-              <p>Chat partners use profile personas, which are not verified identities. When no team member is available, some replies may be written or assisted by AI. The support assistant is AI. See our <a href="/privacy">Privacy Policy</a> for how messages are stored.</p>
+              <p>Chat partners use profile personas, which are not verified identities. Every chat partner reply is written by a member of our team. The separate help assistant on the support page is automated. See our <a href="/privacy">Privacy Policy</a> for how messages are stored.</p>
             </>
           ),
         },
@@ -70,7 +70,7 @@ function TermsPage() {
         {
           id: "liability",
           title: "Availability and liability",
-          content: <p>We aim for a reliable service but cannot guarantee uninterrupted availability or the accuracy of peer or automated replies. To the extent the law allows, we are not liable for indirect losses. Nothing here excludes liability that cannot lawfully be excluded.</p>,
+          content: <p>We aim for a reliable service but cannot guarantee uninterrupted availability or the accuracy of peer or team replies. To the extent the law allows, we are not liable for indirect losses. Nothing here excludes liability that cannot lawfully be excluded.</p>,
         },
         {
           id: "law",

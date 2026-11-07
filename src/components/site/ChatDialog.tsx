@@ -11,8 +11,6 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { chatHeartbeat, listChatMessages, sendChatMessage } from "@/lib/chat.functions";
-import { persistAiMessage, requestAiReply } from "@/lib/ai-fallback.functions";
-import { readingDelayMs, typingDelayMs } from "@/lib/ai-persona";
 import { rollIcebreaker } from "@/lib/icebreakers";
 import { isMuted, playSfx, setMuted } from "@/lib/sfx";
 import { addChatSeconds, awardXp, completeQuest } from "@/lib/gamification";
@@ -36,8 +34,6 @@ export function ChatDialog({
   const beat = useServerFn(chatHeartbeat);
   const send = useServerFn(sendChatMessage);
   const fetchMessages = useServerFn(listChatMessages);
-  const askAi = useServerFn(requestAiReply);
-  const saveAi = useServerFn(persistAiMessage);
 
   const [answered, setAnswered] = useState(false);
   const [connected, setConnected] = useState(false);
@@ -133,6 +129,7 @@ export function ChatDialog({
     if (list.length > lastCount.current && lastCount.current > 0) {
       const last = list[list.length - 1];
       if (last && last.sender_role !== "client") {
+        setNotice(null);
         alertUser({ title: "New message", body: "Your chat partner replied.", url: "/?chat=1", tag: "chat", kind: "chat" });
         markSeen("chat");
       }
@@ -140,79 +137,13 @@ export function ChatDialog({
     lastCount.current = list.length;
   }, [messages.data]);
 
-  // A human agent joining cancels any pending stand-in reply.
+  // Replies come only from the team; clear the typing hint once someone answers.
   useEffect(() => {
     if (answered) {
       turnRef.current += 1;
       setPartnerTyping(false);
     }
   }, [answered]);
-
-  const runFallbackTurn = async (kind: "reply" | "opener" = "reply") => {
-    if (!sessionId) return;
-    turnRef.current += 1;
-    const turn = turnRef.current;
-    const stillMine = () => turn === turnRef.current;
-    const wait = (ms: number) => new Promise((r) => window.setTimeout(r, ms));
-
-    // A real person first reads the message: nothing happens for 2-4 seconds.
-    setPartnerTyping(false);
-    await wait(readingDelayMs());
-    if (!stillMine()) return;
-    setPartnerTyping(true);
-
-    const askedAt = Date.now();
-    try {
-      const result = await askAi({ data: { sessionId, kind } });
-      if (!stillMine()) return;
-      if (!result.ok) {
-        setPartnerTyping(false);
-        if (result.reason === "unavailable" || result.reason === "rate_limited") {
-          setNotice(
-            "Thanks for your patience! We're reviewing your message and will reply in a moment.",
-          );
-        }
-        return;
-      }
-
-      for (let i = 0; i < result.chunks.length; i += 1) {
-        const chunk = result.chunks[i];
-        if (!chunk) continue;
-        if (i > 0) setPartnerTyping(true);
-        // longer messages visibly take longer to "type"; the time already
-        // spent generating counts towards the first chunk's typing window.
-        const target = typingDelayMs(chunk);
-        const spent = i === 0 ? Date.now() - askedAt : 0;
-        await wait(Math.max(600, target - spent));
-        if (!stillMine()) return;
-        const saved = await saveAi({ data: { sessionId, body: chunk } });
-        if (!stillMine()) return;
-        if (!saved.ok) break;
-        setPartnerTyping(false);
-        await messages.refetch();
-        if (i < result.chunks.length - 1) await wait(600);
-        if (!stillMine()) return;
-      }
-    } catch {
-      if (stillMine()) {
-        setNotice(
-          "Thanks for your patience! We're reviewing your message and will reply in a moment.",
-        );
-      }
-    } finally {
-      if (stillMine()) setPartnerTyping(false);
-    }
-  };
-
-  // Proactive icebreaker when the person hasn't typed within 8 seconds.
-  useEffect(() => {
-    if (!open || !sessionId || userSpoke || answered) return;
-    const id = window.setTimeout(() => {
-      if (!userSpoke) void runFallbackTurn("opener");
-    }, 8000);
-    return () => window.clearTimeout(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, sessionId, userSpoke, answered]);
 
   const submit = async () => {
     const body = draft.trim();
@@ -255,7 +186,7 @@ export function ChatDialog({
         }
         return next;
       });
-      if (!answered) void runFallbackTurn("reply");
+      if (!answered) setNotice(`${partnerName} will reply as soon as possible.`);
     } catch {
       setDraft(body);
       toast.error("Your message could not be sent. Please try again.");
@@ -328,7 +259,7 @@ export function ChatDialog({
           </DialogTitle>
         </DialogHeader>
         <p role="note" className="border-b border-border bg-muted/40 px-5 py-2 text-xs text-muted-foreground">
-          {listener?.displayName ?? "This chat partner"} is a persona run by the Anontalk team. When no team member is free, replies may be AI-assisted.
+          {listener?.displayName ?? "This chat partner"} is a profile run by the Anontalk team. Every reply is written by a team member.
         </p>
 
         <div className="no-scrollbar flex-1 space-y-3 overflow-y-auto overscroll-contain p-4">

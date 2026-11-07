@@ -39,6 +39,12 @@ async function hasLiveAgent(supabaseAdmin: {
   return (data ?? []).length > 0;
 }
 
+/**
+ * Automatic replies are switched off: every chat reply is written by a team member.
+ * Both server functions refuse to generate or store stand-in messages.
+ */
+export const AI_REPLIES_ENABLED = false;
+
 export const requestAiReply = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(replyInput)
@@ -47,6 +53,7 @@ export const requestAiReply = createServerFn({ method: "POST" })
     const { retrieveExamples, logInteraction } = await import("@/lib/ai-learning.server");
 
     const skip = (reason: string) => ({ ok: false as const, reason, chunks: [] as string[] });
+    if (!AI_REPLIES_ENABLED) return skip("disabled");
 
     const { data: session } = await supabaseAdmin
       .from("chat_sessions")
@@ -162,6 +169,7 @@ export const persistAiMessage = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    if (!AI_REPLIES_ENABLED) return { ok: false as const };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: session } = await supabaseAdmin
       .from("chat_sessions")

@@ -74,7 +74,7 @@ export function ListenerCard({
         <p className="text-sm leading-relaxed text-muted-foreground">{listener.bio[lang]}</p>
         <p className="text-sm font-medium text-foreground">“{listener.cta}”</p>
         <p className="text-[11px] leading-snug text-muted-foreground/90">
-          Persona run by the Anontalk team · AI-generated photo · replies may be AI-assisted
+          Persona run by the Anontalk team · AI-generated photo
         </p>
 
         <div className="flex flex-wrap gap-1.5">
