@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 import { blogPosts } from "@/data/blog";
-
-const BASE_URL = "https://anontalk.online";
+import { sitemapOrigin } from "@/lib/sitemap-origin";
 
 interface SitemapEntry {
   path: string;
@@ -13,7 +12,8 @@ interface SitemapEntry {
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
-      GET: async () => {
+      GET: async ({ request }) => {
+        const baseUrl = sitemapOrigin(request.url);
         const { readPublicDilemmas } = await import("@/lib/dilemma-public.server");
         const dilemmas = await readPublicDilemmas();
         const entries: SitemapEntry[] = [
@@ -44,7 +44,7 @@ export const Route = createFileRoute("/sitemap.xml")({
         const urls = entries.map((e) =>
           [
             `  <url>`,
-            `    <loc>${BASE_URL}${e.path}</loc>`,
+            `    <loc>${baseUrl}${e.path}</loc>`,
             e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
             e.priority ? `    <priority>${e.priority}</priority>` : null,
             `  </url>`,

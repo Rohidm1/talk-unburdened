@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Finish Search Console setup for the published Lovable address: ownership tag and same-origin sitemap ready; awaiting approved publication, verification, and submission.
 - [x] Open Ear portal gets its own address (openearteam.com): host gate serves only portal pages there, portal copy freed of customer branding. Both domains' DNS converged; verified live that anontalk.online serves the customer site (indexable, canonical to itself) and openearteam.com goes straight to the portal sign-in (noindex, no customer branding).
 - [x] Ads consent: record choices, preserve withdrawal evidence, synchronize Google signals and open-tab changes; tests and two-tab browser checks passed.
 - [ ] Ads launch: publish consent fixes and verify live sign-up conversion; awaiting publication and Google policy classification/certification determination.

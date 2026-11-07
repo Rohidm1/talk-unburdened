@@ -166,6 +166,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
                 name: "google-site-verification",
                 content: "ZPvCJoja56guGnmJfVoQXXyRuSJL283iMVQXMdgu3Ho",
               },
+              ...(currentHost() === "talk-unburdened.lovable.app" ? [{
+                name: "google-site-verification",
+                content: "YpfY2SQCpZXmor6-Y4sFu0mqCGyZ4phZCPMtjNnUVxo",
+              }] : []),
             ]),
         { property: "og:type", content: "website" },
       ],
