@@ -57,3 +57,14 @@ export function isPortalAddress(): boolean {
 export function shouldRedirectToPortal(pathname: string): boolean {
   return isPortalAddress() && !isPortalPath(pathname);
 }
+
+/** Customer-site custom domains. Portal pages opened here move to the portal's own address. */
+export const CUSTOMER_HOSTS = ["anontalk.online", "www.anontalk.online"] as const;
+
+/** Full portal URL to send a visitor to, or null when no cross-address move is needed. */
+export function portalUrlFor(host: string | null | undefined, pathname: string, search = ""): string | null {
+  const h = normaliseHost(host);
+  if (!h || !(CUSTOMER_HOSTS as readonly string[]).includes(h)) return null;
+  if (!isPortalPath(pathname)) return null;
+  return `https://${PORTAL_HOSTS[0]}${pathname}${search}`;
+}

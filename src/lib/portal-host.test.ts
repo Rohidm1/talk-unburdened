@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isPortalHost, isPortalPath, shouldRedirectToPortal } from "./portal-host";
+import { portalUrlFor, isPortalHost, isPortalPath, shouldRedirectToPortal } from "./portal-host";
 
 describe("portal address rules", () => {
   it("recognises the portal's own hosts", () => {
@@ -33,5 +33,13 @@ describe("portal address rules", () => {
     // Off the portal address nothing is redirected; on it, only non-portal pages are.
     expect(shouldRedirectToPortal("/crm")).toBe(false);
     expect(shouldRedirectToPortal("/crm-login")).toBe(false);
+  });
+
+  it("sends portal pages on the customer domain to the portal address", () => {
+    expect(portalUrlFor("anontalk.online", "/crm")).toBe("https://openearteam.com/crm");
+    expect(portalUrlFor("www.anontalk.online", "/crm-login", "?a=1")).toBe("https://openearteam.com/crm-login?a=1");
+    expect(portalUrlFor("anontalk.online", "/blog")).toBeNull();
+    expect(portalUrlFor("openearteam.com", "/crm")).toBeNull();
+    expect(portalUrlFor("localhost", "/crm")).toBeNull();
   });
 });

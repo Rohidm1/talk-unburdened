@@ -13,7 +13,7 @@ import type { ErrorComponentProps } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { jsonLd, organizationSchema } from "@/lib/seo";
 import { dailyTheme } from "@/lib/daily-theme";
-import { isPortalAddress, shouldRedirectToPortal } from "@/lib/portal-host";
+import { currentHost, isPortalAddress, portalUrlFor, shouldRedirectToPortal } from "@/lib/portal-host";
 
 import appCss from "../styles.css?url";
 import i18n from "@/lib/i18n";
@@ -133,6 +133,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   // The portal address serves the team workspace only: any customer page opened
   // there goes to the portal sign-in instead of rendering customer content.
   beforeLoad: ({ location }) => {
+    const portalUrl = portalUrlFor(currentHost(), location.pathname, location.searchStr ?? "");
+    if (portalUrl) {
+      throw redirect({ href: portalUrl, replace: true });
+    }
     if (shouldRedirectToPortal(location.pathname)) {
       throw redirect({ to: "/crm-login", replace: true });
     }

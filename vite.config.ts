@@ -16,7 +16,7 @@ export default defineConfig({
     server: {
       // The team portal is served from its own address; let the dev server answer
       // requests for it so the address can be tested locally.
-      allowedHosts: ["openearteam.com", "www.openearteam.com"],
+      allowedHosts: ["openearteam.com", "www.openearteam.com", "anontalk.online", "www.anontalk.online"],
     },
   },
 });
