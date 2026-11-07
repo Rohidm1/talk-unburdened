@@ -18,7 +18,7 @@ export function AnalyticsTab() {
   const cards = [
     { label: "Incoming Messages", value: d?.incomingMessages, note: `Customer messages this ${period}` },
     { label: "Website/App Visitors", value: d?.visitors, note: "Unique visitors" },
-    { label: "New User Registrations", value: d?.registrations, note: "On anontalk.online", accent: "text-primary" },
+    { label: "New User Registrations", value: d?.registrations, note: "On the customer site", accent: "text-primary" },
     { label: "Active Agents Online", value: d?.onlineAgents, note: `Cap: ${MAX_OPEN_CHATS} chats max / agent`, accent: "text-success" },
   ];
 

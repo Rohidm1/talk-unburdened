@@ -30,3 +30,4 @@
 - Chat-partner personas are disclosed on profile cards, in the chat and in the FAQ. Automatic chat replies are off (`AI_REPLIES_ENABLED = false`, enforced server-side); re-enabling them requires restoring AI disclosures site-wide first, because EU AI transparency and ad rules forbid undisclosed AI replies.
 
 - The team/admin workspace lives only at `/crm` (Open Ear portal, components in `src/components/portal`); chat routing rules live in `src/lib/portal-rules.ts` and the `assign_chat_agent`/`claim_next_chat` database functions, so keep both in sync.
+- The Open Ear portal has its own address, separate from the customer site (`PORTAL_HOSTS` in `src/lib/portal-host.ts`): that host renders only portal pages, never customer content, tracking or customer branding; keep portal copy free of customer-site names.

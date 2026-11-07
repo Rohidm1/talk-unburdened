@@ -268,7 +268,7 @@ async function describeSessions(admin: any, sessions: any[]) {
     startedAt: s.started_at as string,
     endedAt: (s.ended_at ?? null) as string | null,
     customer: (alias.get(s.client_id) ?? "Anonymous") as string,
-    profileName: (name.get(s.listener_id) ?? "Anontalk") as string,
+    profileName: (name.get(s.listener_id) ?? "Chat partner") as string,
     agentUserId: (s.agent_user_id ?? null) as string | null,
     agent: s.agent_user_id ? usernameOf(email.get(s.agent_user_id) as string, "agent") : "Waiting",
   }));

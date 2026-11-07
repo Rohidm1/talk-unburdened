@@ -12,4 +12,11 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    server: {
+      // The team portal is served from its own address; let the dev server answer
+      // requests for it so the address can be tested locally.
+      allowedHosts: ["openearteam.com", "www.openearteam.com"],
+    },
+  },
 });

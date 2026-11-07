@@ -257,7 +257,6 @@ export function Workstation({ online, username }: { online: boolean; username: s
                 <p className="text-muted-foreground">Member since: <span className="text-foreground">{formatStamp(active.clientSince)}</span></p>
                 <p className="text-muted-foreground">Chats with you: <span className="text-foreground">{stats.data?.chatCount ?? "…"}</span></p>
                 <p className="text-muted-foreground">Messages this chat: <span className="text-foreground">{stats.data ? stats.data.messagesFromClient + stats.data.messagesFromAgent : "…"}</span></p>
-                <p className="text-muted-foreground">Source: <span className="text-foreground">anontalk.online</span></p>
               </div>
               <div>
                 <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Recorded Dossier Logs</h3>

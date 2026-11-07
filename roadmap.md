@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Open Ear portal gets its own address (openearteam.com): host gate serves only portal pages there, portal copy freed of customer branding; awaiting DNS setup and primary-domain unset so anontalk.online stops redirecting to it.
 - [x] Ads consent: record choices, preserve withdrawal evidence, synchronize Google signals and open-tab changes; tests and two-tab browser checks passed.
 - [ ] Ads launch: publish consent fixes and verify live sign-up conversion; awaiting publication and Google policy classification/certification determination.
 - [x] SEO/AEO: shared metadata/schema helpers, homepage direct answers and FAQ
