@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { motion } from "motion/react";
 
-/** Fades content up the first time it scrolls into view. */
+/** Always visible (never hidden if animations fail); slides content up the first time it scrolls into view. */
 export function Reveal({
   children,
   delay = 0,
@@ -14,9 +14,9 @@ export function Reveal({
   return (
     <motion.div
       className={className}
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
+      initial={{ y: 16 }}
+      whileInView={{ y: 0 }}
+      viewport={{ once: true, amount: 0.01 }}
       transition={{ duration: 0.55, delay, ease: "easeOut" }}
     >
       {children}
