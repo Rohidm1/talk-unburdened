@@ -2,6 +2,7 @@
 // On that address the app must only ever show the portal: no customer pages, no
 // customer tracking, no customer branding.
 
+import { createIsomorphicFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 
 /** Hosts that serve the Open Ear portal and nothing else. */
@@ -33,17 +34,16 @@ export function isPortalHost(host: string | null | undefined): boolean {
  * Works in the browser and during server rendering; returns null when neither
  * can be determined so callers fall back to the customer site.
  */
-export function currentHost(): string | null {
-  if (typeof window !== "undefined") {
-    return normaliseHost(window.location.hostname) ?? null;
-  }
-  try {
-    const request = getRequest();
-    return normaliseHost(request.headers.get("host")) ?? normaliseHost(new URL(request.url).hostname);
-  } catch {
-    return null;
-  }
-}
+export const currentHost = createIsomorphicFn()
+  .client((): string | null => normaliseHost(window.location.hostname) ?? null)
+  .server((): string | null => {
+    try {
+      const request = getRequest();
+      return normaliseHost(request.headers.get("host")) ?? normaliseHost(new URL(request.url).hostname);
+    } catch {
+      return null;
+    }
+  });
 
 /** True when the current address is the portal's own address. */
 export function isPortalAddress(): boolean {
