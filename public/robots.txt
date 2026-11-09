@@ -3,7 +3,6 @@ Allow: /
 Disallow: /account
 Disallow: /staff
 Disallow: /admin
-Disallow: /crm
 Disallow: /auth
 Disallow: /checkout/
 Disallow: /api/
@@ -17,7 +16,6 @@ Allow: /
 Disallow: /account
 Disallow: /staff
 Disallow: /admin
-Disallow: /crm
 Disallow: /auth
 Disallow: /checkout/
 Disallow: /api/
@@ -31,7 +29,6 @@ Allow: /
 Disallow: /account
 Disallow: /staff
 Disallow: /admin
-Disallow: /crm
 Disallow: /auth
 Disallow: /checkout/
 Disallow: /api/
@@ -45,7 +42,6 @@ Allow: /
 Disallow: /account
 Disallow: /staff
 Disallow: /admin
-Disallow: /crm
 Disallow: /auth
 Disallow: /checkout/
 Disallow: /api/
@@ -59,7 +55,6 @@ Allow: /
 Disallow: /account
 Disallow: /staff
 Disallow: /admin
-Disallow: /crm
 Disallow: /auth
 Disallow: /checkout/
 Disallow: /api/
@@ -73,7 +68,6 @@ Allow: /
 Disallow: /account
 Disallow: /staff
 Disallow: /admin
-Disallow: /crm
 Disallow: /auth
 Disallow: /checkout/
 Disallow: /api/
@@ -87,7 +81,6 @@ Allow: /
 Disallow: /account
 Disallow: /staff
 Disallow: /admin
-Disallow: /crm
 Disallow: /auth
 Disallow: /checkout/
 Disallow: /api/
@@ -101,7 +94,6 @@ Allow: /
 Disallow: /account
 Disallow: /staff
 Disallow: /admin
-Disallow: /crm
 Disallow: /auth
 Disallow: /checkout/
 Disallow: /api/
@@ -115,7 +107,6 @@ Allow: /
 Disallow: /account
 Disallow: /staff
 Disallow: /admin
-Disallow: /crm
 Disallow: /auth
 Disallow: /checkout/
 Disallow: /api/
@@ -129,7 +120,6 @@ Allow: /
 Disallow: /account
 Disallow: /staff
 Disallow: /admin
-Disallow: /crm
 Disallow: /auth
 Disallow: /checkout/
 Disallow: /api/
@@ -143,7 +133,6 @@ Allow: /
 Disallow: /account
 Disallow: /staff
 Disallow: /admin
-Disallow: /crm
 Disallow: /auth
 Disallow: /checkout/
 Disallow: /api/
@@ -157,7 +146,6 @@ Allow: /
 Disallow: /account
 Disallow: /staff
 Disallow: /admin
-Disallow: /crm
 Disallow: /auth
 Disallow: /checkout/
 Disallow: /api/
@@ -171,7 +159,6 @@ Allow: /
 Disallow: /account
 Disallow: /staff
 Disallow: /admin
-Disallow: /crm
 Disallow: /auth
 Disallow: /checkout/
 Disallow: /api/
@@ -185,7 +172,6 @@ Allow: /
 Disallow: /account
 Disallow: /staff
 Disallow: /admin
-Disallow: /crm
 Disallow: /auth
 Disallow: /checkout/
 Disallow: /api/
@@ -199,7 +185,6 @@ Allow: /
 Disallow: /account
 Disallow: /staff
 Disallow: /admin
-Disallow: /crm
 Disallow: /auth
 Disallow: /checkout/
 Disallow: /api/
@@ -213,7 +198,6 @@ Allow: /
 Disallow: /account
 Disallow: /staff
 Disallow: /admin
-Disallow: /crm
 Disallow: /auth
 Disallow: /checkout/
 Disallow: /api/
