@@ -193,6 +193,25 @@ Disallow: /chat-rooms/
 Disallow: /sessions/
 Disallow: /_serverFn/
 
+User-agent: Claude-SearchBot
+User-agent: Applebot
+User-agent: meta-externalagent
+User-agent: Amazonbot
+User-agent: DuckAssistBot
+User-agent: MistralAI-User
+User-agent: cohere-ai
+User-agent: YouBot
+User-agent: PhindBot
+User-agent: Bravebot
+Allow: /
+Disallow: /account
+Disallow: /admin
+Disallow: /auth
+Disallow: /checkout/
+Disallow: /api/
+Disallow: /chat/
+Disallow: /_serverFn/
+
 User-agent: *
 Allow: /
 Disallow: /account
