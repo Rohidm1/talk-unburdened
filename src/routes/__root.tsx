@@ -133,6 +133,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   // The portal address serves the team workspace only: any customer page opened
   // there goes to the portal sign-in instead of rendering customer content.
   beforeLoad: ({ location }) => {
+    if (location.pathname.startsWith("/lovable/")) return;
     const portalUrl = portalUrlFor(currentHost(), location.pathname, location.searchStr ?? "");
     if (portalUrl) {
       throw redirect({ href: portalUrl, replace: true });
