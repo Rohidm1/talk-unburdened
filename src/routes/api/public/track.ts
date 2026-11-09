@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { isTrackablePath } from "@/lib/tracking-paths";
 
 let _supabase: ReturnType<typeof createClient<Database>> | null = null;
 function getSupabase() {
@@ -35,6 +36,7 @@ export const Route = createFileRoute("/api/public/track")({
           };
           const visitorId = (body.visitorId ?? "").slice(0, 64);
           if (!visitorId) return new Response("ok");
+          if (!isTrackablePath(body.path ?? "/")) return new Response("ok");
 
           const supabase = getSupabase();
           const country = countryFrom(request);

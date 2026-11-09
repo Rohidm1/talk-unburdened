@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { getConsent } from "@/lib/consent";
+import { isTrackablePath } from "@/lib/tracking-paths";
 
 const KEY = "anontalk_visitor_id";
 
@@ -28,7 +29,7 @@ export function VisitTracker() {
 
   useEffect(() => {
     if (typeof window === "undefined" || !consented) return;
-    if (path.startsWith("/api")) return;
+    if (!isTrackablePath(path)) return;
     let cancelled = false;
 
     (async () => {
