@@ -187,6 +187,13 @@ function TalkToStrangersPage() {
               </AccordionItem>
             ))}
           </Accordion>
+          <p className="mt-6 text-sm text-muted-foreground">
+            Just need to get something off your chest?{" "}
+            <Link to="/vent-anonymously" className="text-primary underline">
+              Vent to someone anonymously
+            </Link>
+            .
+          </p>
         </section>
 
         <section className="mx-auto w-full max-w-3xl px-5 pb-20">

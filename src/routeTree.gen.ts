@@ -28,6 +28,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SpeedChatRouteImport } from './routes/speed-chat'
 import { Route as TalkToStrangersRouteImport } from './routes/talk-to-strangers'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as VentAnonymouslyRouteImport } from './routes/vent-anonymously'
 import { Route as WellnessRouteImport } from './routes/wellness'
 import { Route as DotwellKnownAssetlinksDotjsonRouteImport } from './routes/[.]well-known.assetlinks[.]json'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
@@ -136,6 +137,11 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VentAnonymouslyRoute = VentAnonymouslyRouteImport.update({
+  id: '/vent-anonymously',
+  path: '/vent-anonymously',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WellnessRoute = WellnessRouteImport.update({
   id: '/wellness',
   path: '/wellness',
@@ -223,6 +229,7 @@ export interface FileRoutesByFullPath {
   '/speed-chat': typeof SpeedChatRoute
   '/talk-to-strangers': typeof TalkToStrangersRoute
   '/terms': typeof TermsRoute
+  '/vent-anonymously': typeof VentAnonymouslyRoute
   '/wellness': typeof WellnessRoute
   '/.well-known/assetlinks.json': typeof DotwellKnownAssetlinksDotjsonRoute
   '/account': typeof AuthenticatedAccountRoute
@@ -255,6 +262,7 @@ export interface FileRoutesByTo {
   '/speed-chat': typeof SpeedChatRoute
   '/talk-to-strangers': typeof TalkToStrangersRoute
   '/terms': typeof TermsRoute
+  '/vent-anonymously': typeof VentAnonymouslyRoute
   '/wellness': typeof WellnessRoute
   '/.well-known/assetlinks.json': typeof DotwellKnownAssetlinksDotjsonRoute
   '/account': typeof AuthenticatedAccountRoute
@@ -290,6 +298,7 @@ export interface FileRoutesById {
   '/speed-chat': typeof SpeedChatRoute
   '/talk-to-strangers': typeof TalkToStrangersRoute
   '/terms': typeof TermsRoute
+  '/vent-anonymously': typeof VentAnonymouslyRoute
   '/wellness': typeof WellnessRoute
   '/.well-known/assetlinks.json': typeof DotwellKnownAssetlinksDotjsonRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
@@ -325,6 +334,7 @@ export interface FileRouteTypes {
     | '/speed-chat'
     | '/talk-to-strangers'
     | '/terms'
+    | '/vent-anonymously'
     | '/wellness'
     | '/.well-known/assetlinks.json'
     | '/account'
@@ -357,6 +367,7 @@ export interface FileRouteTypes {
     | '/speed-chat'
     | '/talk-to-strangers'
     | '/terms'
+    | '/vent-anonymously'
     | '/wellness'
     | '/.well-known/assetlinks.json'
     | '/account'
@@ -391,6 +402,7 @@ export interface FileRouteTypes {
     | '/speed-chat'
     | '/talk-to-strangers'
     | '/terms'
+    | '/vent-anonymously'
     | '/wellness'
     | '/.well-known/assetlinks.json'
     | '/_authenticated/account'
@@ -426,6 +438,7 @@ export interface RootRouteChildren {
   SpeedChatRoute: typeof SpeedChatRoute
   TalkToStrangersRoute: typeof TalkToStrangersRoute
   TermsRoute: typeof TermsRoute
+  VentAnonymouslyRoute: typeof VentAnonymouslyRoute
   WellnessRoute: typeof WellnessRoute
   DotwellKnownAssetlinksDotjsonRoute: typeof DotwellKnownAssetlinksDotjsonRoute
   BlogSlugRoute: typeof BlogSlugRoute
@@ -574,6 +587,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vent-anonymously': {
+      id: '/vent-anonymously'
+      path: '/vent-anonymously'
+      fullPath: '/vent-anonymously'
+      preLoaderRoute: typeof VentAnonymouslyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/wellness': {
       id: '/wellness'
       path: '/wellness'
@@ -711,6 +731,7 @@ const rootRouteChildren: RootRouteChildren = {
   SpeedChatRoute: SpeedChatRoute,
   TalkToStrangersRoute: TalkToStrangersRoute,
   TermsRoute: TermsRoute,
+  VentAnonymouslyRoute: VentAnonymouslyRoute,
   WellnessRoute: WellnessRoute,
   DotwellKnownAssetlinksDotjsonRoute: DotwellKnownAssetlinksDotjsonRoute,
   BlogSlugRoute: BlogSlugRoute,
