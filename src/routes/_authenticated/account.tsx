@@ -84,7 +84,6 @@ function AccountPage() {
   };
 
   const profile = account.data?.profile;
-  const roles = account.data?.roles ?? [];
   const totalCredits = (profile?.chat_credits ?? 0) + (profile?.free_credits ?? 0);
   const paidCredits = profile?.chat_credits ?? 0;
   const freeCredits = profile?.free_credits ?? 0;
