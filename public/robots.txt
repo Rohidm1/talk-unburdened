@@ -225,5 +225,4 @@ Disallow: /chat-rooms/
 Disallow: /sessions/
 Disallow: /_serverFn/
 
-Sitemap: https://anontalk.online/sitemap.xml
 Sitemap: https://talk-unburdened.lovable.app/sitemap.xml
