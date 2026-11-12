@@ -337,7 +337,7 @@ export function ChatDialog({
         {remaining <= 0 ? <Button variant="outline" className="m-4 mt-0" onClick={() => setPaywall(true)}>Buy credits to continue</Button> : null}
       </DialogContent>
     </Dialog>
-    <TopUpDialog open={paywall} reason={mode === "free" ? "free_used" : "no_credit"} onClose={() => setPaywall(false)} onPurchased={() => {
+    <TopUpDialog open={paywall} partnerName={listener?.displayName} reason={mode === "free" ? "free_used" : "no_credit"} onClose={() => setPaywall(false)} onPurchased={() => {
       if (!sessionId) return;
       void beat({ data: { sessionId } }).then((status) => { setRemaining(status.remaining); exhausted.current = status.remaining <= 0; });
     }} />

@@ -54,8 +54,10 @@ import { pageHead, jsonLd, faqSchema, websiteSchema } from "@/lib/seo";
 import type { CreditPackageKey } from "@/lib/credit-packages";
 
 export const Route = createFileRoute("/")({
-  validateSearch: (search: Record<string, unknown>): { chat?: 1 } =>
-    search["chat"] === 1 || search["chat"] === "1" ? { chat: 1 } : {},
+  validateSearch: (search: Record<string, unknown>): { chat?: 1; partner?: string } => ({
+    ...(search["chat"] === 1 || search["chat"] === "1" ? { chat: 1 as const } : {}),
+    ...(typeof search["partner"] === "string" && /^[\w-]{1,40}$/.test(search["partner"]) ? { partner: search["partner"] } : {}),
+  }),
   head: () => ({
     ...pageHead({ title: homeTitle, description: homeDescription, path: "/" }),
     scripts: [jsonLd(faqSchema(homeAnswers)), jsonLd(websiteSchema(homeDescription))],
@@ -66,7 +68,7 @@ export const Route = createFileRoute("/")({
 function HomePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { chat: autoChat } = Route.useSearch();
+  const { chat: autoChat, partner: partnerParam } = Route.useSearch();
   const { user, loading: authLoading } = useAuth();
   const fetchAccount = useServerFn(getMyAccount);
   const fetchListeners = useServerFn(listPublicListeners);
@@ -124,7 +126,7 @@ function HomePage() {
 
   async function handleChat(listener: Listener) {
     if (!user) {
-      await navigate({ to: "/auth", search: { redirect: "/" } });
+      await navigate({ to: "/auth", search: { partner: listener.id } });
       return;
     }
     playSfx("click");
@@ -153,6 +155,20 @@ function HomePage() {
     quickChat();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoChat, autoStarted, authLoading, listenersOnline.length]);
+
+  // After sign-up, reopen the chat partner the visitor originally tapped.
+  const [partnerStarted, setPartnerStarted] = useState(false);
+  useEffect(() => {
+    if (partnerStarted || authLoading || !user || listenersOnline.length === 0) return;
+    const wanted = partnerParam ?? window.sessionStorage.getItem("at.pendingPartner");
+    if (!wanted) return;
+    setPartnerStarted(true);
+    window.sessionStorage.removeItem("at.pendingPartner");
+    const match = listenersOnline.find((l) => l.id === wanted);
+    if (partnerParam) void navigate({ to: "/", search: {}, replace: true });
+    if (match) void handleChat(match);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [partnerParam, partnerStarted, authLoading, user, listenersOnline.length]);
 
   async function startMatched(listener: Listener) {
     setSearching(true);

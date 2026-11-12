@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "events": {
+    "project.checkout_started": {
+      "event_schema_version": 1,
+      "description": "Customer tapped Buy now on a credit package.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "package",
+          "method"
+        ],
+        "properties": {
+          "package": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "project.paywall_opened": {
+      "event_schema_version": 1,
+      "description": "The credit purchase screen opened.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "reason",
+          "with_partner"
+        ],
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "with_partner": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "project.signup_completed": {
+      "event_schema_version": 1,
+      "description": "An email sign-up succeeded.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "method",
+          "with_partner"
+        ],
+        "properties": {
+          "method": {
+            "type": "string"
+          },
+          "with_partner": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "project.signup_started": {
+      "event_schema_version": 1,
+      "description": "Visitor tapped Continue with Google on the sign-up page.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "method",
+          "with_partner"
+        ],
+        "properties": {
+          "method": {
+            "type": "string"
+          },
+          "with_partner": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

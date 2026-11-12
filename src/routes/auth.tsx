@@ -8,12 +8,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { registrationSchema } from "@/lib/account-access";
+import { lovable } from "@/integrations/lovable/index";
+import { listeners } from "@/data/listeners";
+
+type AuthSearch = { partner?: string; redirect?: string };
 
 const title = "Sign in to Anontalk — anonymous, alias-only accounts";
 const description =
   "Create an alias-only Anontalk account to chat anonymously. Your first 5 messages are free, no real name required.";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>): AuthSearch => ({
+    ...(typeof search["partner"] === "string" && /^[\w-]{1,40}$/.test(search["partner"]) ? { partner: search["partner"] } : {}),
+    ...(typeof search["redirect"] === "string" && search["redirect"].startsWith("/") && !search["redirect"].startsWith("//")
+      ? { redirect: search["redirect"] }
+      : {}),
+  }),
   head: () => ({
     meta: [
       { name: "robots", content: "noindex, nofollow" },
@@ -30,18 +40,42 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const { partner: partnerId, redirect } = Route.useSearch();
+  const partner = partnerId ? listeners.find((l) => l.id === partnerId) : undefined;
+  const [mode, setMode] = useState<"signin" | "signup">(partner ? "signup" : "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [alias, setAlias] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
 
+  const goNext = () => {
+    if (partner) void navigate({ to: "/", search: { partner: partner.id }, replace: true });
+    else if (redirect) void navigate({ to: redirect, replace: true });
+    else void navigate({ to: "/account", replace: true });
+  };
+
   useEffect(() => {
     void supabase.auth.getUser().then(({ data }) => {
-      if (data.user?.email_confirmed_at) void navigate({ to: "/account", replace: true });
+      if (data.user?.email_confirmed_at) goNext();
     });
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const google = async () => {
+    setBusy(true);
+    if (partner) window.sessionStorage.setItem("at.pendingPartner", partner.id);
+    window.__lovableEvents?.track?.("project.signup_started", { method: "google", with_partner: !!partner });
+    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+    if (result.error) {
+      setBusy(false);
+      toast.error("Google sign-in did not complete. Please try again.");
+      return;
+    }
+    if (result.redirected) return;
+    setBusy(false);
+    goNext();
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +93,7 @@ function AuthPage() {
           },
         });
         if (error) throw error;
+        window.__lovableEvents?.track?.("project.signup_completed", { method: "email", with_partner: !!partner });
         if (!data.session) {
           setSent(true);
           return;
@@ -67,7 +102,7 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       }
-      void navigate({ to: "/account", replace: true });
+      goNext();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -92,14 +127,37 @@ function AuthPage() {
             </div>
           ) : (
             <>
+              {partner ? (
+                <div className="mb-5 flex items-center gap-3 rounded-2xl bg-secondary p-3">
+                  <img src={partner.avatar} alt="" width={56} height={56} className="size-14 rounded-full object-cover" />
+                  <p className="text-sm">
+                    <span className="block font-semibold">{partner.displayName} is free to chat</span>
+                    <span className="text-muted-foreground">Create your alias and your first 5 messages are free.</span>
+                  </p>
+                </div>
+              ) : null}
               <h1 className="font-display text-2xl font-semibold tracking-tight">
-                {mode === "signin" ? "Welcome back" : "Create your alias"}
+                {mode === "signin" ? "Welcome back" : partner ? `Message ${partner.displayName}` : "Create your alias"}
               </h1>
               <p className="mt-2 text-sm text-muted-foreground">
                 No real names. Only your alias is ever shown to a chat partner.
               </p>
 
-              <form onSubmit={(e) => void submit(e)} className="mt-6 flex flex-col gap-4">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={busy}
+                onClick={() => void google()}
+                className="mt-6 h-11 w-full gap-[10px] border-[#8E918F] bg-[#131314] px-3 text-sm font-medium text-[#E3E3E3] hover:bg-[#131314] hover:text-[#E3E3E3]"
+              >
+                <svg aria-hidden="true" width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09C3.26 21.3 7.31 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.98-3.09z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
+                Continue with Google
+              </Button>
+              <div className="mt-5 flex items-center gap-3 text-xs text-muted-foreground">
+                <span className="h-px flex-1 bg-border" />or use email<span className="h-px flex-1 bg-border" />
+              </div>
+
+              <form onSubmit={(e) => void submit(e)} className="mt-5 flex flex-col gap-4">
                 {mode === "signup" ? (
                   <div className="flex flex-col gap-2">
                     <Label htmlFor="alias">Nickname</Label>

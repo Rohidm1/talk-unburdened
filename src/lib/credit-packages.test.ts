@@ -24,3 +24,14 @@ describe("credit rules", () => {
     expect(isNoCreditError("daily_limit")).toBe(false);
   });
 });
+
+import { PACKAGE_BY_PLAY_PRODUCT_ID as PLAY_MAP, CREDIT_PACKAGES as PKGS } from "./credit-packages";
+describe("Try-it pack", () => {
+  it("costs $2.99 for 10 messages", () => {
+    expect(PKGS.trial.cents).toBe(299);
+    expect(PKGS.trial.credits + PKGS.trial.bonus).toBe(10);
+  });
+  it("is never granted through Google Play", () => {
+    expect(PLAY_MAP["credits_trial"]).toBeUndefined();
+  });
+});

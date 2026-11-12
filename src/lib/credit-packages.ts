@@ -1,4 +1,4 @@
-export type CreditPackageKey = "starter" | "popular" | "pro_value" | "vip_club";
+export type CreditPackageKey = "trial" | "starter" | "popular" | "pro_value" | "vip_club";
 
 /** Chat credit bundles: each customer message consumes one credit. */
 export const RATE_CENTS_PER_MESSAGE = 0;
@@ -23,6 +23,8 @@ export type CreditPackageDef = {
   /** Google Play in-app product ID (one-time consumable). */
   playProductId: string;
   popular?: boolean;
+  /** Sold only through web checkout (no Google Play product exists). */
+  webOnly?: boolean;
 };
 
 /** Total credits a buyer receives for a package (paid + bonus). */
@@ -31,6 +33,15 @@ export function totalCredits(p: Pick<CreditPackageDef, "credits" | "bonus">): nu
 }
 
 export const CREDIT_PACKAGES: Record<CreditPackageKey, CreditPackageDef> = {
+  trial: {
+    key: "trial",
+    priceId: "chat_trial_usd",
+    credits: 10,
+    bonus: 0,
+    playProductId: "credits_trial",
+    cents: 299,
+    webOnly: true,
+  },
   starter: {
     key: "starter",
     priceId: "chat_starter_usd",
@@ -67,6 +78,7 @@ export const CREDIT_PACKAGES: Record<CreditPackageKey, CreditPackageDef> = {
 };
 
 export const CREDIT_PACKAGE_LIST: CreditPackageDef[] = [
+  CREDIT_PACKAGES.trial,
   CREDIT_PACKAGES.starter,
   CREDIT_PACKAGES.popular,
   CREDIT_PACKAGES.pro_value,
@@ -78,5 +90,5 @@ export const PACKAGE_BY_PRICE_ID: Record<string, CreditPackageDef> = Object.from
 );
 
 export const PACKAGE_BY_PLAY_PRODUCT_ID: Record<string, CreditPackageDef> = Object.fromEntries(
-  Object.values(CREDIT_PACKAGES).map((p) => [p.playProductId, p]),
+  Object.values(CREDIT_PACKAGES).filter((p) => !p.webOnly).map((p) => [p.playProductId, p]),
 );

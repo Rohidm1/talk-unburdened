@@ -18,7 +18,7 @@ import { buyWithPlay, getPlayBilling } from "@/lib/play-billing";
 import { redeemPlayPurchase } from "@/lib/play-billing.functions";
 import { haptic } from "@/lib/native";
 
-const NAMES: Record<CreditPackageKey, string> = { starter: "Starter", popular: "Most popular", pro_value: "Best value", vip_club: "VIP Club" };
+const NAMES: Record<CreditPackageKey, string> = { trial: "Try it", starter: "Starter", popular: "Most popular", pro_value: "Best value", vip_club: "VIP Club" };
 
 type Method = "web" | "play";
 
@@ -28,7 +28,9 @@ export function TopUpDialog({
   reason,
   onClose,
   onPurchased,
+  partnerName,
 }: {
+  partnerName?: string | undefined;
   open: boolean;
   reason: "free_used" | "no_credit" | "buy";
   onClose: () => void;
@@ -43,6 +45,7 @@ export function TopUpDialog({
 
   useEffect(() => {
     if (!open) return;
+    window.__lovableEvents?.track?.("project.paywall_opened", { reason, with_partner: !!partnerName });
     void getPlayBilling().then((s) => {
       setPlayReady(!!s);
       if (s) setMethod("play");
@@ -97,7 +100,8 @@ export function TopUpDialog({
   };
 
   const title =
-    reason === "free_used" ? "Your free messages are used up!" : reason === "no_credit" ? "You're out of credits" : "Buy credits";
+    partnerName && reason !== "buy" ? `Keep talking with ${partnerName}`
+    : reason === "free_used" ? "Your free messages are used up!" : reason === "no_credit" ? "You're out of credits" : "Buy credits";
 
   return (
     <>
@@ -109,7 +113,7 @@ export function TopUpDialog({
               {title}
             </DialogTitle>
             <DialogDescription>
-              {reason === "buy" ? "" : "Enjoying the support? Pick a package to keep chatting and unlock every option. "}
+              {reason === "buy" ? "" : partnerName ? `${partnerName} is still here. Pick a package to carry on the conversation. ` : "Enjoying the support? Pick a package to keep chatting and unlock every option. "}
               1 credit = 1 message you send, everywhere on Anontalk. Replies from your chat partner are free.
             </DialogDescription>
           </DialogHeader>
@@ -138,8 +142,8 @@ export function TopUpDialog({
             ))}
           </div>
 
-          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {CREDIT_PACKAGE_LIST.map((p) => {
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {CREDIT_PACKAGE_LIST.filter((p) => !(method === "play" && p.webOnly)).map((p) => {
               const total = totalCredits(p);
               const perCredit = p.cents / 100 / total;
               const disabled = method === "play" && !playReady;
@@ -166,6 +170,7 @@ export function TopUpDialog({
                     disabled={disabled || busy !== null}
                     onClick={() => {
                       haptic(10);
+                      window.__lovableEvents?.track?.("project.checkout_started", { package: p.key, method });
                       if (method === "web") setCheckoutKey(p.key);
                       else void buyPlay(p);
                     }}
