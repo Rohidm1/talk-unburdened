@@ -15,7 +15,7 @@ import { Reveal } from "@/components/site/Reveal";
 
 const title = "Vent to Someone Anonymously — Anontalk";
 const description =
-  "Need to vent to someone anonymously? Pick an alias and type it out to a real person on Anontalk. Text only, no real name, 5 free messages to start.";
+  "Need to vent to someone anonymously? Pick an alias and type it out on Anontalk, with team-run profiles and labelled AI fallback. Text only, no real name, 5 free messages to start.";
 const url = "https://anontalk.online/vent-anonymously";
 
 const faqs = [
@@ -25,7 +25,7 @@ const faqs = [
   },
   {
     q: "Who reads my messages?",
-    a: "A person reads and answers every message. Speed Chat matches you with another real user; chat partner profiles are personas run by our team, and every reply is written by a team member.",
+    a: "Speed Chat matches you with another real user; chat partner profiles are personas run by our team, and available team members have priority, with labelled AI fallback when none can handle the chat.",
   },
   {
     q: "Is venting online free?",

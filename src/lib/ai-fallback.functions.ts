@@ -1,192 +1,65 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import {
-  SYSTEM_PROMPT,
-  checkReplyGuardrails,
-  chunkReply,
-  maybeInjectTypo,
-  personaPromptFor,
-} from "@/lib/ai-persona";
+import { SYSTEM_PROMPT, checkReplyGuardrails, personaPromptFor } from "@/lib/ai-persona";
 
-const sessionInput = (input: unknown) => z.object({ sessionId: z.string().uuid() }).parse(input);
-
-const replyInput = (input: unknown) =>
-  z
-    .object({
-      sessionId: z.string().uuid(),
-      kind: z.enum(["reply", "opener"]).default("reply"),
-    })
-    .parse(input);
-
-/** True when at least one human agent is marked online with a fresh heartbeat. */
-async function hasLiveAgent(supabaseAdmin: {
-  from: (t: string) => {
-    select: (c: string) => {
-      eq: (
-        c: string,
-        v: string,
-      ) => { gt: (c: string, v: string) => Promise<{ data: unknown[] | null }> };
-    };
-  };
-}) {
-  const since = new Date(Date.now() - 60_000).toISOString();
-  const { data } = await supabaseAdmin
-    .from("agent_presence")
-    .select("user_id")
-    .eq("availability", "online")
-    .gt("last_seen_at", since);
-  return (data ?? []).length > 0;
-}
-
-/**
- * Automatic replies are switched off: every chat reply is written by a team member.
- * Both server functions refuse to generate or store stand-in messages.
- */
-export const AI_REPLIES_ENABLED = false;
+/** Delivery is controlled durably by the admin setting and guarded database RPCs. */
+export const AI_REPLIES_ENABLED = true;
 
 export const requestAiReply = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(replyInput)
+  .inputValidator((input: unknown) => z.object({ sessionId: z.string().uuid(), kind: z.enum(["reply", "opener"]).default("reply") }).parse(input))
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { retrieveExamples, logInteraction } = await import("@/lib/ai-learning.server");
-
     const skip = (reason: string) => ({ ok: false as const, reason, chunks: [] as string[] });
-    if (!AI_REPLIES_ENABLED) return skip("disabled");
-
-    const { data: session } = await supabaseAdmin
-      .from("chat_sessions")
-      .select("id, client_id, listener_id, status, ended_at, answered_at, ai_muted")
-      .eq("id", data.sessionId)
-      .maybeSingle();
-
-    if (!session || session.client_id !== context.userId) return skip("forbidden");
-    if (session.ended_at || session.status === "ended") return skip("closed");
-    if (session.ai_muted || session.answered_at) return skip("muted");
-    if (await hasLiveAgent(supabaseAdmin as never)) return skip("agent_online");
-
-    const { data: listener } = session.listener_id
-      ? await supabaseAdmin
-          .from("listeners")
-          .select("display_name, languages")
-          .eq("id", session.listener_id)
-          .maybeSingle()
-      : { data: null };
-    const personaName = listener?.display_name ?? "your chat partner";
-    const personaLanguages = listener?.languages ?? null;
-
-    const { data: history } = await supabaseAdmin
-      .from("chat_messages")
-      .select("sender_role, body, created_at")
-      .eq("session_id", data.sessionId)
-      .order("created_at", { ascending: false })
-      .limit(10);
-
-    const ordered = (history ?? []).slice().reverse();
-    const lastUserMessage = [...ordered].reverse().find((m) => m.sender_role === "client")?.body;
-
-    if (data.kind === "opener" && ordered.some((m) => m.sender_role === "client")) {
-      return skip("not_needed");
-    }
-
-    // Retrieval-augmented: reuse the phrasing that historically kept people talking.
-    const examples = lastUserMessage ? await retrieveExamples(lastUserMessage) : [];
-    const examplesBlock = examples.length
-      ? `\n\nExamples of replies that worked well before (match the style, never copy verbatim):\n${examples
-          .map((e) => `- When someone said "${e.user_prompt}" a great reply was "${e.ai_response}"`)
-          .join("\n")}`
-      : "";
-
-    const personaBlock = personaPromptFor(personaName, personaLanguages);
-    const openerBlock =
-      data.kind === "opener"
-        ? `\n\nThe person just opened the chat and hasn't typed yet. Send one short, warm, natural opening line that invites them to share what's on their mind. Do not mention waiting, timers or the platform.`
-        : "";
-
-    const messages = [
-      { role: "system", content: SYSTEM_PROMPT + personaBlock + examplesBlock + openerBlock },
-      ...ordered.map((m) => ({
-        role: m.sender_role === "client" ? "user" : "assistant",
-        content: m.body,
-      })),
-    ];
-    if (data.kind === "opener") {
-      messages.push({ role: "user", content: "(the person just joined the chat)" });
-    }
-
+    // No unsolicited openers: only reply to a persisted customer message.
+    if (data.kind === "opener") return skip("not_needed");
+    const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
     const key = process.env["LOVABLE_API_KEY"];
-    if (!key) return skip("unavailable");
-
+    if (!key) return skip("configuration");
+    const { data: jobId, error: reserveError } = await admin.rpc("reserve_ai_reply", { _session_id: data.sessionId, _client_id: context.userId });
+    if (reserveError) throw new Error("Could not check reply availability");
+    if (!jobId) return skip("not_needed");
+    const fail = async (reason: string) => {
+      await admin.from("ai_reply_jobs").update({ status: "failed" }).eq("id", jobId);
+      return skip(reason);
+    };
+    const { data: session } = await admin.from("chat_sessions").select("listener_id").eq("id", data.sessionId).single();
+    const { data: listener } = session?.listener_id
+      ? await admin.from("listeners").select("display_name,languages").eq("id", session.listener_id).maybeSingle()
+      : { data: null };
+    // Full session history only; never retrieve another customer's private conversation.
+    const history: { sender_role: string; body: string }[] = [];
+    for (let offset = 0; ; offset += 500) {
+      const { data: rows, error } = await admin.from("chat_messages").select("sender_role,body").eq("session_id", data.sessionId).order("created_at", { ascending: true }).order("id", { ascending: true }).range(offset, offset + 499);
+      if (error) return fail("unavailable");
+      history.push(...(rows ?? []));
+      if (!rows || rows.length < 500) break;
+    }
+    const messages = [
+      { role: "system", content: SYSTEM_PROMPT + personaPromptFor(listener?.display_name ?? "your chat partner", listener?.languages) },
+      ...history.map((m) => ({ role: m.sender_role === "client" ? "user" : "assistant", content: m.body })),
+    ];
     try {
       const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Lovable-API-Key": key,
-          "X-Lovable-AIG-SDK": "fetch",
-        },
-        body: JSON.stringify({ model: "google/gemini-3.6-flash", messages }),
+        headers: { "Content-Type": "application/json", "Lovable-API-Key": key, "X-Lovable-AIG-SDK": "fetch" },
+        body: JSON.stringify({ model: "google/gemini-3.8-flash", messages }),
       });
-      if (!res.ok) return skip(res.status === 429 ? "rate_limited" : "unavailable");
-      const json = (await res.json()) as {
-        choices?: { message?: { content?: string } }[];
-      };
+      if (!res.ok) {
+        // Terminal access and credit failures pause all automatic entry points durably.
+        if ([401, 402, 403, 404].includes(res.status)) {
+          await admin.from("app_settings").upsert({ key: "ai_fallback_paused", value: `AI service paused (${res.status}). Check service access and credits, then re-enable fallback.`, updated_at: new Date().toISOString() });
+        }
+        return fail(res.status === 429 ? "rate_limited" : "unavailable");
+      }
+      const json = await res.json() as { choices?: { message?: { content?: string } }[] };
       const text = json.choices?.[0]?.message?.content?.trim();
-      if (!text) return skip("unavailable");
-
-      const cleanChunks = chunkReply(text);
-      if (cleanChunks.some((chunk) => !checkReplyGuardrails(chunk).ok)) return skip("unavailable");
-      // Human quirk: now and then a small typo slips in, followed by a quick fix.
-      const { chunks } = data.kind === "opener" ? { chunks: cleanChunks } : maybeInjectTypo(cleanChunks);
-
-      await supabaseAdmin
-        .from("chat_sessions")
-        .update({ ai_active: true })
-        .eq("id", data.sessionId)
-        .eq("ai_muted", false);
-
-      await logInteraction({
-        sessionId: data.sessionId,
-        personaId: session.listener_id ?? null,
-        personaName,
-        userPrompt: data.kind === "opener" ? "" : (lastUserMessage ?? ""),
-        aiResponse: chunks.join(" "),
-      });
-
-      return { ok: true as const, reason: null, chunks };
+      if (!text || !checkReplyGuardrails(text).ok) return fail("unavailable");
+      // Atomic recheck catches takeover, admin switch-off and a newer customer turn.
+      const { data: delivered, error } = await admin.rpc("deliver_ai_reply", { _job_id: jobId, _body: text });
+      if (error) return fail("unavailable");
+      return delivered ? { ok: true as const, reason: null, chunks: [text] } : skip("not_needed");
     } catch {
-      return skip("unavailable");
+      return fail("unavailable");
     }
-  });
-
-/** Writes one stand-in message, unless a human agent has taken over meanwhile. */
-export const persistAiMessage = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z
-      .object({ sessionId: z.string().uuid(), body: z.string().trim().min(1).max(2000) })
-      .parse(input),
-  )
-  .handler(async ({ data, context }) => {
-    if (!AI_REPLIES_ENABLED) return { ok: false as const };
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: session } = await supabaseAdmin
-      .from("chat_sessions")
-      .select("id, client_id, status, ended_at, answered_at, ai_muted")
-      .eq("id", data.sessionId)
-      .maybeSingle();
-
-    if (!session || session.client_id !== context.userId) return { ok: false as const };
-    if (session.ended_at || session.ai_muted || session.answered_at) return { ok: false as const };
-
-    const { error } = await supabaseAdmin.from("chat_messages").insert({
-      session_id: data.sessionId,
-      sender_role: "agent",
-      sender_user_id: null,
-      is_ai: true,
-      body: data.body,
-    });
-    if (error) throw new Error(error.message);
-    return { ok: true as const };
   });

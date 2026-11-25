@@ -17,6 +17,8 @@ import { addChatSeconds, awardXp, completeQuest } from "@/lib/gamification";
 import { logEngagement } from "@/lib/engagement";
 import type { Listener } from "@/data/listeners";
 import { TopUpDialog } from "@/components/site/TopUpDialog";
+import { requestAiReply } from "@/lib/ai-fallback.functions";
+import { en } from "@/locales/en";
 
 export function ChatDialog({
   listener,
@@ -34,6 +36,8 @@ export function ChatDialog({
   const beat = useServerFn(chatHeartbeat);
   const send = useServerFn(sendChatMessage);
   const fetchMessages = useServerFn(listChatMessages);
+  const reply = useServerFn(requestAiReply);
+  const replyBusy = useRef(false);
 
   const [answered, setAnswered] = useState(false);
   const [connected, setConnected] = useState(false);
@@ -137,7 +141,32 @@ export function ChatDialog({
     lastCount.current = list.length;
   }, [messages.data]);
 
-  // Replies come only from the team; clear the typing hint once someone answers.
+  // Poll only unresolved customer turns. The server reserves each turn once and
+  // rechecks human priority at delivery; no client-supplied AI text is persisted.
+  useEffect(() => {
+    if (!open || !sessionId || answered) return;
+    const last = messages.data?.at(-1);
+    if (!last || last.sender_role !== "client") return;
+    let stopped = false;
+    const tick = async () => {
+      if (replyBusy.current) return;
+      replyBusy.current = true;
+      setPartnerTyping(true);
+      try {
+        const result = await reply({ data: { sessionId } });
+        if (!stopped) {
+          if (result.ok) { setNotice(null); await messages.refetch(); }
+          else if (result.reason !== "not_needed") setNotice(en.chat.aiError);
+        }
+      } catch { if (!stopped) setNotice(en.chat.aiError); }
+      finally { replyBusy.current = false; if (!stopped) setPartnerTyping(false); }
+    };
+    void tick();
+    const interval = window.setInterval(() => void tick(), 5000);
+    return () => { stopped = true; window.clearInterval(interval); setPartnerTyping(false); };
+  }, [open, sessionId, answered, messages.data?.at(-1)?.id, reply]);
+
+  // A human takeover immediately clears the automatic-reply hint.
   useEffect(() => {
     if (answered) {
       turnRef.current += 1;
@@ -186,7 +215,7 @@ export function ChatDialog({
         }
         return next;
       });
-      if (!answered) setNotice(`${partnerName} will reply as soon as possible.`);
+      if (!answered) setNotice(en.chat.aiWaiting);
     } catch {
       setDraft(body);
       toast.error("Your message could not be sent. Please try again.");
@@ -224,7 +253,7 @@ export function ChatDialog({
               <span className="flex min-w-0 flex-col text-left">
                 <span className="truncate text-base">{partnerName}</span>
                 <span className="text-xs font-normal text-muted-foreground">
-                  {connected ? "Online" : "Connecting…"}
+                  {answered ? en.chat.humanLabel : messages.data?.some((m) => m.is_ai) ? en.chat.aiStatus : en.chat.waitingStatus}
                 </span>
               </span>
             </span>
@@ -259,7 +288,7 @@ export function ChatDialog({
           </DialogTitle>
         </DialogHeader>
         <p role="note" className="border-b border-border bg-muted/40 px-5 py-2 text-xs text-muted-foreground">
-          {listener?.displayName ?? "This chat partner"} is a profile run by the Anontalk team. Every reply is written by a team member.
+          {en.chat.aiNotice}
         </p>
 
         <div className="no-scrollbar flex-1 space-y-3 overflow-y-auto overscroll-contain p-4">
@@ -272,6 +301,7 @@ export function ChatDialog({
                   : "bg-secondary text-secondary-foreground"
               }`}
             >
+              {m.sender_role !== "client" ? <span className="mb-1 block text-[11px] text-muted-foreground">{m.is_ai ? en.chat.aiLabel : en.chat.humanLabel}</span> : null}
               {m.body}
             </div>
           ))}

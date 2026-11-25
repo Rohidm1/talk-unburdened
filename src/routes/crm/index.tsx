@@ -14,6 +14,7 @@ import { AdminMonitor } from "@/components/portal/AdminMonitor";
 import { AnnouncementsTab } from "@/components/portal/AnnouncementsTab";
 import { ManagementTab } from "@/components/portal/ManagementTab";
 import { ReportsPanel } from "@/components/site/ReportsPanel";
+import { AiFallbackControl } from "@/components/portal/AiFallbackControl";
 
 const tabs = ["analytics", "messages", "announcements", "management", "reports"] as const;
 type Tab = (typeof tabs)[number];
@@ -162,6 +163,7 @@ function Portal() {
         </div>
       </header>
 
+      {isAdmin ? <AiFallbackControl /> : null}
       <main className="flex-1 overflow-auto p-4 md:p-6">
         {!me.data ? (
           <p className="text-sm text-muted-foreground">Loading…</p>

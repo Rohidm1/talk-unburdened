@@ -29,7 +29,7 @@ Make it easy for anyone who has no one to talk to to be heard, without giving th
 - Accounts need an email, a nickname and a password; no real name.
 - New accounts get 5 free credits. 1 credit = 1 sent message across chat, Speed Chat, community posts and replies, and dropping, opening or replying to bottles. Chat partner replies are free.
 - Credits are sold in bundles (with bonus credits) via web checkout (card, iDEAL) or Google Play in the Android app. No subscription.
-- Chat partners use profile personas; every reply is written by a team member.
+- Chat partners use profile personas; available team members have priority, with clearly labelled AI fallback when none can handle the chat.
 - Messages are stored for safety review and are not end-to-end encrypted. Contact details are masked automatically.
 - Daily wellness fortune: 1 bonus credit per day. Invite a friend: 5 bonus credits each. Mood SOS streaks: 2 credits at 3 days, 5 at 7 days.
 - Not an emergency service. In danger, call 112 or the local emergency number.

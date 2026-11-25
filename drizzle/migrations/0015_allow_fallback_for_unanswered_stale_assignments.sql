@@ -1,0 +1,5 @@
+CREATE OR REPLACE FUNCTION public.ai_fallback_allowed(_session_id uuid) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$
+SELECT EXISTS(SELECT 1 FROM public.chat_sessions s WHERE s.id=_session_id AND s.ended_at IS NULL AND s.answered_at IS NULL AND NOT s.ai_muted AND s.status IN ('queued','ringing') AND NOT EXISTS(SELECT 1 FROM public.agent_presence assigned WHERE assigned.user_id=s.agent_user_id AND assigned.availability='available' AND assigned.last_seen_at>now()-interval '60 seconds')) AND COALESCE((SELECT value='true' FROM public.app_settings WHERE key='ai_fallback_enabled'),true) AND NOT EXISTS(SELECT 1 FROM public.app_settings WHERE key='ai_fallback_paused' AND value<>'') AND NOT EXISTS(SELECT 1 FROM public.agent_presence p JOIN public.user_roles r ON r.user_id=p.user_id AND r.role IN ('staff','admin') WHERE p.availability='available' AND p.last_seen_at>now()-interval '60 seconds' AND p.active_chat_count<2);
+$$;
+REVOKE ALL ON FUNCTION public.ai_fallback_allowed(uuid) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.ai_fallback_allowed(uuid) TO service_role;

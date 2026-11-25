@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import "@/lib/i18n";
+import { en } from "@/locales/en";
 import { LegalPage } from "@/components/site/LegalPage";
 import { breadcrumbSchema, jsonLd, pageHead } from "@/lib/seo";
 
@@ -53,7 +54,7 @@ function PrivacyPage() {
             <>
               <p>Chat messages are stored so our team can review conversations for safety, handle abuse reports and improve reply quality. Phone numbers, email addresses, links, social handles and street addresses are automatically masked before messages are saved. Masking may not catch everything, so please do not share identifying details about yourself or others.</p>
               <p>Chats are not end-to-end encrypted. A nickname means other users do not see who you are; it does not make you anonymous to the service or its providers.</p>
-              <p>Chat partner replies are written by real members of our team; no automated replies are used. Team members may keep short notes about details you share in chat (for example your first name, situation, family or health) so they can follow up in later chats. These notes are visible only to our team and are deleted when you delete your account.</p>
+              <p>{en.chat.aiPrivacy}</p>
             </>
           ),
         },

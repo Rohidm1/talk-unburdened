@@ -168,6 +168,45 @@ export type Database = {
           },
         ]
       }
+      ai_reply_jobs: {
+        Row: {
+          created_at: string
+          id: string
+          message_id: string
+          session_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_id: string
+          session_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_id?: string
+          session_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_reply_jobs_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_reply_jobs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_settings: {
         Row: {
           key: string
@@ -1430,6 +1469,7 @@ export type Database = {
         Args: { _action: string; _report_id: string }
         Returns: undefined
       }
+      ai_fallback_allowed: { Args: { _session_id: string }; Returns: boolean }
       assign_chat_agent: {
         Args: { _client_id: string; _listener_id: string }
         Returns: string
@@ -1457,6 +1497,10 @@ export type Database = {
         }[]
       }
       delete_user_content: { Args: { _user_id: string }; Returns: undefined }
+      deliver_ai_reply: {
+        Args: { _body: string; _job_id: string }
+        Returns: boolean
+      }
       dilemma_results: {
         Args: { _dilemma_id: string }
         Returns: {
@@ -1528,6 +1572,10 @@ export type Database = {
           _target_type: string
         }
         Returns: undefined
+      }
+      reserve_ai_reply: {
+        Args: { _client_id: string; _session_id: string }
+        Returns: string
       }
       revoke_chat_credits: {
         Args: {

@@ -15,11 +15,11 @@ describe.skipIf(!key)("AI stand-in live smoke test", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Lovable-API-Key": key!,
+          "Lovable-API-Key": key ?? "",
           "X-Lovable-AIG-SDK": "fetch",
         },
         body: JSON.stringify({
-          model: "google/gemini-3.6-flash",
+          model: "google/gemini-3.8-flash",
           messages: [
             { role: "system", content: SYSTEM_PROMPT },
             { role: "user", content: "are you a bot? feeling kinda low today" },

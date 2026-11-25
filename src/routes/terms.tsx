@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import "@/lib/i18n";
+import { en } from "@/locales/en";
 import { LegalPage } from "@/components/site/LegalPage";
 import { breadcrumbSchema, jsonLd, pageHead } from "@/lib/seo";
 
@@ -37,7 +38,7 @@ function TermsPage() {
           content: (
             <>
               <p>Use a verified email address and keep one account per person. A nickname is enough; no real name is needed. Keep your sign-in details safe.</p>
-              <p>Chat partners use profile personas, which are not verified identities. Every chat partner reply is written by a real member of our team. Anontalk does not use automated replies. See our <a href="/privacy">Privacy Policy</a> for how messages are stored.</p>
+              <p>{en.chat.aiTerms}</p>
             </>
           ),
         },

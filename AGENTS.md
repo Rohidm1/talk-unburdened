@@ -28,7 +28,7 @@
 - Rewards (daily fortune, SOS streaks, referrals) are granted only inside security-definer database functions that are idempotent per day/person and log a credit transaction.
 - Reports and blocks go through one `report_content` function feeding the admin Reports tab; matching, bottles and community views must respect `user_blocks`.
 - Global overlays (SOS, safety prompt, report sheet, welcome, offline, holiday theme) mount once in the root inside `SafeBoundary` and are opened via window events.
-- Chat-partner personas are disclosed on profile cards, in the chat and in the FAQ. Automatic chat replies are off (`AI_REPLIES_ENABLED = false`, enforced server-side); re-enabling them requires restoring AI disclosures site-wide first, because EU AI transparency and ad rules forbid undisclosed AI replies.
+- Chat-partner personas and AI fallback are disclosed on cards, in chat, FAQs and legal notices; label each AI reply. Service-only reserve/deliver RPCs guard each turn against duplicates, human takeover, agent availability and the durable admin switch. Never accept client-supplied AI reply text or retrieve other customers' conversations.
 
 - The team/admin workspace lives only at `/crm` (Open Ear portal, components in `src/components/portal`); chat routing rules live in `src/lib/portal-rules.ts` and the `assign_chat_agent`/`claim_next_chat` database functions, so keep both in sync.
 - The Open Ear portal has its own address, separate from the customer site (`PORTAL_HOSTS` in `src/lib/portal-host.ts`): that host renders only portal pages, never customer content, tracking or customer branding; keep portal copy free of customer-site names.

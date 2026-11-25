@@ -338,3 +338,24 @@ export const getTranscriptAdmin = createServerFn({ method: "GET" })
     ]);
     return { messages: messages ?? [], notes: notes ?? [] };
   });
+
+/** Admin-only durable fallback control; enabling explicitly clears a service pause. */
+export const getAiFallbackSettings = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const admin = await adminClient(context);
+    const { data, error } = await admin.from("app_settings").select("key,value").in("key", ["ai_fallback_enabled", "ai_fallback_paused"]);
+    if (error) throw new Error("Could not load fallback settings");
+    return { enabled: data?.find((r) => r.key === "ai_fallback_enabled")?.value !== "false", paused: data?.find((r) => r.key === "ai_fallback_paused")?.value ?? "" };
+  });
+export const setAiFallbackSettings = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ enabled: z.boolean() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const admin = await adminClient(context);
+    const rows = [{ key: "ai_fallback_enabled", value: String(data.enabled), updated_at: new Date().toISOString() }];
+    if (data.enabled) rows.push({ key: "ai_fallback_paused", value: "", updated_at: new Date().toISOString() });
+    const { error } = await admin.from("app_settings").upsert(rows);
+    if (error) throw new Error("Could not save fallback settings");
+    return { ok: true };
+  });

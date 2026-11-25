@@ -28,7 +28,7 @@ const url = "https://anontalk.online/talk-to-strangers";
 const faqs = [
   {
     q: "Is this a good Omegle alternative?",
-    a: "It is text-only and anonymous, but calmer. There is no random video, no cam roulette and no strangers watching you. You pick an alias and start typing. Speed Chat matches you with another real user; chat partner profiles are personas run by our team, and every reply is written by a team member.",
+    a: "It is text-only and anonymous, but calmer. There is no random video, no cam roulette and no strangers watching you. You pick an alias and start typing. Speed Chat matches you with another real user; chat partner profiles are personas run by our team, and available team members have priority, with labelled AI fallback when none can handle the chat.",
   },
   {
     q: "Do I have to give my real name?",
