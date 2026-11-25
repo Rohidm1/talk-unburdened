@@ -1,6 +1,6 @@
 # Roadmap
-- [ ] Explain existing admin access without changing sign-in.
-- [ ] Restore disclosed, human-priority AI fallback with admin control and verify it.
+- [x] Explain existing admin access without changing sign-in; current requester account is customer-only, no role changes made.
+- [x] Restore labelled, human-priority AI fallback with admin control; verified two customer replies and saved off/on switch with temporary accounts; tests pass. Publication still required for live customer pages.
 - [x] SEO findings checked: added published sitemap to robots while preserving customer sitemap; verified all route sharing tags and 42 live same-origin sitemap URLs. Scanner confirmation pending; crawler change reaches live site on next publish.
 - [x] Finish Search Console setup for the published Lovable address: live ownership tag verified, owner property added, and 42-URL same-origin sitemap accepted by Google (processing pending).
 - [x] Open Ear portal gets its own address (openearteam.com): host gate serves only portal pages there, portal copy freed of customer branding. Both domains' DNS converged; verified live that anontalk.online serves the customer site (indexable, canonical to itself) and openearteam.com goes straight to the portal sign-in (noindex, no customer branding).
